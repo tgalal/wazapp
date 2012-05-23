@@ -1,0 +1,22 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import os,dbus,sys
+
+if __name__=="__main__":
+	try:
+		bus = dbus.SessionBus()
+		remote_object = bus.get_object("com.tgalal.meego.Wazapp.WAService", "/")
+		print "FOUND RUNNING INSTANCE"
+		remote_object.show();
+		sys.exit();
+	except dbus.exceptions.DBusException as e:
+		#os.system("exec /usr/bin/invoker --type e --splash /opt/waxmppplugin/bin/wazapp/UI/pics/wasplash.png /opt/waxmppplugin/bin/wazapp/wazapp");
+		print "CAUGHT EXCEPT"
+		os.system("exec /usr/bin/invoker --type e --splash /opt/waxmppplugin/bin/wazapp/UI/pics/wasplash.png /opt/waxmppplugin/bin/wazapp/wazapp");
+	
+
+	
+	
+	
+		

@@ -8,7 +8,7 @@ Item {
     property int size
     property bool rounded: true
 
-    signal clicked
+    //signal clicked
 
     height: size
     width: size
@@ -51,10 +51,10 @@ Item {
         visible: imgsource != "" && rounded
     }
 
-    MouseArea {
+    /*MouseArea {
         id: mouseArea
         anchors.fill: parent
         onClicked: container.clicked()
-    }
+    }*/
 
 }

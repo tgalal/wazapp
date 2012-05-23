@@ -2,7 +2,7 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 
 import "contacts.js" as ContactsManager
-
+import "Global.js" as Helpers
 
 Page {
     id: contactsContainer

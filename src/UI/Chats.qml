@@ -173,7 +173,8 @@ Page {
             Label{
                 anchors.centerIn: parent;
                 text:"No conversations yet"
-                font.pointSize: 20
+                font.pointSize: 22
+				color: "gray"
                 width:parent.width
                 horizontalAlignment: Text.AlignHCenter
             }

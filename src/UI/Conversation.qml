@@ -1,8 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
-
-
 import "conversations.js" as ConvScript
 import "Global.js" as Helpers
 //import QtMobility.systeminfo 1.1
@@ -19,12 +17,12 @@ Page {
         else if(status == PageStatus.Active){
             appWindow.conversationActive(user_id);
             appWindow.setActiveConv(user_id)
+			pageIsActive = true
 		}
         
     }
 
 	
-
 	TextFieldStyle {
         id: myTextFieldStyle
         backgroundSelected: ""
@@ -33,6 +31,8 @@ Page {
 		backgroundError: ""
     }
 
+	property bool loadFinished: false
+	property bool pageIsActive: false
 	property bool showSendButton
     property string user_id;
     property string user_name;
@@ -224,10 +224,10 @@ Page {
     }
 
     Component{
-        id:myDelegate
+       id:myDelegate
 
        SpeechBubble{
-           message: Helpers.emojify(Helpers.newlinefy(Helpers.linkify(model.message)));
+           message: Helpers.emojifyBig(Helpers.linkify(model.message));
            date:model.timestamp
            from_me:model.type==1
            //picture: user_picture
@@ -259,6 +259,7 @@ Page {
 		    s = s + conv_items.currentItem.height
 			//console.log("INC SIZE: " + s);
 		}
+		loadFinished=true
 		return s;
 	}
 
@@ -280,11 +281,22 @@ Page {
             spacing: 0
 
 			Rectangle {
-				id: spacer
+				id: spacer_top
 				color: "transparent"
 				width: parent.width
-				height: conv_items.height<(flickArea.height-input_holder.height) ?
-						flickArea.height-input_holder.height-conv_items.height : 0
+				height: conv_items.height<(flickArea.height-input_holder.height-10-input_button_holder.height) ?
+						flickArea.height-input_holder.height-conv_items.height-10-input_button_holder.height : 0
+
+		        Label{
+		            anchors.centerIn: parent;
+		            text: "Loading conversation..."
+		            font.pointSize: 22
+					color: "gray"
+		            width: parent.width
+		            horizontalAlignment: Text.AlignHCenter
+					visible: !loadFinished
+		        }
+
 			}
 			
 			ListView{
@@ -294,12 +306,13 @@ Page {
 				delegate: myDelegate
 				model: conv_data
 				interactive: false
-				height: getListSize()
+				height: pageIsActive ? getListSize() : 0
+				visible: loadFinished
 				//onCountChanged: { flickArea.contentY = conv_items.height }
 				onHeightChanged: { 
 					var s = 0;
-					if (conv_items.height > (flickArea.height-input_holder.height-73) )
-						s = conv_items.height - flickArea.height +65
+					if (conv_items.height > (flickArea.height-input_holder.height-73-10) )
+						s = conv_items.height - flickArea.height +75
 					else
 						s = conv_items.height
 					flickArea.contentY = s
@@ -307,6 +320,12 @@ Page {
 				
 			}
 
+			Rectangle {
+				id: spacer_bottom
+				width: parent.width
+				height: 10
+				color: "transparent"
+			}
 			
 			Rectangle {
 				id: input_holder
@@ -315,29 +334,27 @@ Page {
 				height: chat_text.height
 				color: "white"
 
+				property bool alreadyFocused: false
+
 				/*Image {
 					x: 16
 					y: 22
 					height: 42; width: 42; smooth: true
 					source: "pics/wazapp48.png"
-                }*/
+				}*/
 
 				TextArea {
 				    id: chat_text
-				    width:parent.width - 32
-					x: 16
+				    width:parent.width 
+					x: 0
 				    height: 65
 					anchors.verticalCenter: parent.verticalCenter
 					placeholderText: "Write your message here"
 					platformStyle: myTextFieldStyle
-                    //textFormat: TextEdit.RichText
-
 					wrapMode: TextEdit.Wrap
+                    textFormat: Text.PlainText
 
-
-
-                    onTextChanged: {
-                       // chat_text.text = Helpers.emojify(chat_text.text);
+				    onTextChanged: {
 				        if(!iamtyping)
 				        {
 				            console.log("TYPING");
@@ -348,15 +365,19 @@ Page {
 					}
 
 					onActiveFocusChanged: {
-                        showSendButton = chat_text.focus
-						if (showSendButton)
-							flickArea.contentY = input_button_holder.y+input_button_holder.height
-						//else
-						//	flickArea.contentY = conv_items.height
+                        showSendButton = chat_text.focus || input_button_holder_area.focus
+						if (showSendButton) {
+							if (!alreadyFocused) {
+								alreadyFocused = true
+								flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
+							} 
+						} else
+							alreadyFocused = false
+
                     }
 
 					onHeightChanged: {
-						flickArea.contentY = input_button_holder.y+input_button_holder.height
+						flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
 					}
 					
 				}
@@ -370,6 +391,17 @@ Page {
 				color: "white"
 				clip: true
 				
+			    MouseArea {
+					id: input_button_holder_area
+					anchors.fill: parent
+					onClicked: { 
+						showSendButton=true; 
+						flickArea.contentY = flickArea.contentY
+						chat_text.forceActiveFocus()
+					}
+				}
+
+				
 				Rectangle {
 					height: 1
 					width: parent.width
@@ -377,31 +409,14 @@ Page {
 					color: "gray"
 					opacity: 0.6
 				}
-                /* Button
-                {
-                    id: emoji_button
 
-                    platformStyle:  ButtonStyle{
-                       inverted:appWindow.stealth  || theme.inverted
-                    }
-                    width:65
-                    height:60
-                    iconSource: "pics/emoji/emoji-E415.png"
-                    anchors.bottom: parent.bottom
-                    onClicked:{
-
-                        var component = Qt.createComponent("Emojidialog.qml");
-                            var sprite = component.createObject(conversation_view, {});
-
-                    }
-                        //{notifyReceived()}
-                }*/
-
+				
+				
 				Button
 				{
 				    id:send_button
 				    platformStyle: ButtonStyle { inverted: true }
-                    iconSource: "image://theme/icon-m-toolbar-send-chat-white"
+                    iconSource:"image://theme/icon-m-toolbar-send-chat-white"
 				    width:160
 				    height:50
 					text: "Send"
@@ -410,6 +425,7 @@ Page {
 					y: 10
 					//enabled: chat_text.text.trim() != ""
 				    onClicked:{
+                         //chat_text.focus = true;
 				         var toSend = chat_text.text.trim();
 				         if ( toSend != "")
 				         {
@@ -417,7 +433,7 @@ Page {
 				            chat_text.text = "";
 				         }
 				         //chat_text.focus = true;
-						 flickArea.contentY = input_button_holder.y+input_button_holder.height
+                         flickArea.contentY = input_button_holder.y+input_button_holder.height
 				    }
 				}
 			}

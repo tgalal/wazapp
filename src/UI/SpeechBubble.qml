@@ -182,7 +182,7 @@ Rectangle {
 
             Label{
                 id:msg_text
-                text:Helpers.linkify(message);
+                text: message;//Helpers.linkify(message);
                 color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
                 width: parent.width -80
                 wrapMode: "WrapAtWordBoundaryOrAnywhere"
@@ -192,7 +192,6 @@ Rectangle {
                 font.pixelSize: 22
 				horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
                 onLinkActivated: Qt.openUrlExternally(link);
-
 
             }
 

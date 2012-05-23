@@ -678,6 +678,7 @@ class WAXMPP():
 		
 
 	def onConnectionError(self):
+		self.login.wait()
 		self.conn.close()	
 
 		self.changeState(3)

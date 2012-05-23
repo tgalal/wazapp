@@ -140,7 +140,7 @@ Rectangle{
 
                 Image {
                     id: status
-                    height: 16; width: 16
+                    height: 18; width: 18
 					smooth: true
                     y:5
  				}

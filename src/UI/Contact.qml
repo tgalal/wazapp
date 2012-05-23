@@ -1,9 +1,7 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 1.1
 import com.nokia.meego 1.0
-
 import "Global.js" as Helpers
-
 Rectangle{
     id:container
 
@@ -11,7 +9,7 @@ Rectangle{
     property string picture:"none";
     property string name:"User";
     property string number:"number";
-    property string status:"Hi there I'm using wazapp";
+    property string status:"Hi there I'm using whatsapp";
     property string jid;
     property bool hasPicture;
     signal clicked();
@@ -91,7 +89,7 @@ Rectangle{
 
 		   Label{
 		        id:contact_status
-                text: Helpers.emojify(status);
+                text:Helpers.emojify(status)
 		        font.pixelSize: 20
 		        color: "gray"
 				width: parent.width - 16

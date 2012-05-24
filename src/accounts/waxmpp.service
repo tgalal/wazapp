@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<service id="waxmpp">
+  <type>social</type>
+  <provider>waxmpp</provider>
+  <name>Wazapp</name>
+  <icon>icon-m-service-wazapp</icon>
+
+  <description>Wazapp is an IM client for N9 that uses the Whatsapp protocol</description>
+  <setupName>WazappSetupName</setupName>
+
+
+
+
+
+  <type-data>
+  </type-data>
+</service>

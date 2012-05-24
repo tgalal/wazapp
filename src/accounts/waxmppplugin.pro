@@ -63,7 +63,7 @@ CONFIG += qdeclarative-boostable
 invoker.files = invoker/*
 invoker.path = /opt/waxmppplugin/bin
 
-wazappy.files = wazapp-bin/*
+wazappy.files = wazapp/*
 wazappy.path = /opt/waxmppplugin/bin/wazapp
 
 INSTALLS += invoker \

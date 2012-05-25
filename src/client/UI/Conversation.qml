@@ -1,24 +1,3 @@
-/***************************************************************************
-**
-** Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
-**
-** This file is part of Wazapp, an IM application for Meego Harmattan
-** platform that allows communication with Whatsapp users.
-**
-** Wazapp is free software: you can redistribute it and/or modify it under
-** the terms of the GNU General Public License as published by the
-** Free Software Foundation, either version 2 of the License, or
-** (at your option) any later version.
-**
-** Wazapp is distributed in the hope that it will be useful,
-** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-** See the GNU General Public License for more details.
-**
-** You should have received a copy of the GNU General Public License
-** along with Wazapp. If not, see http://www.gnu.org/licenses/.
-**
-****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
@@ -177,8 +156,8 @@ Page {
         //onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
         width:parent.width
 		color: "transparent"
-        height:73
-		
+        height: visible ? 73 : 0
+	visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)	
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - 32
@@ -192,7 +171,7 @@ Page {
 				//platformStyle: ButtonStyle { inverted:appWindow.stealth  || theme.inverted }
 				width: 50
 				height: 48
-				iconSource: "image://theme/icon-m-toolbar-previous"
+				iconSource: theme.inverted? "image://theme/icon-m-toolbar-previous-white" : "image://theme/icon-m-toolbar-previous"
 				anchors.left: parent.left
 				anchors.verticalCenter: parent.verticalCenter
 				onClicked: { appWindow.pageStack.pop() }
@@ -247,8 +226,17 @@ Page {
     Component{
        id:myDelegate
 
+Column {
+width: parent.width
+ 	Rectangle {
+           id: margin_top
+           width: parent.width
+           height: 8
+           color: "transparent"
+       }
+
        SpeechBubble{
-           message: Helpers.emojifyBig(Helpers.linkify(model.message));
+           message: Helpers.emojifyBig(Helpers.newlinefy(Helpers.linkify(model.message)));
            date:model.timestamp
            from_me:model.type==1
            //picture: user_picture
@@ -260,6 +248,15 @@ Page {
                bubbleMenu.open();
            }
        }
+
+Rectangle {
+           id: margin_bottom
+           width: parent.width
+           height: 4
+           color: "transparent"
+       }
+}
+
     }
 
 	Timer {
@@ -287,8 +284,7 @@ Page {
 	Flickable {
         id: flickArea
         anchors.bottom: parent.bottom
-		//anchors.topMargin: 73
-		height: parent.height -73
+	anchors.top: top_bar.bottom 
 		width: parent.width
         contentWidth: width
         contentHeight: column1.height
@@ -305,6 +301,7 @@ Page {
 				id: spacer_top
 				color: "transparent"
 				width: parent.width
+				visible: top_bar.visible
 				height: conv_items.height<(flickArea.height-input_holder.height-10-input_button_holder.height) ?
 						flickArea.height-input_holder.height-conv_items.height-10-input_button_holder.height : 0
 
@@ -357,25 +354,34 @@ Page {
 
 				property bool alreadyFocused: false
 
-				/*Image {
+				Image {
+					id: logoW
 					x: 16
 					y: 22
 					height: 42; width: 42; smooth: true
 					source: "pics/wazapp48.png"
-				}*/
+					anchors.verticalCenter: parent.verticalCenter
+				}
+
+
+				FontLoader { id: wazappFont; source: "/opt/waxmppplugin/bin/wazapp/UI/fonts/WazappPureRegular.ttf" }
 
 				TextArea {
 				    id: chat_text
-				    width:parent.width 
-					x: 0
+					anchors.left: logoW.right
+					 
 				    height: 65
+					width: parent.width-logoW.width-32
 					anchors.verticalCenter: parent.verticalCenter
 					placeholderText: "Write your message here"
 					platformStyle: myTextFieldStyle
 					wrapMode: TextEdit.Wrap
-                    textFormat: Text.PlainText
+		                        textFormat: Text.PlainText
+					font.family: wazappFont.name
+					font.pixelSize: 22
 
-				    onTextChanged: {
+				    onTextChanged: {										
+
 				        if(!iamtyping)
 				        {
 				            console.log("TYPING");
@@ -408,7 +414,7 @@ Page {
 				id: input_button_holder
 				anchors.left: parent.left
 				width: parent.width
-				height: (showSendButton)? 76 : 0
+				height: (showSendButton)? 65 : 0
 				color: "white"
 				clip: true
 				
@@ -431,19 +437,38 @@ Page {
 					opacity: 0.6
 				}
 
-				
-				
+Button
+        {
+            id: emoji_button
+
+            platformStyle:  ButtonStyle{
+               inverted: false
+            }
+            width: height
+            height: send_button.height
+            iconSource: "pics/emoji/emoji-E415.png"
+            anchors.left: parent.left
+	    anchors.leftMargin: 16
+            anchors.verticalCenter: send_button.verticalCenter
+            onClicked:{
+		var component = Qt.createComponent("Emojidialog.qml");
+     		var sprite = component.createObject(conversation_view, {});
+
+            }
+        }
+
+								
 				Button
 				{
 				    id:send_button
 				    platformStyle: ButtonStyle { inverted: true }
                     iconSource:"image://theme/icon-m-toolbar-send-chat-white"
 				    width:160
-				    height:50
+				    height:45
 					text: "Send"
 				    anchors.right: parent.right
 					anchors.rightMargin: 16
-					y: 10
+					anchors.verticalCenter: parent.verticalCenter
 					//enabled: chat_text.text.trim() != ""
 				    onClicked:{
                          //chat_text.focus = true;
@@ -482,6 +507,4 @@ Page {
             }
         }
     }
-
-
 }

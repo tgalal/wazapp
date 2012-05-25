@@ -398,7 +398,7 @@ Page {
 				id: input_button_holder
 				anchors.left: parent.left
 				width: parent.width
-				height: (showSendButton)? 76 : 0
+				height: (showSendButton)? 65 : 0
 				color: "white"
 				clip: true
 				
@@ -428,8 +428,8 @@ Button
             platformStyle:  ButtonStyle{
                inverted: false
             }
-            width:50
-            height:50
+            width: height
+            height: send_button.height 
             iconSource: "pics/emoji/emoji-E415.png"
             anchors.left: parent.left
 	    anchors.leftMargin: 16
@@ -448,11 +448,11 @@ Button
 				    platformStyle: ButtonStyle { inverted: true }
                     iconSource:"image://theme/icon-m-toolbar-send-chat-white"
 				    width:160
-				    height:50
+				    height: 45
 					text: "Send"
 				    anchors.right: parent.right
 					anchors.rightMargin: 16
-					y: 10
+				      anchors.verticalCenter: parent.verticalCenter
 					//enabled: chat_text.text.trim() != ""
 				    onClicked:{
                          //chat_text.focus = true;

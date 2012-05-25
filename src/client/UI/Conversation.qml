@@ -156,7 +156,7 @@ Page {
         //onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
         width:parent.width
 		color: "transparent"
-        height:73
+        height: visible ? 73 : 0
 	visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)	
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
@@ -284,8 +284,7 @@ Rectangle {
 	Flickable {
         id: flickArea
         anchors.bottom: parent.bottom
-		//anchors.topMargin: 73
-		height: parent.height -73
+	anchors.top: top_bar.bottom 
 		width: parent.width
         contentWidth: width
         contentHeight: column1.height
@@ -302,6 +301,7 @@ Rectangle {
 				id: spacer_top
 				color: "transparent"
 				width: parent.width
+				visible: top_bar.visible
 				height: conv_items.height<(flickArea.height-input_holder.height-10-input_button_holder.height) ?
 						flickArea.height-input_holder.height-conv_items.height-10-input_button_holder.height : 0
 

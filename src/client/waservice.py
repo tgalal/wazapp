@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
 
@@ -8,6 +9,15 @@ Wazapp is free software: you can redistribute it and/or modify it under the term
 Wazapp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with Wazapp. If not, see http://www.gnu.org/licenses/.
+'''
+
+'''
+This file is a derivative of Python Event Feed library by Thomas Perl 
+Copyright (c) 2011, Thomas Perl <m@thp.io>
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
 '''
 # Dependency on PySide for encoding/decoding like MRemoteAction
 from PySide.QtCore import QBuffer, QIODevice, QDataStream, QByteArray

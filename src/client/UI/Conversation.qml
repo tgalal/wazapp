@@ -157,8 +157,10 @@ Page {
         width:parent.width
 		color: "transparent"
         height:73
+
 	visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)	
-        Rectangle {
+
+	Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - 32
             anchors.left: parent.left

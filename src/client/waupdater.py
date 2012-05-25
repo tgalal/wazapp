@@ -38,6 +38,7 @@ class WAUpdater(WAJsonRequest):
 			#latest = res['v'].split('.')
 			curr = Utilities.waversion
 			test = curr.split('.');
+			
 			if len(test) == 4:
 				curr = '.'.join(test[:3])
 				

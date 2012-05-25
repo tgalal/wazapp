@@ -23,6 +23,7 @@ from QtMobility.SystemInfo import QSystemDeviceInfo,QSystemNetworkInfo
 class Utilities():
 
 	debug_mode = 1;
+	
 	waversion = "0.2.5.2"
 	
 

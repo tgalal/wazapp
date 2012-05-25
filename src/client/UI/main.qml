@@ -26,7 +26,9 @@ import com.nokia.meego 1.0
 WAStackWindow {
     id: appWindow
     initialPage: mainPage
+    
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
+    
     showStatusBar: !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
     toolBarPlatformStyle:ToolBarStyle{
         inverted: stealth || theme.inverted

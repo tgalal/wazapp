@@ -374,7 +374,7 @@ WAStackWindow {
     QueryDialog {
         id: quitConfirm
         titleText: qsTrId("Confirm Quit")
-        message: "Are you sure you want to quit Whatsapp?"
+        message: "Are you sure you want to quit Wazapp?"
         acceptButtonText: qsTrId("Yes")
         rejectButtonText: qsTrId("No")
         onAccepted: quit();

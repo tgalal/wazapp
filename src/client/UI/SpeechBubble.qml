@@ -1,27 +1,8 @@
-/***************************************************************************
-**
-** Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
-**
-** This file is part of Wazapp, an IM application for Meego Harmattan
-** platform that allows communication with Whatsapp users.
-**
-** Wazapp is free software: you can redistribute it and/or modify it under
-** the terms of the GNU General Public License as published by the
-** Free Software Foundation, either version 2 of the License, or
-** (at your option) any later version.
-**
-** Wazapp is distributed in the hope that it will be useful,
-** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-** See the GNU General Public License for more details.
-**
-** You should have received a copy of the GNU General Public License
-** along with Wazapp. If not, see http://www.gnu.org/licenses/.
-**
-****************************************************************************/
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 1.1
 import com.nokia.meego 1.0
+
+
 
 BorderImage {
     id: bubble
@@ -34,7 +15,7 @@ BorderImage {
     property int msg_id;
     property string state_status;
 
-    property int inboundBubbleColor: 1 // 1 is blue and 2 is darkblue 3 is orange 4 is brown 5 is pink 6 is purple 7 is green 8 is darkgreen
+    property int inboundBubbleColor: 8
     property int outboundBubbleColor: 1
 
     QtObject {
@@ -55,18 +36,20 @@ BorderImage {
     signal optionsRequested();
 
     width: calcBubbleWidth()
-    height: content.height+status.height
+    //height:msg_text.height+msg_date.height+margin1.height+margin2.height+margincenter.height+10;
+    height: content.height + 22
+    //color: from_me? "gray" : "red"
 
     function calcTextWidth() {
         return Math.max(calcLabel.width, msg_date.width)
     }
 
     function calcLabelWidth() {
-        return Math.min(calcLabel.width, bubble.parent.width-40);
+        return Math.min(calcLabel.width, bubble.maxWidth);
     }
 
     function calcBubbleWidth() {
-        return Math.min(calcTextWidth()+50, bubble.parent.width-20);
+        return Math.min(calcTextWidth()+10, bubble.maxWidth+10);
     }
 
     TextFieldStyle {
@@ -84,13 +67,13 @@ BorderImage {
     border {
         left: 22
         right: 22
-        bottom: from_me ? 36 : 22
-        top: from_me ? 22 : 36
+        bottom: bubble.direction == from_me ? 36 : 22
+        top: bubble.direction == from_me ? 22 : 36
     }
 
-    source: from_me ?
-    		"image://theme/meegotouch-messaging-conversation-bubble-outgoing" + d.outboundBubbleNumber + "-" + d.outboundBubbleState :                
-                "image://theme/meegotouch-messaging-conversation-bubble-incoming" + d.inboundBubbleNumber + "-" + d.inboundBubbleState
+    source: bubble.direction == from_me ?
+                "image://theme/meegotouch-messaging-conversation-bubble-incoming" + d.inboundBubbleNumber + "-" + d.inboundBubbleState :
+                "image://theme/meegotouch-messaging-conversation-bubble-outgoing" + d.outboundBubbleNumber + "-" + d.outboundBubbleState
 
     states: [
         State {
@@ -157,7 +140,7 @@ BorderImage {
             font.bold: true
             anchors.left: parent.left
             anchors.leftMargin: 10
-            horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
+                            horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
         }*/
         Label{
             id:msg_text
@@ -196,13 +179,20 @@ BorderImage {
             id:msg_date
             color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
             text: date
+            width:parent.width - 20
             anchors.left: parent.left
             anchors.leftMargin: 10
             font.pixelSize: 18
             font.family: textFieldStyle.textFont
             horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
-            opacity: 0.7
+            opacity: 0.8
+        }
+
+        Rectangle {
+            id: margin2;
+            height: 8
+            width: parent.width;
+            color: "transparent"
         }
     }
 }
-

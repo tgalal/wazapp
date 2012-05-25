@@ -157,10 +157,8 @@ Page {
         width:parent.width
 		color: "transparent"
         height:73
-
 	visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)	
-
-	Rectangle {
+        Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - 32
             anchors.left: parent.left
@@ -362,7 +360,7 @@ Page {
 					wrapMode: TextEdit.Wrap
 		                        textFormat: Text.PlainText
 					font.family: wazappFont.name
-					font.pixelSize: 22
+					font.pixelSize: 23
 
 				    onTextChanged: {										
 
@@ -398,7 +396,7 @@ Page {
 				id: input_button_holder
 				anchors.left: parent.left
 				width: parent.width
-				height: (showSendButton)? 65 : 0
+				height: (showSendButton)? 76 : 0
 				color: "white"
 				clip: true
 				
@@ -428,8 +426,8 @@ Button
             platformStyle:  ButtonStyle{
                inverted: false
             }
-            width: height
-            height: send_button.height 
+            width:50
+            height:50
             iconSource: "pics/emoji/emoji-E415.png"
             anchors.left: parent.left
 	    anchors.leftMargin: 16
@@ -448,11 +446,11 @@ Button
 				    platformStyle: ButtonStyle { inverted: true }
                     iconSource:"image://theme/icon-m-toolbar-send-chat-white"
 				    width:160
-				    height: 45
+				    height:50
 					text: "Send"
 				    anchors.right: parent.right
 					anchors.rightMargin: 16
-				      anchors.verticalCenter: parent.verticalCenter
+					y: 10
 					//enabled: chat_text.text.trim() != ""
 				    onClicked:{
                          //chat_text.focus = true;

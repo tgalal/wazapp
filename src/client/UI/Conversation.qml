@@ -1,24 +1,3 @@
-/***************************************************************************
-**
-** Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
-**
-** This file is part of Wazapp, an IM application for Meego Harmattan
-** platform that allows communication with Whatsapp users.
-**
-** Wazapp is free software: you can redistribute it and/or modify it under
-** the terms of the GNU General Public License as published by the
-** Free Software Foundation, either version 2 of the License, or
-** (at your option) any later version.
-**
-** Wazapp is distributed in the hope that it will be useful,
-** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-** See the GNU General Public License for more details.
-**
-** You should have received a copy of the GNU General Public License
-** along with Wazapp. If not, see http://www.gnu.org/licenses/.
-**
-****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
@@ -178,7 +157,7 @@ Page {
         width:parent.width
 		color: "transparent"
         height:73
-		
+	visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)	
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - 32
@@ -192,7 +171,7 @@ Page {
 				//platformStyle: ButtonStyle { inverted:appWindow.stealth  || theme.inverted }
 				width: 50
 				height: 48
-				iconSource: "image://theme/icon-m-toolbar-previous"
+				iconSource: theme.inverted? "image://theme/icon-m-toolbar-previous-white" : "image://theme/icon-m-toolbar-previous"
 				anchors.left: parent.left
 				anchors.verticalCenter: parent.verticalCenter
 				onClicked: { appWindow.pageStack.pop() }
@@ -248,7 +227,7 @@ Page {
        id:myDelegate
 
        SpeechBubble{
-           message: Helpers.emojifyBig(Helpers.linkify(model.message));
+           message: Helpers.emojifyBig(Helpers.newlinefy(Helpers.linkify(model.message)));
            date:model.timestamp
            from_me:model.type==1
            //picture: user_picture
@@ -357,25 +336,34 @@ Page {
 
 				property bool alreadyFocused: false
 
-				/*Image {
+				Image {
+					id: logoW
 					x: 16
 					y: 22
 					height: 42; width: 42; smooth: true
 					source: "pics/wazapp48.png"
-				}*/
+					anchors.verticalCenter: parent.verticalCenter
+				}
+
+
+				FontLoader { id: wazappFont; source: "/opt/waxmppplugin/bin/wazapp/UI/fonts/WazappPureRegular.ttf" }
 
 				TextArea {
 				    id: chat_text
-				    width:parent.width 
-					x: 0
+					anchors.left: logoW.right
+					 
 				    height: 65
+					width: parent.width-logoW.width-32
 					anchors.verticalCenter: parent.verticalCenter
 					placeholderText: "Write your message here"
 					platformStyle: myTextFieldStyle
 					wrapMode: TextEdit.Wrap
-                    textFormat: Text.PlainText
+		                        textFormat: Text.PlainText
+					font.family: wazappFont.name
+					font.pixelSize: 22
 
-				    onTextChanged: {
+				    onTextChanged: {										
+
 				        if(!iamtyping)
 				        {
 				            console.log("TYPING");
@@ -431,8 +419,27 @@ Page {
 					opacity: 0.6
 				}
 
-				
-				
+Button
+        {
+            id: emoji_button
+
+            platformStyle:  ButtonStyle{
+               inverted: false
+            }
+            width:50
+            height:50
+            iconSource: "pics/emoji/emoji-E415.png"
+            anchors.left: parent.left
+	    anchors.leftMargin: 16
+            anchors.verticalCenter: send_button.verticalCenter
+            onClicked:{
+		var component = Qt.createComponent("Emojidialog.qml");
+     		var sprite = component.createObject(conversation_view, {});
+
+            }
+        }
+
+								
 				Button
 				{
 				    id:send_button
@@ -482,6 +489,4 @@ Page {
             }
         }
     }
-
-
 }

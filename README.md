@@ -3,6 +3,10 @@ Wazapp
 
 Wazapp is an IM application for N9 that allows you to chat with your Whatsapp buddies
 
+Wazapp consists of 2 parts, the IM application (wazapp), which is in Python, 
+and an accounts plugin (waxmppplugin) in C++. The accounts plugin
+should be rewritten in python soon. 
+
 Homepage: http://www.wazapp.im
 
 Contact: Tarek Galal <tarek@wazapp.im>

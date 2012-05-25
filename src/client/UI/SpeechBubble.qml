@@ -1,8 +1,27 @@
+/***************************************************************************
+**
+** Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
+**
+** This file is part of Wazapp, an IM application for Meego Harmattan
+** platform that allows communication with Whatsapp users.
+**
+** Wazapp is free software: you can redistribute it and/or modify it under
+** the terms of the GNU General Public License as published by the
+** Free Software Foundation, either version 2 of the License, or
+** (at your option) any later version.
+**
+** Wazapp is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+** See the GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with Wazapp. If not, see http://www.gnu.org/licenses/.
+**
+****************************************************************************/
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 1.1
 import com.nokia.meego 1.0
-
-
 
 BorderImage {
     id: bubble
@@ -15,7 +34,7 @@ BorderImage {
     property int msg_id;
     property string state_status;
 
-    property int inboundBubbleColor: 8
+    property int inboundBubbleColor: 1 // 1 is blue and 2 is darkblue 3 is orange 4 is brown 5 is pink 6 is purple 7 is green 8 is darkgreen
     property int outboundBubbleColor: 1
 
     QtObject {
@@ -36,20 +55,18 @@ BorderImage {
     signal optionsRequested();
 
     width: calcBubbleWidth()
-    //height:msg_text.height+msg_date.height+margin1.height+margin2.height+margincenter.height+10;
-    height: content.height + 22
-    //color: from_me? "gray" : "red"
+    height: from_me ? content.height+12 : content.height
 
     function calcTextWidth() {
         return Math.max(calcLabel.width, msg_date.width)
     }
 
     function calcLabelWidth() {
-        return Math.min(calcLabel.width, bubble.maxWidth);
+        return Math.min(calcLabel.width, bubble.parent.width-40);
     }
 
     function calcBubbleWidth() {
-        return Math.min(calcTextWidth()+10, bubble.maxWidth+10);
+        return Math.min(calcTextWidth()+50, bubble.parent.width-20);
     }
 
     TextFieldStyle {
@@ -67,13 +84,13 @@ BorderImage {
     border {
         left: 22
         right: 22
-        bottom: bubble.direction == from_me ? 36 : 22
-        top: bubble.direction == from_me ? 22 : 36
+        bottom: 22
+        top: 22
     }
 
-    source: bubble.direction == from_me ?
-                "image://theme/meegotouch-messaging-conversation-bubble-incoming" + d.inboundBubbleNumber + "-" + d.inboundBubbleState :
-                "image://theme/meegotouch-messaging-conversation-bubble-outgoing" + d.outboundBubbleNumber + "-" + d.outboundBubbleState
+    source: from_me ?
+        	"image://theme/meegotouch-messaging-conversation-bubble-outgoing" + d.outboundBubbleNumber + "-" + d.outboundBubbleState :                
+                "image://theme/meegotouch-messaging-conversation-bubble-incoming" + d.inboundBubbleNumber + "-" + d.inboundBubbleState
 
     states: [
         State {
@@ -111,25 +128,26 @@ BorderImage {
             optionsRequested();
         }
     }
-
-    Image {
-        id: status
-        visible: from_me
-        anchors.right: parent.right
-        anchors.rightMargin: 12
-        anchors.bottom:parent.bottom
-        anchors.bottomMargin: 22
-
-    }
+     
     Column{
         id:content
 
         Rectangle {
             id: margin1;
-            height: from_me? 14 : 14
+            height: from_me? 0 : 22
             width: parent.width;
             color: "transparent"
         }
+
+Image {
+        id: status
+        visible: from_me
+        anchors.left: msg_date.right
+        anchors.leftMargin: 12
+        anchors.bottom:parent.bottom
+        anchors.bottomMargin: 4
+
+    }
 
         /*Label{
             id:sender_name
@@ -140,7 +158,7 @@ BorderImage {
             font.bold: true
             anchors.left: parent.left
             anchors.leftMargin: 10
-                            horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
+            horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
         }*/
         Label{
             id:msg_text
@@ -179,20 +197,13 @@ BorderImage {
             id:msg_date
             color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
             text: date
-            width:parent.width - 20
-            anchors.left: parent.left
-            anchors.leftMargin: 10
+	    x: from_me? 10 : 10+bubble.width-msg_date.width-status.width
             font.pixelSize: 18
             font.family: textFieldStyle.textFont
             horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
-            opacity: 0.8
-        }
-
-        Rectangle {
-            id: margin2;
-            height: 8
-            width: parent.width;
-            color: "transparent"
+            opacity: 0.7
         }
     }
 }
+
+

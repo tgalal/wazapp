@@ -36,6 +36,11 @@ class WAUpdater(WAJsonRequest):
 		if res:
 			#current = self.version.split('.');
 			#latest = res['v'].split('.')
-			if StrictVersion(str(res['l'])) > Utilities.waversion:
+			curr = Utilities.waversion
+			test = curr.split('.');
+			if len(test) == 4:
+				curr = '.'.join(test[:3])
+				
+			if StrictVersion(str(res['l'])) > curr:
 				print "UPDATE AVAILABLE!"
 				self.updateAvailable.emit(res)

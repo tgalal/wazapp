@@ -26,6 +26,7 @@ import com.nokia.meego 1.0
 WAStackWindow {
     id: appWindow
     initialPage: mainPage
+    property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     showStatusBar: !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
     toolBarPlatformStyle:ToolBarStyle{
         inverted: stealth || theme.inverted
@@ -413,7 +414,7 @@ WAStackWindow {
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             font.pixelSize: 22
                // horizontalAlignment: Text.AlignHCenter
-            text:"Version "+waversion+" \n\n This is a beta version. You are trying it at your own risk. Please report any bugs to tarek@wazapp.im "
+            text:"Version "+waversion+" \n\n This is a "+waversiontype+" version. You are trying it at your own risk. Please report any bugs to tarek@wazapp.im "
         }
 
         buttons:ButtonRow {

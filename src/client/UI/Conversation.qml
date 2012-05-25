@@ -226,6 +226,15 @@ Page {
     Component{
        id:myDelegate
 
+Column {
+width: parent.width
+ 	Rectangle {
+           id: margin_top
+           width: parent.width
+           height: 8
+           color: "transparent"
+       }
+
        SpeechBubble{
            message: Helpers.emojifyBig(Helpers.newlinefy(Helpers.linkify(model.message)));
            date:model.timestamp
@@ -239,6 +248,15 @@ Page {
                bubbleMenu.open();
            }
        }
+
+Rectangle {
+           id: margin_bottom
+           width: parent.width
+           height: 4
+           color: "transparent"
+       }
+}
+
     }
 
 	Timer {
@@ -360,7 +378,7 @@ Page {
 					wrapMode: TextEdit.Wrap
 		                        textFormat: Text.PlainText
 					font.family: wazappFont.name
-					font.pixelSize: 23
+					font.pixelSize: 22
 
 				    onTextChanged: {										
 
@@ -396,7 +414,7 @@ Page {
 				id: input_button_holder
 				anchors.left: parent.left
 				width: parent.width
-				height: (showSendButton)? 76 : 0
+				height: (showSendButton)? 65 : 0
 				color: "white"
 				clip: true
 				
@@ -426,8 +444,8 @@ Button
             platformStyle:  ButtonStyle{
                inverted: false
             }
-            width:50
-            height:50
+            width: height
+            height: send_button.height
             iconSource: "pics/emoji/emoji-E415.png"
             anchors.left: parent.left
 	    anchors.leftMargin: 16
@@ -446,11 +464,11 @@ Button
 				    platformStyle: ButtonStyle { inverted: true }
                     iconSource:"image://theme/icon-m-toolbar-send-chat-white"
 				    width:160
-				    height:50
+				    height:45
 					text: "Send"
 				    anchors.right: parent.right
 					anchors.rightMargin: 16
-					y: 10
+					anchors.verticalCenter: parent.verticalCenter
 					//enabled: chat_text.text.trim() != ""
 				    onClicked:{
                          //chat_text.focus = true;

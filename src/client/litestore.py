@@ -44,14 +44,14 @@ class LiteStore(DataStore):
 			self.status = False;
 			#self.conn = sqlite3.connect(self.db_path)
 		else:
-			self.conn = sqlite3.connect(self.db_path,check_same_thread = False)
+			self.conn = sqlite3.connect(self.db_path,check_same_thread = False,isolation_level=None)
 			self.status = True;
 			self.c = self.conn.cursor();
 			self.initModels();
 	
 	
 	def connect(self):
-		self.conn = sqlite3.connect(self.db_path,check_same_thread = False)
+		self.conn = sqlite3.connect(self.db_path,check_same_thread = False,isolation_level=None)
 		self.c = self.conn.cursor();
 		
 	
@@ -86,7 +86,7 @@ class LiteStore(DataStore):
 	def reset(self):
 		
 		self.db_path = self.get_db_path(self.currentId);
-		self.conn = sqlite3.connect(self.db_path,check_same_thread = False)
+		self.conn = sqlite3.connect(self.db_path,check_same_thread = False,isolation_level=None)
 		#shutil.rmtree(LiteStore.db_dir);
 		
 		

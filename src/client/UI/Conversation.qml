@@ -467,7 +467,7 @@ Rectangle {
             anchors.verticalCenter: send_button.verticalCenter
             onClicked:{
         var component = Qt.createComponent("Emojidialog.qml");
-            var sprite = component.createObject(conversation_view, {});
+            var sprite = component.createObject(conversation_view, {origin: "chat"});
 
             }
         }

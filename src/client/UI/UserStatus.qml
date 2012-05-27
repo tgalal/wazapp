@@ -28,6 +28,7 @@ Rectangle {
     property string lastSeenOn;
     property string prevState;
     property int itemwidth
+    property alias horizontalAlignment: userstatus.horizontalAlignment
 
     state: "default"
     color:"transparent"
@@ -75,7 +76,6 @@ Rectangle {
 
     Label{
         id:userstatus
-        horizontalAlignment: Text.AlignRight
 		font.pixelSize: 18
 		width: itemwidth
 		opacity: 0.7

@@ -386,7 +386,7 @@ Rectangle {
 					wrapMode: TextEdit.Wrap
 		                        textFormat: Text.PlainText
 					font.family: wazappFont.name
-					font.pixelSize: 22
+					font.pixelSize: 24
 
 				    onTextChanged: {										
 

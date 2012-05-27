@@ -168,7 +168,7 @@ Image {
             width: calcLabelWidth()
             wrapMode: "WrapAtWordBoundaryOrAnywhere"
             anchors.left: parent.left
-            anchors.leftMargin: 10
+            anchors.leftMargin: msg_date.width > width ? msg_date.width/2 - width/2 +20 : 10
             textFormat: Text.RichText
             font.pixelSize: 22
             font.family: textFieldStyle.textFont

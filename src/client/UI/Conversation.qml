@@ -17,23 +17,23 @@ Page {
         else if(status == PageStatus.Active){
             appWindow.conversationActive(user_id);
             appWindow.setActiveConv(user_id)
-			pageIsActive = true
-		}
-        
+            pageIsActive = true
+        }
+
     }
 
-	
-	TextFieldStyle {
+
+    TextFieldStyle {
         id: myTextFieldStyle
         backgroundSelected: ""
         background: ""
-		backgroundDisabled: ""
-		backgroundError: ""
+        backgroundDisabled: ""
+        backgroundError: ""
     }
 
-	property bool loadFinished: false
-	property bool pageIsActive: false
-	property bool showSendButton
+    property bool loadFinished: false
+    property bool pageIsActive: false
+    property bool showSendButton
     property string user_id;
     property string user_name;
     property string user_picture;
@@ -152,71 +152,77 @@ Page {
 
 
     Rectangle{
-        id:top_bar
-        //onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
-        width:parent.width
-		color: "transparent"
-        height: visible ? 73 : 0
+            id:top_bar
+            //onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
+            width:parent.width
+        color: "transparent"
+            height: visible ? 73 : 0
         visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 32
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-			color: "transparent"
-			height: 50
+            Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width
+                    anchors.left: parent.left
+            color: "transparent"
+            height: 50
 
-			ToolButton
-			{
-				//platformStyle: ButtonStyle { inverted:appWindow.stealth  || theme.inverted }
-				width: 50
-				height: 48
-				iconSource: theme.inverted? "image://theme/icon-m-toolbar-previous-white" : "image://theme/icon-m-toolbar-previous"
-				anchors.left: parent.left
-				anchors.verticalCenter: parent.verticalCenter
-				onClicked: { appWindow.pageStack.pop() }
-			}
-					
-	        Label {
-	            id: username
-	            text: user_name
-				width: parent.width - 62
-	            horizontalAlignment: Text.AlignRight
-				verticalAlignment: Text.AlignTop
-				anchors.top: parent.top
-	            font.bold: true
-				height: 28
-	        }
-			UserStatus {
-		        id:ustatus
-		        height:30
-		        itemwidth: parent.width -62
-				anchors.top: username.bottom
-		    }
+            ToolIcon
+            {
+                id: goBack
+                //platformStyle: ButtonStyle { inverted:appWindow.stealth  || theme.inverted }
+                //width: 50
+                //height: 48
+                iconId: "toolbar-back"
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                onClicked: { appWindow.pageStack.pop() }
+            }
+
+                Label {
+                        id: username
+                        text: user_name
+                width: parent.width - goBack.width - userimage.width - 8
+                        horizontalAlignment: Text.AlignRight
+                verticalAlignment: Text.AlignTop
+                anchors.top: parent.top
+                anchors.right: userimage.left
+                anchors.rightMargin: 8
+                        font.bold: true
+                height: 28
+            }
+        UserStatus {
+                id:ustatus
+                height: 22
+                itemwidth: parent.width - goBack.width - userimage.width - 8*3
+            anchors.top: username.bottom
+            anchors.left: goBack.right
+            anchors.leftMargin: 8
+            horizontalAlignment: Text.AlignRight
+
+        }
             RoundedImage {
                 id:userimage
                 size:50
                 imgsource: user_picture
                 anchors.verticalCenter: parent.verticalCenter
-				anchors.right: parent.right
+        anchors.right: parent.right
+        anchors.rightMargin: 8
             }
 
         }
-
-		Rectangle {
-			height: 1
-			width: parent.width
-			x:0; y: 71
-			color: "gray"
-			opacity: 0.6
-		}
-		Rectangle {
-			height: 1
-			width: parent.width
-			x:0; y: 72
-			color: theme.inverted ? "lightgray" : "white"
-			opacity: 0.8
-		}	
+        Rectangle {
+            height: 1
+            width: parent.width
+            x:0; y: 71
+            color: "gray"
+            opacity: 0.6
+        }
+        Rectangle {
+            height: 1
+            width: parent.width
+            x:0; y: 72
+            color: theme.inverted ? "lightgray" : "white"
+            opacity: 0.8
+        }
     }
 
     ListModel{
@@ -228,7 +234,7 @@ Page {
 
 Column {
 width: parent.width
- 	Rectangle {
+    Rectangle {
            id: margin_top
            width: parent.width
            height: 8
@@ -259,73 +265,73 @@ Rectangle {
 
     }
 
-	Timer {
-		id:typing_timer
-		interval: 2000; running: false; repeat: false
-		onTriggered: {
-		    console.log("STOPPED TYPING");
-		    iamtyping = false;
-		    paused(user_id);
-	    }
-	}
+    Timer {
+        id:typing_timer
+        interval: 2000; running: false; repeat: false
+        onTriggered: {
+            console.log("STOPPED TYPING");
+            iamtyping = false;
+            paused(user_id);
+        }
+    }
 
     function getListSize () {
-		var s = 0;
-		for ( var i=0; i<conv_items.count; ++i )
-		{
-			conv_items.currentIndex = i;
-		    s = s + conv_items.currentItem.height
-			//console.log("INC SIZE: " + s);
-		}
-		loadFinished=true
-		return s;
-	}
+        var s = 0;
+        for ( var i=0; i<conv_items.count; ++i )
+        {
+            conv_items.currentIndex = i;
+            s = s + conv_items.currentItem.height
+            //console.log("INC SIZE: " + s);
+        }
+        loadFinished=true
+        return s;
+    }
 
-	Flickable {
+    Flickable {
         id: flickArea
         anchors.bottom: input_button_holder.top
     anchors.top: top_bar.bottom
-		width: parent.width
+        width: parent.width
         contentWidth: width
         contentHeight: column1.height
-		clip: true
+        clip: true
 
-		Column {
+        Column {
             id: column1
             anchors.topMargin: 0
             anchors { top: parent.top; left: parent.left; margins: 0;}
             width: parent.width
             spacing: 0
 
-			Rectangle {
-				id: spacer_top
-				color: "transparent"
-				width: parent.width
-				visible: top_bar.visible
+            Rectangle {
+                id: spacer_top
+                color: "transparent"
+                width: parent.width
+                visible: top_bar.visible
                 height: conv_items.height<(flickArea.height-input_holder.height-10) ?
                         flickArea.height-input_holder.height-conv_items.height-10 : 0
 
-		        Label{
-		            anchors.centerIn: parent;
-		            text: "Loading conversation..."
+                Label{
+                    anchors.centerIn: parent;
+                    text: "Loading conversation..."
                     font.pointSize: 22
-					color: "gray"
-		            width: parent.width
-		            horizontalAlignment: Text.AlignHCenter
-					visible: !loadFinished
-		        }
+                    color: "gray"
+                    width: parent.width
+                    horizontalAlignment: Text.AlignHCenter
+                    visible: !loadFinished
+                }
 
-			}
-			
-			ListView{
-				id:conv_items
+            }
 
-				width:parent.width
-				delegate: myDelegate
-				model: conv_data
-				interactive: false
+            ListView{
+                id:conv_items
+
+                width:parent.width
+                delegate: myDelegate
+                model: conv_data
+                interactive: false
                 height: pageIsActive ? getListSize() : 0
-				visible: loadFinished
+                visible: loadFinished
                 //onCountChanged: { flickArea.contentY = conv_items.height }
                 onHeightChanged: {
                     var s = 0;
@@ -337,61 +343,61 @@ Rectangle {
 
 
                 }
-				
-			}
 
-			Rectangle {
-				id: spacer_bottom
-				width: parent.width
-				height: 10
-				color: "transparent"
-			}
-			
-			Rectangle {
-				id: input_holder
-				anchors.left: parent.left
-				width: parent.width
-				height: chat_text.height
-				color: "white"
+            }
+
+            Rectangle {
+                id: spacer_bottom
+                width: parent.width
+                height: 10
+                color: "transparent"
+            }
+
+            Rectangle {
+                id: input_holder
+                anchors.left: parent.left
+                width: parent.width
+                height: chat_text.height
+                color: "white"
 
                 property bool alreadyFocused: false
 
-				Image {
-					id: logoW
-					x: 16
-					y: 22
-					height: 42; width: 42; smooth: true
-					source: "pics/wazapp48.png"
-					anchors.verticalCenter: parent.verticalCenter
-				}
+                Image {
+                    id: logoW
+                    x: 16
+                    y: 22
+                    height: 42; width: 42; smooth: true
+                    source: "pics/wazapp48.png"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
 
 
-				FontLoader { id: wazappFont; source: "/opt/waxmppplugin/bin/wazapp/UI/fonts/WazappPureRegular.ttf" }
+                FontLoader { id: wazappFont; source: "/opt/waxmppplugin/bin/wazapp/UI/fonts/WazappPureRegular.ttf" }
 
-				TextArea {
-				    id: chat_text
-					anchors.left: logoW.right
-					 
-				    height: 65
-					width: parent.width-logoW.width-32
-					anchors.verticalCenter: parent.verticalCenter
-					placeholderText: "Write your message here"
-					platformStyle: myTextFieldStyle
-					wrapMode: TextEdit.Wrap
-		                        textFormat: Text.PlainText
-					font.family: wazappFont.name
-					font.pixelSize: 22
+                TextArea {
+                    id: chat_text
+                    anchors.left: logoW.right
 
-				    onTextChanged: {										
+                    height: 65
+                    width: parent.width-logoW.width-32
+                    anchors.verticalCenter: parent.verticalCenter
+                    placeholderText: "Write your message here"
+                    platformStyle: myTextFieldStyle
+                    wrapMode: TextEdit.Wrap
+                                textFormat: Text.PlainText
+                    font.family: wazappFont.name
+                    font.pixelSize: 24
 
-				        if(!iamtyping)
-				        {
-				            console.log("TYPING");
-				            typing(user_id);
-				        }
-				        iamtyping = true;
+                    onTextChanged: {
+
+                        if(!iamtyping)
+                        {
+                            console.log("TYPING");
+                            typing(user_id);
+                        }
+                        iamtyping = true;
                         typing_timer.restart();
-					}
+                    }
 
 
 
@@ -408,14 +414,14 @@ Rectangle {
 
                     }
 
-					onHeightChanged: {
+                    onHeightChanged: {
                         flickArea.contentY = flickArea.contentHeight
-					}
-					
-				}
-			}
-		}
-	}
+                    }
+
+                }
+            }
+        }
+    }
 
 
     Rectangle {
@@ -461,7 +467,7 @@ Rectangle {
             anchors.verticalCenter: send_button.verticalCenter
             onClicked:{
         var component = Qt.createComponent("Emojidialog.qml");
-            var sprite = component.createObject(conversation_view, {});
+            var sprite = component.createObject(conversation_view, {origin: "chat"});
 
             }
         }

@@ -41,8 +41,8 @@ BorderImage {
         id: d
         property int inboundBubbleNumber: parseInt( (bubble.inboundBubbleColor / 2) + 0.5 )
         property int outboundBubbleNumber: parseInt( (bubble.outboundBubbleColor /2) + 0.5 )
-        property string inboundBubbleState: (bubble.inboundBubbleColor % 2) == 0 ? "pressed" : "normal"
-        property string outboundBubbleState: (bubble.outboundBubbleColor % 2) == 0 ? "pressed" : "normal"
+        property string inboundBubbleState: bubbleMouseArea.pressed ? "pressed" : "normal"
+        property string outboundBubbleState: bubbleMouseArea.pressed ? "pressed" : "normal"
     }
 
     anchors.right: from_me?this.right:parent.right
@@ -117,6 +117,7 @@ BorderImage {
     ]
 
     MouseArea{
+	id: bubbleMouseArea
         anchors.fill: parent
         /*onClicked: {
             console.log("CLICKED!!!");
@@ -167,7 +168,7 @@ Image {
             width: calcLabelWidth()
             wrapMode: "WrapAtWordBoundaryOrAnywhere"
             anchors.left: parent.left
-            anchors.leftMargin: 10
+            anchors.leftMargin: msg_date.width > width ? msg_date.width/2 - width/2 +20 : 10
             textFormat: Text.RichText
             font.pixelSize: 22
             font.family: textFieldStyle.textFont
@@ -197,7 +198,7 @@ Image {
             id:msg_date
             color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
             text: date
-	    x: from_me? 10 : 10+bubble.width-msg_date.width-status.width
+	    x: from_me? 10 : 5+bubble.width-msg_date.width-status.width
             font.pixelSize: 18
             font.family: textFieldStyle.textFont
             horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight

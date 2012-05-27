@@ -24,7 +24,7 @@ import com.nokia.meego 1.0
 
 Rectangle{
     width:parent.width
-    height:100;
+    height:101;
    // anchors.top:parent.top
     property alias title:pageTitle.text
     color:"transparent"
@@ -52,7 +52,7 @@ Rectangle{
 
     Label{
         id: pageTitle
-        color: theme.inverted? "white" : "darkgray"
+        color: theme.inverted? "white" : "black"
         anchors.left: wazapp_icon.right
         anchors.leftMargin: 12
         font.pixelSize: 24
@@ -66,12 +66,11 @@ Rectangle{
 		color: "gray"
 		opacity: 0.6
 	}
-    /*Separator{
-        bottom_margin: 5
-        top_margin: 10
-
-        anchors.bottom: parent.bottom
-        width:parent.width
-
-    }*/
+	Rectangle {
+		height: 1
+		width: parent.width
+		x:0; y: 100
+		color: theme.inverted ? "lightgray" : "white"
+		opacity: 0.8
+	} 
 }

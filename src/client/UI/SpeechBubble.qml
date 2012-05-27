@@ -41,8 +41,8 @@ BorderImage {
         id: d
         property int inboundBubbleNumber: parseInt( (bubble.inboundBubbleColor / 2) + 0.5 )
         property int outboundBubbleNumber: parseInt( (bubble.outboundBubbleColor /2) + 0.5 )
-        property string inboundBubbleState: (bubble.inboundBubbleColor % 2) == 0 ? "pressed" : "normal"
-        property string outboundBubbleState: (bubble.outboundBubbleColor % 2) == 0 ? "pressed" : "normal"
+        property string inboundBubbleState: bubbleMouseArea.pressed ? "pressed" : "normal"
+        property string outboundBubbleState: bubbleMouseArea.pressed ? "pressed" : "normal"
     }
 
     anchors.right: from_me?this.right:parent.right
@@ -117,6 +117,7 @@ BorderImage {
     ]
 
     MouseArea{
+	id: bubbleMouseArea
         anchors.fill: parent
         /*onClicked: {
             console.log("CLICKED!!!");

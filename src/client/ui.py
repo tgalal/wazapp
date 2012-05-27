@@ -22,6 +22,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView,QDeclarativeProperty
 from contacts import WAContacts
+from status import WAChangeStatus
 from waxmpp import WAXMPP
 from utilities import Utilities
 #from registration import Registration
@@ -236,8 +237,9 @@ class WAUI(QDeclarativeView):
 		#self.reg = Registration();
 		self.whatsapp = whatsapp;
 		
-		
-		
+		#change whatsapp status
+		self.cs = WAChangeStatus(self.store);
+		self.rootObject().changeStatus.connect(self.cs.sync)
 		
 		#print "el acks:"
 		#print whatsapp.supports_receipt_acks

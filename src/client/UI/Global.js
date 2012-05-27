@@ -21,12 +21,24 @@
 ****************************************************************************/
 .pragma library
 
+
+function getCode(inputText) {
+	var replacedText;
+        var regx = /<img src="\/opt\/waxmppplugin\/bin\/wazapp\/UI\/pics\/emoji-20\/emoji-(\w{4}).png" \/>/g
+        replacedText = inputText.replace( regx, function(s, eChar){
+			var n=String.fromCharCode('0x'+eChar);
+            return n;
+        });
+    return replacedText
+}
+
+
 /* emojify by @knobtviker */
 function emojify(inputText) {
     var replacedText;
         var regx = /([\ue001-\ue537])/g
         replacedText = inputText.replace(regx, function(s, eChar){
-            return '<img src="pics/emoji/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
+            return '<img src="pics/emoji-20/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
         });
     return replacedText
 }
@@ -35,7 +47,7 @@ function emojify2(inputText) { //for textArea
     var replacedText;
         var regx = /([\ue001-\ue537])/g
         replacedText = inputText.replace(regx, function(s, eChar){
-            return "<img src='/opt/waxmppplugin/bin/wazapp/UI/pics/emoji/emoji-"+eChar.charCodeAt(0).toString(16).toUpperCase() + ".png'>";
+            return "<img src='/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-20/emoji-"+eChar.charCodeAt(0).toString(16).toUpperCase() + ".png'>";
         });
     return replacedText
 }
@@ -44,7 +56,7 @@ function emojifyBig(inputText) {
     var replacedText;
         var regx = /([\ue001-\ue537])/g
         replacedText = inputText.replace(regx, function(s, eChar){
-            return '<img src="pics/emoji/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
+            return '<img src="pics/emoji-32/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
         });
     return replacedText
 }

@@ -151,58 +151,64 @@ Page {
     }
 
 
-    Rectangle{
-        id:top_bar
-        //onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
-        width:parent.width
+	Rectangle{
+        	id:top_bar
+        	//onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
+        	width:parent.width
 		color: "transparent"
-        height: visible ? 73 : 0
-	visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)	
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 32
-            anchors.left: parent.left
-            anchors.leftMargin: 16
+        	height: visible ? 73 : 0
+		visible: screen.currentOrientation == Screen.Portrait ? true : ((screen.keyboardOpen || inputContext.softwareInputPanelVisible) ? false : true)	
+        	Rectangle {
+            		anchors.verticalCenter: parent.verticalCenter
+            		width: parent.width 
+            		anchors.left: parent.left
 			color: "transparent"
 			height: 50
 
-			ToolButton
+			ToolIcon
 			{
+				id: goBack
 				//platformStyle: ButtonStyle { inverted:appWindow.stealth  || theme.inverted }
-				width: 50
-				height: 48
-				iconSource: theme.inverted? "image://theme/icon-m-toolbar-previous-white" : "image://theme/icon-m-toolbar-previous"
+				//width: 50
+				//height: 48
+				iconId: "toolbar-back"
 				anchors.left: parent.left
 				anchors.verticalCenter: parent.verticalCenter
 				onClicked: { appWindow.pageStack.pop() }
 			}
 					
-	        Label {
-	            id: username
-	            text: user_name
-				width: parent.width - 62
-	            horizontalAlignment: Text.AlignRight
+	        	Label {
+	            		id: username
+	            		text: user_name
+				width: parent.width - goBack.width - userimage.width - 8 
+	            		horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
 				anchors.top: parent.top
-	            font.bold: true
+				anchors.right: userimage.left
+				anchors.rightMargin: 8
+	            		font.bold: true
 				height: 28
 	        }
-			UserStatus {
+		UserStatus {
 		        id:ustatus
-		        height:30
-		        itemwidth: parent.width -62
-				anchors.top: username.bottom
-		    }
+		        height: 22
+		        itemwidth: parent.width - goBack.width - userimage.width - 8*3
+			anchors.top: username.bottom
+			anchors.left: goBack.right
+			anchors.leftMargin: 8
+			horizontalAlignment: Text.AlignRight
+			
+		}
             RoundedImage {
                 id:userimage
                 size:50
                 imgsource: user_picture
                 anchors.verticalCenter: parent.verticalCenter
-				anchors.right: parent.right
+		anchors.right: parent.right
+		anchors.rightMargin: 8
             }
 
         }
-
 		Rectangle {
 			height: 1
 			width: parent.width
@@ -269,7 +275,7 @@ Rectangle {
 	    }
 	}
 
-	function getListSize () {
+    function getListSize () {
 		var s = 0;
 		for ( var i=0; i<conv_items.count; ++i )
 		{
@@ -283,8 +289,8 @@ Rectangle {
 
 	Flickable {
         id: flickArea
-        anchors.bottom: parent.bottom
-	anchors.top: top_bar.bottom 
+        anchors.bottom: input_button_holder.top
+    anchors.top: top_bar.bottom
 		width: parent.width
         contentWidth: width
         contentHeight: column1.height
@@ -293,7 +299,7 @@ Rectangle {
 		Column {
             id: column1
             anchors.topMargin: 0
-            anchors { top: parent.top; left: parent.left; margins: 0 }
+            anchors { top: parent.top; left: parent.left; margins: 0;}
             width: parent.width
             spacing: 0
 
@@ -302,13 +308,13 @@ Rectangle {
 				color: "transparent"
 				width: parent.width
 				visible: top_bar.visible
-				height: conv_items.height<(flickArea.height-input_holder.height-10-input_button_holder.height) ?
-						flickArea.height-input_holder.height-conv_items.height-10-input_button_holder.height : 0
+                height: conv_items.height<(flickArea.height-input_holder.height-10) ?
+                        flickArea.height-input_holder.height-conv_items.height-10 : 0
 
 		        Label{
 		            anchors.centerIn: parent;
 		            text: "Loading conversation..."
-		            font.pointSize: 22
+                    font.pointSize: 22
 					color: "gray"
 		            width: parent.width
 		            horizontalAlignment: Text.AlignHCenter
@@ -324,17 +330,19 @@ Rectangle {
 				delegate: myDelegate
 				model: conv_data
 				interactive: false
-				height: pageIsActive ? getListSize() : 0
+                height: pageIsActive ? getListSize() : 0
 				visible: loadFinished
-				//onCountChanged: { flickArea.contentY = conv_items.height }
-				onHeightChanged: { 
-					var s = 0;
-					if (conv_items.height > (flickArea.height-input_holder.height-73-10) )
-						s = conv_items.height - flickArea.height +75
-					else
-						s = conv_items.height
-					flickArea.contentY = s
-				}
+                //onCountChanged: { flickArea.contentY = conv_items.height }
+                onHeightChanged: {
+                    var s = 0;
+                                                       if (conv_items.height > (flickArea.height-input_holder.height-73-10) )
+                                                                 s = conv_items.height - flickArea.height +75
+                                                         else
+                                                                 s = conv_items.height
+                                                          flickArea.contentY = s
+
+
+                }
 				
 			}
 
@@ -352,7 +360,7 @@ Rectangle {
 				height: chat_text.height
 				color: "white"
 
-				property bool alreadyFocused: false
+                property bool alreadyFocused: false
 
 				Image {
 					id: logoW
@@ -388,56 +396,63 @@ Rectangle {
 				            typing(user_id);
 				        }
 				        iamtyping = true;
-				        typing_timer.restart();
+                        typing_timer.restart();
 					}
 
-					onActiveFocusChanged: {
+
+
+                    onActiveFocusChanged: {
                         showSendButton = chat_text.focus || input_button_holder_area.focus
-						if (showSendButton) {
-							if (!alreadyFocused) {
-								alreadyFocused = true
-								flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
-							} 
-						} else
-							alreadyFocused = false
+                        if (showSendButton) {
+                            if (!input_holder.alreadyFocused) {
+                               input_holder.alreadyFocused = true
+                                //flickArea.contentY = input_button_holder.height+chat_text.height
+                            }
+                        } else
+                            input_holder.alreadyFocused = false
+
 
                     }
 
 					onHeightChanged: {
-						flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
+                        flickArea.contentY = flickArea.contentHeight
 					}
 					
 				}
 			}
+		}
+	}
 
-			Rectangle {
-				id: input_button_holder
-				anchors.left: parent.left
-				width: parent.width
-				height: (showSendButton)? 65 : 0
-				color: "white"
-				clip: true
-				
-			    MouseArea {
-					id: input_button_holder_area
-					anchors.fill: parent
-					onClicked: { 
-						showSendButton=true; 
-						flickArea.contentY = flickArea.contentY
-						chat_text.forceActiveFocus()
-					}
-				}
 
-				
-				Rectangle {
-					height: 1
-					width: parent.width
-					x:0; y:0
-					color: "gray"
-					opacity: 0.6
-				}
+    Rectangle {
+        id: input_button_holder
+       // anchors.left: parent.left
+        width: parent.width
+        height: (showSendButton)? 65 : 0
+        anchors.bottom:parent.bottom
+        color: "white"
+        clip: true
 
-Button
+        MouseArea {
+            id: input_button_holder_area
+            anchors.fill: parent
+            onClicked: {
+                showSendButton=true;
+                flickArea.contentY = flickArea.contentY
+                chat_text.forceActiveFocus()
+            }
+        }
+
+
+        Rectangle {
+            height: 1
+            width: parent.width
+            x:0; y:0
+            color: "gray"
+            opacity: 0.6
+        }
+
+        Button
         {
             id: emoji_button
 
@@ -448,46 +463,42 @@ Button
             height: send_button.height
             iconSource: "pics/emoji/emoji-E415.png"
             anchors.left: parent.left
-	    anchors.leftMargin: 16
+        anchors.leftMargin: 16
             anchors.verticalCenter: send_button.verticalCenter
             onClicked:{
-		var component = Qt.createComponent("Emojidialog.qml");
-     		var sprite = component.createObject(conversation_view, {});
+        var component = Qt.createComponent("Emojidialog.qml");
+            var sprite = component.createObject(conversation_view, {});
 
             }
         }
 
-								
-				Button
-				{
-				    id:send_button
-				    platformStyle: ButtonStyle { inverted: true }
-                    iconSource:"image://theme/icon-m-toolbar-send-chat-white"
-				    width:160
-				    height:45
-					text: "Send"
-				    anchors.right: parent.right
-					anchors.rightMargin: 16
-					anchors.verticalCenter: parent.verticalCenter
-					//enabled: chat_text.text.trim() != ""
-				    onClicked:{
-                         //chat_text.focus = true;
-				         var toSend = chat_text.text.trim();
-				         if ( toSend != "")
-				         {
-				            sendMessage(user_id,toSend);
-				            chat_text.text = "";
-				         }
-				         //chat_text.focus = true;
-                         flickArea.contentY = input_button_holder.y+input_button_holder.height
-				    }
-				}
-			}
-			
-			
 
-		}
-	}
+        Button
+        {
+            id:send_button
+            platformStyle: ButtonStyle { inverted: true }
+            iconSource:"image://theme/icon-m-toolbar-send-chat-white"
+            width:160
+            height:45
+            text: "Send"
+            anchors.right: parent.right
+            anchors.rightMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            //enabled: chat_text.text.trim() != ""
+            onClicked:{
+                chat_text.text = chat_text.text+"\n"; //cheap hack to stabilize flickArea when regaining focus
+                chat_text.focus = true;
+                 var toSend = chat_text.text.trim();
+                 if ( toSend != "")
+                 {
+                    sendMessage(user_id,toSend);
+                    chat_text.text = "";
+                 }
+                 //chat_text.focus = true;
+                 //flickArea.contentY = input_button_holder.y+input_button_holder.height
+            }
+        }
+    }
 
     TextField{
         id:copy_facilitator

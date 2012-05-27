@@ -178,8 +178,15 @@ Dialog {
 
                 onClicked: {
                     var codeX = emojiDelegate.codeS;
-                    if (emojiSelector.origin == "chat") {chat_text.text += Helpers.convertUnicodeCodePointsToString(['0xE'+codeX])}
-		    else if (emojiSelector.origin == "status") {status_text.text += Helpers.convertUnicodeCodePointsToString(['0xE'+codeX])}
+                    if (emojiSelector.origin == "chat") {
+			chat_text.text += Helpers.convertUnicodeCodePointsToString(['0xE'+codeX])
+			chat_text.forceActiveFocus();
+			chat_text.cursorPosition = chat_text.text.length
+		    } else if (emojiSelector.origin == "status") {
+			status_text.text += Helpers.convertUnicodeCodePointsToString(['0xE'+codeX])
+			status_text.forceActiveFocus();
+			status_text.cursorPosition = status_text.text.length
+		    }
                     emojiSelector.destroy()
                 }
             }

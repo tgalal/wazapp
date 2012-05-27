@@ -198,7 +198,7 @@ Image {
             id:msg_date
             color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
             text: date
-	    x: from_me? 10 : 10+bubble.width-msg_date.width-status.width
+	    x: from_me? 10 : 5+bubble.width-msg_date.width-status.width
             font.pixelSize: 18
             font.family: textFieldStyle.textFont
             horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight

@@ -18,7 +18,7 @@ Page {
             appWindow.conversationActive(user_id);
             appWindow.setActiveConv(user_id)
 			pageIsActive = true
-		}
+o		}
         
     }
 
@@ -41,6 +41,7 @@ Page {
     property bool iamtyping:false
     property string pageIdentifier:"conversation_page" //used in notification hiding process
 
+	property string msgIdPlaceholder: ""
 
     Component.onCompleted:{
         console.log("opened chat window");
@@ -52,7 +53,7 @@ Page {
     signal conversationUpdated(variant message);
     signal typing(string user_id);
     signal paused(string user_id);
-
+    signal deleteSingleMessage(string msg_id);
 
     function notifyReceived(){
         /*console.log('hello notify');
@@ -111,8 +112,10 @@ Page {
     function getBubbleIndex(msg_id){
         for(var i =0; i < conv_data.count; i++){
             var bubble = conv_data.get(i);
-            if(bubble.msg_id == msg_id)
+            if(bubble.msg_id == msg_id) {
                 return i;
+		break;
+	    }
         }
 
         return -1;
@@ -248,8 +251,10 @@ width: parent.width
            //picture: user_picture
            name: getNameForBubble(user_name)
            state_status:model.status
+	   msg_id: model.msg_id
            onOptionsRequested: {
                console.log("options requested")
+	       conversation_view.msgIdPlaceholder = model.msg_id;	       
                copy_facilitator.text = model.message;
                bubbleMenu.open();
            }
@@ -505,17 +510,27 @@ Rectangle {
         visible:false
     }
 
-    Menu {
+    ContextMenu {
         id: bubbleMenu
-
             MenuLayout {
-
-            MenuItem{
+		
+            MenuItem {
                 text:qsTr("Copy")
                 onClicked:{
                     copy_facilitator.selectAll()
-                    copy_facilitator.copy();}
+                    copy_facilitator.copy();
+		}
             }
-        }
-    }
+
+ 	    MenuItem {
+                text: qsTr("Delete")
+                onClicked: {
+			var id = conversation_view.msgIdPlaceholder;
+			conv_items.model.remove(conversation_view.getBubbleIndex(id))
+			deleteSingleMessage(id);
+			conversation_view.msgIdPlaceholder = "";
+                }
+           }
+    	   }
+	}
 }

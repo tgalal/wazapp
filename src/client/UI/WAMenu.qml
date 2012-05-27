@@ -35,6 +35,12 @@ Menu {
        // MenuItem { text: qsTr("Reset profile/Register") }
         //MenuItem { text: qsTr("Settings") }
 
+    MenuItem {
+            id:change_status
+            text: qsTr("My status");
+            onClicked: pageStack.push (Qt.resolvedUrl("ChangeStatus.qml"))
+        }
+
          MenuItem{
                 visible:updateVisible
                 text:"Update Wazapp"

@@ -104,30 +104,45 @@ Dialog {
          Button {
              id: peopleEmoji
              iconSource: "pics/emoji/emoji-E415.png"
-         onClicked: emojiSelector.loadEmoji(0,109);
+             onClicked: emojiSelector.loadEmoji(0,109);
+             platformStyle:  ButtonStyle{
+               inverted: true
+            }
          }
 
          Button {
              id: natureEmoji
              iconSource: "pics/emoji/emoji-E04A.png"
-         onClicked: emojiSelector.loadEmoji(109,162)
+             onClicked: emojiSelector.loadEmoji(109,162)
+	         platformStyle:  ButtonStyle{
+               inverted: true
+            }
          }
 
          Button {
              id: eventsEmoji
              iconSource: "pics/emoji/emoji-E325.png"
-         onClicked: emojiSelector.loadEmoji(162,297)
+             onClicked: emojiSelector.loadEmoji(162,297)
+	         platformStyle:  ButtonStyle{
+               inverted: true
+            }
          }
     Button {
              id: placesEmoji
              iconSource: "pics/emoji/emoji-E036.png"
-         onClicked: emojiSelector.loadEmoji(297,367)
+             onClicked: emojiSelector.loadEmoji(297,367)
+        	 platformStyle:  ButtonStyle{
+               inverted: true
+            }
          }
 
          Button {
              id: symbolsEmoji
              iconSource: "pics/emoji/emoji-E210.png"
-         onClicked: emojiSelector.loadEmoji(367,466)
+             onClicked: emojiSelector.loadEmoji(367,466)
+	         platformStyle:  ButtonStyle{
+               inverted: true
+            }
          }
      }
 
@@ -149,6 +164,9 @@ Dialog {
                 //iconSource: emojiPath;
                 width: 110
                 height: 42
+		        platformStyle:  ButtonStyle{
+               		inverted: true
+            	}
                 Image {
                     source: emojiPath
                     anchors.horizontalCenter: parent.horizontalCenter

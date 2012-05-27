@@ -21,92 +21,92 @@
 ****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "Global.js" as Helpers
 
 
-Sheet {
+Page {
+
+	id: content
 
     Component.onCompleted: {
-        //showToolbars = false
-        titleInput.forceActiveFocus();
+        status_text.forceActiveFocus();
+    }
+	
+    tools: statusTool
+
+    WAHeader {
+	id: changeStatusHeader
+	anchors.top: parent.top
+	title: "Change status"
     }
 
-    visualParent: parent
-
-    
-    Item {
-        id: myButtons
-        width: parent.width
-        height: 64
-        SheetButton {
-            id: rejectButton
-            text:  qsTr("Cancel")
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            //platformStyle: mySheetButtonAccentStyle
-            onClicked: reject()
-        }
-        SheetButton {
-            id: acceptButton
-            text:  qsTr("Done")
-            anchors.right: parent.right
-            anchors.rightMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            platformStyle: mySheetButtonAccentStyle
-            onClicked: accept()
-            enabled: titleInput.text!=""
-        }
-    }
-
-    buttons: myButtons
-
-	function setStatus(num,msg) {
-        //final ProcessBuilder pb = new ProcessBuilder("/opt/waxmppplugin/bin/status ", num.toString(), "\""+ msg +"\"");
-		//final Process p = pb.start();
-		shell_exec("/opt/waxmppplugin/bin/status "+ num.toString() + " \"" + msg + "\"");
-	}
-
-    onAccepted: {
-		setStatus(5491133302246, titleInput.text);
-    }
-
-    onRejected: {
-        //showToolbars = true
-    }
+    Column {
+        anchors.top: changeStatusHeader.bottom
+	anchors.topMargin: 16 
+	spacing: 16
+		
+	width: parent.width
 
 
-    content: Item {
-        id: content
-        anchors.fill: parent
-
-        Rectangle {
-            anchors.fill: parent
-            color: theme.inverted ? "black" : "#f7f7ff"
-
-            Column {
-                spacing: 16
-                anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
-
-                Label {
-                    color: theme.inverted ? "white" : "black"
-                    text: qsTr("Enter new status")
-                }
-
-                TextField {
-                    id: titleInput
-                    text: ""
-                    width: parent.width
-                    platformStyle: myTextFieldStyle
-                }
+            Label {
+		id: statusLabel
+                color: theme.inverted ? "white" : "black"
+                text: qsTr("Enter new status")
             }
 
-        }
-    }
+	    FontLoader { id: wazappFont; source: "/opt/waxmppplugin/bin/wazapp/UI/fonts/WazappPureRegular.ttf" }
+	
 
-    MouseArea {
-        z: -1
-        anchors.fill: parent
+            TextArea {
+                id: status_text
+                width:parent.width-32
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    placeholderText: "Write your message here"
+                    wrapMode: TextEdit.Wrap
+                    font.family: wazappFont.name
+                    font.pixelSize: 24
+                    textFormat: Text.PlainText
+                                    
+            }
+								
+            Button
+            {
+                    id:emoji_button
+                    platformStyle: ButtonStyle { inverted: true }
+                    width: height
+                    height:45
+                    iconSource: "pics/emoji/emoji-E415.png"
+                    anchors.top: status_text.bottom
+                    anchors.topMargin: 16
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.verticalCenter: send_button.verticalCenter
+                    onClicked:{
+                            var component = Qt.createComponent("Emojidialog.qml");
+                            var sprite = component.createObject(content, {origin: "status"});
+                    }
+            }
     }
+    
+	ToolBarLayout {
+        	id:statusTool
+        	ToolIcon{
+            	platformIconId: "toolbar-back"
+       			onClicked: pageStack.pop()
+        	}
+		ToolButton{
+                    id:send_button
+                    enabled: status_text.text == "" ? false : true
+                    text: qsTr("Change")
+                    anchors.centerIn: parent
+                    onClicked:{
+                            var toSend = status_text.text.trim();
+                            if ( toSend != "") {
+                                    changeStatus(toSend);
+                                    pageStack.pop()
+                            }
+                    }
+            }
+      } 
 }

@@ -27,7 +27,8 @@ import "Global.js" as Helpers
 
 Dialog {
     id: emojiSelector
-
+   
+    property string origin: ""
     width: parent.width
     height: parent.height
 
@@ -104,17 +105,17 @@ Dialog {
          Button {
              id: peopleEmoji
              iconSource: "pics/emoji/emoji-E415.png"
-             onClicked: emojiSelector.loadEmoji(0,109);
-             platformStyle:  ButtonStyle{
+         onClicked: emojiSelector.loadEmoji(0,109);
+	platformStyle:  ButtonStyle{
                inverted: true
             }
          }
 
          Button {
              id: natureEmoji
-             iconSource: "pics/emoji/emoji-E04A.png"
-             onClicked: emojiSelector.loadEmoji(109,162)
-	         platformStyle:  ButtonStyle{
+             iconSource: "pics/emoji/emoji-E303.png"
+         onClicked: emojiSelector.loadEmoji(109,162)
+	platformStyle:  ButtonStyle{
                inverted: true
             }
          }
@@ -122,16 +123,16 @@ Dialog {
          Button {
              id: eventsEmoji
              iconSource: "pics/emoji/emoji-E325.png"
-             onClicked: emojiSelector.loadEmoji(162,297)
-	         platformStyle:  ButtonStyle{
+         onClicked: emojiSelector.loadEmoji(162,297)
+	platformStyle:  ButtonStyle{
                inverted: true
             }
          }
     Button {
              id: placesEmoji
              iconSource: "pics/emoji/emoji-E036.png"
-             onClicked: emojiSelector.loadEmoji(297,367)
-        	 platformStyle:  ButtonStyle{
+         onClicked: emojiSelector.loadEmoji(297,367)
+	platformStyle:  ButtonStyle{
                inverted: true
             }
          }
@@ -139,8 +140,8 @@ Dialog {
          Button {
              id: symbolsEmoji
              iconSource: "pics/emoji/emoji-E210.png"
-             onClicked: emojiSelector.loadEmoji(367,466)
-	         platformStyle:  ButtonStyle{
+         onClicked: emojiSelector.loadEmoji(367,466)
+	platformStyle:  ButtonStyle{
                inverted: true
             }
          }
@@ -164,7 +165,7 @@ Dialog {
                 //iconSource: emojiPath;
                 width: 110
                 height: 42
-		        platformStyle:  ButtonStyle{
+		platformStyle:  ButtonStyle{
                		inverted: true
             	}
                 Image {
@@ -177,7 +178,8 @@ Dialog {
 
                 onClicked: {
                     var codeX = emojiDelegate.codeS;
-                    chat_text.text += Helpers.convertUnicodeCodePointsToString(['0xE'+codeX])
+                    if (emojiSelector.origin == "chat") {chat_text.text += Helpers.convertUnicodeCodePointsToString(['0xE'+codeX])}
+		    else if (emojiSelector.origin == "status") {status_text.text += Helpers.convertUnicodeCodePointsToString(['0xE'+codeX])}
                     emojiSelector.destroy()
                 }
             }

@@ -37,7 +37,7 @@ WAStackWindow {
     property bool stealth:false
 
     Component.onCompleted: {
-        //theme.inverted = true
+        theme.inverted = true
     }
 
     platformStyle: defaultStyle
@@ -78,6 +78,7 @@ WAStackWindow {
 
 
     /****** Signal and Slot definitions *******/
+    signal changeStatus(string new_status)
     signal sendMessage(string user_id, string msg);
     signal sendRegRequest(string number, string cc);
     signal requestPresence(string user_id);

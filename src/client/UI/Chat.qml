@@ -161,14 +161,15 @@ Rectangle{
 
                 Image {
                     id: status
-                    height: 18; width: 18
-					smooth: true
+                    height: 18; 
+		    width: 18
+		    smooth: true
                     y:5
- 				}
+ 		}
                 Label{
                     id:last_msg
                     text:lastMsg
-                   // width:parent.width
+                    width: status.visible ? parent.width - status.width - 10 : parent.width
                     elide: Text.ElideRight
                     font.pixelSize: 20
                     height: 30

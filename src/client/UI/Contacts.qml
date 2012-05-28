@@ -288,9 +288,9 @@ Page {
 				font.pointSize: 20
 				font.bold: true
 			}
-			Image {
+			BorderImage {
 				id: countNumberBackground
-				source: "image://theme/meegotouch-button-background-selected"
+				source: theme.inverted?"image://theme/meegotouch-sheet-button-inverted-background":"image://theme/meegotouch-sheet-button-background"
 				anchors.right: parent.right
 				anchors.rightMargin: 8
 				anchors.verticalCenter: parent.verticalCenter
@@ -298,7 +298,7 @@ Page {
 					id: countNumber
 					text: contactsModel.count
 					anchors.centerIn: parent
-					color: "white"
+					color: theme.inverted?"white":"black"
 					font.pointSize: 18
 				}
 			}

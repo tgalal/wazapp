@@ -473,7 +473,7 @@ Page {
                         flickArea.contentY = flickArea.contentY
                     }*/
 
-                    iconSource: "pics/emoji/emoji-E415.png"
+                    iconSource: "pics/emoji-32/emoji-E415.png"
                     anchors.left: parent.left
                     anchors.leftMargin: 16
                     anchors.verticalCenter: send_button.verticalCenter

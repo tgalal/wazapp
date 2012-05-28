@@ -492,8 +492,9 @@ Rectangle {
             //enabled: chat_text.text.trim() != ""
             onClicked:{
                 //chat_text.text = chat_text.text+"\n"; //cheap hack to stabilize flickArea when regaining focus
-		flickArea.contentY = getListSize(); //very resource expensive trick if abused because fo the for loop
-                chat_text.focus = true;
+		//flickArea.contentY = getListSize(); //very resource expensive trick if abused because fo the for loop
+                if (chat_text.text == "") flickArea.contentY = flickArea.contentHeight; //this seems like a reasonable solution
+		chat_text.focus = true;
                  var toSend = chat_text.text.trim();
                  if ( toSend != "")
                  {

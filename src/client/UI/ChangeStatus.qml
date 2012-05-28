@@ -32,159 +32,81 @@ Page {
         status_text.forceActiveFocus();
     }
 
-    function cleanText(txt) {
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-        //res = res.replace("pics/emoji-20/emoji-", "\">emoji-")
-        //res = res.replace(".png\" />", "")
-        res = Helpers.getCode(res);
-        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-        return res;
-    }
-
     tools: statusTool
 
-    Rectangle{
-        id:top_bar
-        width:parent.width
-        color: "transparent"
-        height: 73
-        clip: true
-
-        Image{
-            id:wazapp_icon
-            anchors.left: parent.left
-            anchors.leftMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            height:56
-            width:height
-            smooth: true
-            source:'pics/wazapp80.png'
-        }
-
-        Label{
-            text: "Wazapp"
-            color:"#27a01b"
-            font.pixelSize: 30
-            y: 6
-            anchors.left: wazapp_icon.right
-            anchors.leftMargin: 12
-        }
-
-        Label{
-            text: "Change status"
-            color: theme.inverted? "white" : "darkgray"
-            anchors.left: wazapp_icon.right
-            anchors.leftMargin: 12
-            font.pixelSize: 22
-            y: 38
-        }
-
-        Rectangle {
-            height: 1
-            width: parent.width
-            x:0; y: 71
-            color: "gray"
-            opacity: 0.6
-        }
-        Rectangle {
-            height: 1
-            width: parent.width
-            x:0; y: 72
-            color: theme.inverted ? "lightgray" : "white"
-            opacity: 0.8
-        }
+    WAHeader {
+    id: changeStatusHeader
+    anchors.top: parent.top
+    title: "Change status"
     }
 
+    Column {
+        anchors.top: changeStatusHeader.bottom
+    anchors.topMargin: 16
+    spacing: 16
 
-    Rectangle {
-        anchors.top: top_bar.bottom
-        anchors.topMargin: 24
-        width: parent.width
-        height: parent.height - top_bar.height
-        color: "transparent"
+    width: parent.width
 
-        Column {
-            spacing: 16
-            anchors { top: parent.top; left: parent.left; right: parent.right; }
-            anchors.leftMargin: 16
-            anchors.rightMargin: 16
 
             Label {
+        id: statusLabel
                 color: theme.inverted ? "white" : "black"
                 text: qsTr("Enter new status")
             }
 
-            MyTextArea {
+        FontLoader { id: wazappFont; source: "/opt/waxmppplugin/bin/wazapp/UI/fonts/WazappPureRegular.ttf" }
+
+
+            TextArea {
                 id: status_text
-                width:parent.width
-                //height: 65
-                //anchors.verticalCenter: parent.verticalCenter
-                placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : "Write your message here"
-                //platformStyle: myTextFieldStyle
-                wrapMode: TextEdit.Wrap
-                textFormat: Text.RichText
+                width:parent.width-32
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    placeholderText: "Write your message here"
+                    wrapMode: TextEdit.Wrap
+                    font.family: wazappFont.name
+                    font.pixelSize: 24
+                    textFormat: Text.PlainText
 
             }
 
-            Rectangle {
-                id: input_button_holder
-                anchors.left: parent.left
-                width: parent.width
-                height: 50
-                color: "transparent"
-                clip: true
-
-                Button
-                {
+            Button
+            {
                     id:emoji_button
-                    //platformStyle: ButtonStyle { inverted: true }
-                    width:50
-                    height:50
+                    platformStyle: ButtonStyle { inverted: true }
+                    width: height
+                    height:45
                     iconSource: "pics/emoji-32/emoji-E415.png"
+                    anchors.top: status_text.bottom
+                    anchors.topMargin: 16
                     anchors.left: parent.left
-                    anchors.leftMargin: 0
+                    anchors.leftMargin: 16
                     anchors.verticalCenter: send_button.verticalCenter
                     onClicked:{
-                        var component = Qt.createComponent("EmojidialogStatus.qml");
-                        var sprite = component.createObject(content, {});
+                            var component = Qt.createComponent("Emojidialog.qml");
+                            var sprite = component.createObject(content, {origin: "status"});
                     }
-                }
-
-
-                Button
-                {
-                    id:send_button
-                    platformStyle: ButtonStyle { inverted: true }
-                    width:160
-                    height:50
-                    text: "Done"
-                    anchors.right: parent.right
-                    anchors.rightMargin: 0
-                    y: 0
-                    onClicked:{
-                        var toSend = cleanText(status_text.text);
-                        toSend = toSend.trim();
-                        if ( toSend != "")
-                        {
-                            changeStatus(toSend);
-                            pageStack.pop()
-                        }
-                    }
-                }
             }
-        }
-
     }
 
     ToolBarLayout {
-        id:statusTool
-        ToolIcon{
-            platformIconId: "toolbar-back"
-            onClicked: pageStack.pop()
-        }
-
-    }
-
-
+            id:statusTool
+            ToolIcon{
+                platformIconId: "toolbar-back"
+                onClicked: pageStack.pop()
+            }
+        ToolButton{
+                    id:send_button
+                    enabled: status_text.text == "" ? false : true
+                    text: qsTr("Change")
+                    anchors.centerIn: parent
+                    onClicked:{
+                            var toSend = status_text.text.trim();
+                            if ( toSend != "") {
+                                    changeStatus(toSend);
+                                    pageStack.pop()
+                            }
+                    }
+            }
+      }
 }

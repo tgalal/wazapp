@@ -235,8 +235,8 @@ class Model():
 			
 		vars(self)[variable] = value
 	
-	def findFirst(self,conditions):
-		res = self.findAll(conditions);
+	def findFirst(self,conditions,fields = []):
+		res = self.findAll(conditions,fields);
 		
 		if len (res):
 			return res[0];
@@ -263,7 +263,7 @@ class Model():
 		
 		return condsStr;
 	
-	def findAll(self,conditions="",fields = [],order=[]):
+	def findAll(self,conditions="",fields = [],order=[],limit=None):
 		condsStr = "";
 		if type(conditions) == dict:
 			condsStr = self.buildConds(conditions);
@@ -290,6 +290,10 @@ class Model():
 			orderStr = ",".join(order);
 			query = query + orderStr;
 		
+		
+		if limit is not None and type(limit) == int:
+			query=query+" LIMIT %i"%limit
+		
 		results = self.runQuery(query);
 		
 		data = []
@@ -313,21 +317,4 @@ class Model():
 			c.execute(query)
 		
 		return c.fetchall()
-		
-
-
-class Contacxt(Model):
-	def __init__(self):
-		''''''
-	
-	
-if __name__ =="__main__":
-	conn = sqlite3.connect("/home/tarekg/.wa/000000000000000.db")
-	
-	m = Contact()
-	m.setConnection(conn)
-	m.read(256);
-	print m.getData();
-	c = m.create();
-	print c.getData();
 	

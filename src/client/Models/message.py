@@ -19,7 +19,7 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 import time;
 from model import Model;
 
-class Message(Model):
+class MessageBase(Model):
 	
 	TYPE_RECEIVED = 0
 	TYPE_SENT = 1
@@ -28,16 +28,11 @@ class Message(Model):
 	STATUS_SENT = 1
 	STATUS_DELIVERED = 2
 	
-	PARTY_SINGLE = 0
-	PARTY_GROUP = 1
 	
 	generating_id = 0;
 	generating_header = str(int(time.time()))+"-";
 	
-	def __init__(self, convType= PARTY_SINGLE):
-		self.convType = convType
-			
-			
+	def __init__(self):
 		
 		self.TYPE_RECEIVED = Message.TYPE_RECEIVED
 		self.TYPE_SENT = Message.TYPE_SENT
@@ -45,13 +40,21 @@ class Message(Model):
 		self.STATUS_SENT = Message.STATUS_SENT
 		self.STATUS_DELIVERED = Message.STATUS_DELIVERED
 	
-	def storeConnected(self):
-		if self.convType == Message.PARTY_SINGLE:
-			self.Conversation = self.store.SingleConversation
+	def getConversation(self):
+		if not self.conversation_id:
+			return 0;
 			
+		if not self.Conversation.id:
+			self.Conversation = self.Conversation.read(self.conversation_id)
+		
+		return self.Conversation	
+		
+class Message(MessageBase):
+
+	def storeConnected(self):
+		self.Conversation = self.store.Conversation
 		self.conn.text_factory = str
 			
-		
 	def getContact(self):
 		if self.getConversation():
 			if not self.Conversation.Contact.id:
@@ -61,13 +64,8 @@ class Message(Model):
 		
 		return self.Contact	
 			
-	def getConversation(self):
-		if not self.conversation_id:
-			return 0;
-			
-		if not self.Conversation.id:
-			self.Conversation = self.Conversation.read(self.conversation_id)
-		
-		return self.Conversation
-		
-			
+class GroupMessage(MessageBase):
+
+	def storeConnected(self):
+		self.Conversation = self.store.GroupConversation
+		self.conn.text_factory = str

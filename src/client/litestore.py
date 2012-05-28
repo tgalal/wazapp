@@ -23,6 +23,7 @@ import shutil
 from Models.contact import Contact;
 from Models.message import Message, GroupMessage;
 from Models.conversation import *
+from Models.mediatype import Mediatype
 
 
 class LiteStore(DataStore):
@@ -59,15 +60,18 @@ class LiteStore(DataStore):
 		self.Contact = Contact();
 		self.Contact.setStore(self);
 		
-		self.SingleConversation = SingleConversation();
-		self.SingleConversation.setStore(self);
-		
 		self.Conversation = Conversation();
 		self.Conversation.setStore(self);
+		
+		self.ConversationManager = ConversationManager();
+		self.ConversationManager.setStore(self);
 		
 		
 		self.GroupconversationsContacts = GroupconversationsContacts();
 		self.GroupconversationsContacts.setStore(self);
+		
+		self.Mediatype = Mediatype();
+		self.Mediatype.setStore(self);
 		
 		self.GroupConversation = GroupConversation();
 		self.GroupConversation.setStore(self);
@@ -75,8 +79,8 @@ class LiteStore(DataStore):
 		self.Message = Message();
 		self.Message.setStore(self);
 		
-		self.GroupMessage = GroupMessage();
-		self.GroupMessage.setStore(self);
+		self.Groupmessage = GroupMessage();
+		self.Groupmessage.setStore(self);
 		
 	def get_db_path(self,user_id):
 		return LiteStore.db_dir+"/"+self.db_name;
@@ -118,14 +122,53 @@ class LiteStore(DataStore):
 		q = "SELECT name FROM sqlite_master WHERE type='table' AND name='%s'" % tableName;
 		c.execute(q);
 		return len(c.fetchall())
+		
+		
+	def updateDatabase(self):
+		
+		
+		
+		##>0.2.6 check that singleconversations is renamed to conversations
+		
+		print "Checking > 0.2.6 updates"
+		
+		if not self.tableExists("conversations"):
+			print "Renaming single conversations to conversations"
+			
+			q = "ALTER TABLE singleconversations RENAME TO conversations;"
+			c = self.conn.cursor()
+			c.execute(q);
+			
+			#q = "PRAGMA writable_schema = 1";
+			#UPDATE SQLITE_MASTER SET SQL = 'CREATE TABLE BOOKS ( title TEXT NOT NULL, publication_date TEXT)' WHERE NAME = 'BOOKS';
+			#q = "PRAGMA writable_schema = 0";
+		
+		print "Checking addition of mediatype_id to messages"
+		
+		q = "PRAGMA table_info(messages)"
+		c = self.conn.cursor()
+		c.execute(q)
+		
+		found = False
+		for item in c.fetchall():
+			if item[1] == "mediatype_id":
+				found = True
+				break
+		
+		if not found:
+			print "Not found, altering table"
+			c.execute("Alter TABLE messages add column 'mediatype_id' 'INTEGER'")
+		
+		
+		
 
 	def prepareBase(self):
 		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR)'
 		
 		
-		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0)'
+		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0,"mediatype_id" INTEGER NOT NULL DEFAULT 1)'
 		
-		conversations_q = 'CREATE TABLE "main"."singleconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"contact_id" INTEGER NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
+		conversations_q = 'CREATE TABLE "main"."conversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"contact_id" INTEGER NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
 		self.c.execute(contacts_q);
 		self.c.execute(messages_q);
@@ -148,9 +191,10 @@ class LiteStore(DataStore):
 		if not self.tableExists("mediatypes"):
 			q = 'CREATE TABLE IF NOT EXISTS "main"."mediatypes" ("id" INTEGER PRIMARY KEY NOT NULL, "type" VARCHAR NOT NULL, "enabled" INTEGER NOT NULL DEFAULT 1)'
 		
-			q_mediatypes = "INSERT INTO mediatypes (id,type,enabled) VALUES (1,'text',1),(2,'image',0),(3,'video',0),(4,'voice',0),(5,'location',0)"
-
+			q_mediatypes = "INSERT INTO mediatypes(id,type,enabled) VALUES (1,'text',1),(2,'image',0),(3,'video',0),(4,'voice',0),(5,'location',0)"
+			c = self.conn.cursor()
 			c.execute(q);
+			c = self.conn.cursor()
 			c.execute(q_mediatypes)
 		
 

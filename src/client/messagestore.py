@@ -24,7 +24,7 @@ import datetime
 class MessageStore(QObject):
 
 
-	messageStatusUpdated = QtCore.Signal(int,int);
+	messageStatusUpdated = QtCore.Signal(str,int,int);
 	messagesReady = QtCore.Signal(dict);
 	
 	currKeyId = 0
@@ -40,63 +40,53 @@ class MessageStore(QObject):
 		#	self.loadMessages(m.getContact());
 		#load messages for jids of those ids
 		
-		
-		
 	
 	def deleteConversation(self,jid):
-		contact = self.store.Contact.findFirst(conditions={"jid":jid})
-		if contact is None:
+	
+		if not self.conversations.has_key(jid):
 			return
 		
-		conv = self.store.SingleConversation.findFirst(conditions={"contact_id":contact.id})
+		conv = self.conversations[jid]
 		
-		if conv is not None:
-			if self.conversations.has_key("conversation_"+str(conv.id)):
-				del self.conversations["conversation_"+str(conv.id)]
+		if conv.type == "single":
 			self.store.Message.delete({"conversation_id":conv.id})
-			conv.delete();
+		else:
+			self.store.GroupMessage.delete({"groupconversation_id":conv.id})
+		conv.delete();
+		del self.conversations[jid]
 	
 	def loadConversations(self):
-		conversations = self.store.SingleConversation.findAll();
+		conversations = self.store.ConversationManager.findAll();
 		print "init load convs"
 		for c in conversations:
 			print "loading messages"
-			self.loadMessages(c.id)
+			jid = c.getJid();
+			self.conversations[jid] = c
+			self.loadMessages(jid)
 			print "loaded messages"
 		
 	
-	def sendMessagesReady(self,conversationId, offset = 0,limit=50):
-		#sends out chunks of conversation, prepared upon request
+	def loadMessages(self,jid,offset = 0,limit=50):
 		
-		conv = self.conversations["conversation_"+str(conversationId)]
+		messages = self.conversations[jid].loadMessages(offset,limit);
 		
 		
-
+		self.sendMessagesReady(jid,messages);
+		return messages
+	
+	
+	def sendMessagesReady(self,jid,messages):
 		tmp = {}
-		tmp["conversation_id"] = conversationId
-		convObj =  self.store.SingleConversation.getById(conversationId);
-		contact = convObj.getContact()
-		tmp["user_id"] = contact.jid
+		tmp["conversation_id"] = self.conversations[jid].id
+		tmp["user_id"] = jid
 		tmp["data"] = []
 		
 		
-		
-		if len(conv) < offset+limit:
-			limit = len(conv)-offset
-		
-		offset = len(conv) - offset
-		if len(conv) < offset:
-			self.messagesReady.emit(tmp)
-			return
-		
-		
-		
-		
-		for i in range(offset-limit,offset):
-			msg = conv[i].getModelData()
+		for m in messages:
+			msg = m.getModelData()
 			msg['formattedDate'] = datetime.datetime.fromtimestamp(int(msg['timestamp'])/1000).strftime('%d-%m-%Y %H:%M')
 			msg['content'] = msg['content'].decode('utf-8');
-			msg['jid'] = contact.jid
+			msg['jid'] = jid
 			tmp["data"].append(msg)
 			
 			
@@ -113,18 +103,30 @@ class MessageStore(QObject):
 		return self.store.Message.findFirst({"key":key});
 		
 	def getOrCreateConversationByJid(self,jid):
-		contact = self.store.Contact.findFirst(conditions={"jid":jid})
-		if contact is None:
-			contact = self.store.Contact.create();
-			contact.setData({"jid":jid,"number":jid.split('@')[0]})
-			contact.save()
+	
+		groupTest = jid.split('-');
+		if len(groupTest)==2:
+			conv = self.store.GroupConversation.findFirst(conditions={"jid":jid})
+			
+			if conv is None:
+				conv = self.store.GroupConversation.create()
+				conv.setData({"jid":jid})
+				conv.save()
+			
+		else:
 		
-		conv = self.store.SingleConversation.findFirst(conditions={"contact_id":contact.id})
+			contact = self.store.Contact.findFirst(conditions={"jid":jid})
+			if contact is None:
+				contact = self.store.Contact.create();
+				contact.setData({"jid":jid,"number":jid.split('@')[0]})
+				contact.save()
 		
-		if conv is None:
-			conv = self.store.SingleConversation.create()
-			conv.setData({"contact_id":contact.id})
-			conv.save()
+			conv = self.store.Conversation.findFirst(conditions={"contact_id":contact.id})
+		
+			if conv is None:
+				conv = self.store.Conversation.create()
+				conv.setData({"contact_id":contact.id})
+				conv.save()
 		
 		return conv
 	
@@ -143,16 +145,6 @@ class MessageStore(QObject):
 		#message.key = localKey
 		
 		return localKey;
-		
-	def loadMessages(self,conversation_id):
-		print "find all messages"
-		messages = self.store.Message.findAll(conditions = {"conversation_id":conversation_id},order=["id ASC"])
-		print "found all messages"
-		self.conversations["conversation_"+str(conversation_id)] = messages
-		
-		self.sendMessagesReady(conversation_id);
-		return messages
-	
 	
 	def updateStatus(self,message,status):
 		print "UPDATING STATUS TO "+str(status);
@@ -160,24 +152,32 @@ class MessageStore(QObject):
 		message.save()
 		conversation = message.getConversation()
 		
-		index = self.getMessageIndex(conversation.id,message.id);
+		jid = conversation.getJid();
+		
+		index = self.getMessageIndex(jid,message.id);
 		if index >= 0:
 			#message is loaded
-			self.conversations["conversation_"+str(conversation.id)][index] = message
-			self.messageStatusUpdated.emit(message.id,status)
+			self.conversations[jid].messages[index] = message
+			self.messageStatusUpdated.emit(jid,message.id,status)
 	
-	def getMessageIndex(self,conversation_id,msg_id):
-		if self.conversations.has_key("conversation_"+str(conversation_id)):
-			messages = self.conversations["conversation_"+str(conversation_id)];
+	def getMessageIndex(self,jid,msg_id):
+		if self.conversations.has_key(jid):
+			messages = self.conversations[jid].messages;
 			for i in range(0,len(messages)):
 				if msg_id == messages[i].id:
 					return i
 		
 		return -1
-			
 
-	def pushMessage(self,message):
-		conv = message.getConversation();
+	def pushMessage(self,jid,message):
+	
+		conversation = self.getOrCreateConversationByJid(jid);
+		
+		
+		
+		
+		
+		message.conversation_id = conversation.id;
 		
 		if message.key is None:
 			message.key = self.generateKey(message).toString();
@@ -185,12 +185,17 @@ class MessageStore(QObject):
 		#if not self.store.Message.findFirst({"key",message.key}):
 		message.save();
 		
-		if self.conversations.has_key("conversation_"+str(conv.id)):
-			self.conversations["conversation_"+str(conv.id)].append(message)
-		else:
-			self.conversations["conversation_"+str(conv.id)] = [message]
+		if self.conversations.has_key(jid):
+			print "CHECKKKK"
+			print self.conversations[jid]
+			print self.conversations[jid].messages;
 			
-		self.sendMessagesReady(conv.id, offset = 0,limit=1)
+			self.conversations[jid].messages.append(message)
+		else:
+			self.conversations[jid] = conversation
+			self.conversations[jid].messages.append(message)
+			
+		self.sendMessagesReady(jid,[message]);
 		
 class Key():
 	def __init__(self,remote_jid, from_me,idd):

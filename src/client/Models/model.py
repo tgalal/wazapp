@@ -43,8 +43,24 @@ class Model():
 		for item in res:
 			relattrib = str(item[1]).split('_id')
 			if len(relattrib) == 2 and relattrib[1]=='':
-				foreign = relattrib[0].lower();
-				foreign = foreign[0].upper()+foreign[1:]
+				
+				m2mTest = relattrib[0].split('_')
+				if len(m2mTest) == 2:
+					foreignOne = m2mTest[0].lower()
+					foreignOne = foreignOne[0].upper()+foreignOne[1:]
+					foreignTwo = m2mTest[1].lower()
+					foreignTwo = foreignTwo[0].upper()+foreignTwo[1:]
+					foreign = foreignOne + foreignTwo
+					
+					#foreignInstance = getattr(self.store,foreignOne)
+					#self.setInstanceVariable(foreignOne,foreignInstance.create());
+					
+					#foreignInstance = getattr(self.store,foreignTwo)
+					#self.setInstanceVariable(foreignTwo,foreignInstance.create());
+				else:	
+					foreign = relattrib[0].lower();
+					foreign = foreign[0].upper()+foreign[1:]
+				
 				foreignInstance = getattr(self.store,foreign)
 				self.setInstanceVariable(foreign,foreignInstance.create());
 				
@@ -147,6 +163,8 @@ class Model():
 		
 		q = "INSERT INTO %s %s VALUES %s" %(self.table,fields,wq);
 		c = self.conn.cursor();
+		#print q
+		#print values
 		c.execute(q,values);
 		self.conn.commit();
 		

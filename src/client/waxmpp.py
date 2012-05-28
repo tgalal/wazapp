@@ -219,9 +219,9 @@ class WAEventHandler(WAEventBase):
 	def send_message(self,to_id,msg_text):
 		
 		fmsg = WAXMPP.message_store.store.Message.create();
-		conversation = WAXMPP.message_store.getOrCreateConversationByJid(to_id);
-		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"conversation_id":conversation.id,"type":1})
-		WAXMPP.message_store.pushMessage(fmsg)
+		
+		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
+		WAXMPP.message_store.pushMessage(to_id,fmsg)
 		
 		self.conn.sendMessageWithBody(fmsg);
 	
@@ -558,10 +558,10 @@ class StanzaReader(QThread):
 
 					
 					if ret is None:
-						conversation = WAXMPP.message_store.getOrCreateConversationByJid(fromAttribute);
-						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"conversation_id":conversation.id,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
 						
-						WAXMPP.message_store.pushMessage(fmsg)
+						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
+						
+						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
 						fmsg.key = key
 						
 						#if self.eventHandler is not None:

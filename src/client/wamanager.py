@@ -84,16 +84,19 @@ class WAManager():
 			#gui.forceRegistration();
 			#self.app.exit();
 			
-		
-		
-			
-			
 		imsi = Utilities.getImsi();
 		store = DataStore(imsi);
 		
 		if store.status == False:
 			#or exit
 			store.reset();
+			
+		print "Prepare group convos"
+		store.prepareGroupConversations();
+		print "Prepare media"
+		store.prepareMedia()
+		store.updateDatabase()
+		
 		
 		gui = WAUI();
 		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')

@@ -18,10 +18,12 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from model import Model;
 
-class SingleConversation(Model):
+class Conversation(Model):
 	#MUST INIT BEFORE INITING MESSAGES
 	def __init__(self):
 		''''''
+		self.type="single"
+		self.messages = []
 	
 	def getContact(self):
 		if not self.contact_id:
@@ -31,3 +33,119 @@ class SingleConversation(Model):
 			self.Contact = self.Contact.read(self.contact_id);
 		
 		return self.Contact
+		
+	def getJid(self):
+		convObj =  self.store.Conversation.getById(self.id);
+		contact = convObj.getContact()
+		return contact.jid
+		
+	def getLastMessage(self):
+		messages = self.store.Message.findAll(conditions = {"conversation_id":self.id}, order=["timestamp DESC"], limit = 1)
+		if len(messages):
+			self.lastMessage = messages[0];
+			return self.lastMessage;
+		
+		self.lastMessage = self.store.Message.create();
+		self.lastMessage.timestamp = 0
+		return None;
+		
+		
+	def loadMessages(self,offset = 0,limit=50):
+		print "find some messages"
+		conditions = {"conversation_id":self.id}
+		
+		if offset:
+			conditions["id<",offset];
+		
+		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit)
+		
+		messages.reverse();
+		
+		print "found some messages"
+		
+		cpy = messages[:]
+		messages.extend(self.messages);
+		self.messages = messages
+		
+		return cpy
+
+class GroupConversation(Model):
+	
+	def __init__(self):
+		print "init a group convo"
+		self.type="group"
+		self.messages = []
+		
+		
+	def getJid(self):
+		return self.jid;
+		
+	def getLastMessage(self):
+		messages = self.store.GroupMessage.findAll(conditions = {"groupconversation_id":self.id}, order=["timestamp DESC"], limit = 1)
+		if len(messages):
+			self.lastMessage = messages[0];
+			return self.lastMessage;
+		
+		self.lastMessage = self.store.GroupMessage.create();
+		self.lastMessage.timestamp = 0
+		return None;
+		
+	def loadMessages(self,offset = 0,limit=50):
+		print "group: find some messages"
+		conditions = {"groupconversation_id":self.id}
+		
+		if offset:
+			conditions["id<",offset];
+		
+		messages = self.store.Groupmessage.findAll(conditions,order=["id DESC"],limit=limit)
+		
+		messages.reverse();
+		
+		print "found some messages"
+		
+		cpy = messages[:]
+		messages.extend(self.messages);
+		self.messages = messages
+		
+		return cpy
+	
+
+class ConversationManager():
+	def __init__(self):
+		''''''
+	
+	def setStore(self,store):
+		self.store = store;
+	
+	def findAll(self):
+		convs = self.store.Conversation.findAll();
+		gconvs = self.store.GroupConversation.findAll();
+		
+		#convs.extend(gconvs);
+		
+		for c in convs:
+			c.getLastMessage();
+		
+		
+		convs.sort(key=lambda k: k.lastMessage.timestamp,reverse = True);
+		
+		return convs;
+		
+		
+		
+class GroupconversationsContacts(Model):
+	def __init__(self):
+		''''''
+
+	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		

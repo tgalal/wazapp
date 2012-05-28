@@ -275,6 +275,34 @@ Page {
             section.delegate: sectionHeading
 			highlightFollowsCurrentItem: false
 			Component.onCompleted: fast.listViewChanged()
+	    header: Item {
+		        width: parent.width
+			height: countNumberBackground.height+16 				
+			Label {
+				id: countText
+			 	text: qsTr("Favorites")
+				anchors.verticalCenter: parent.verticalCenter
+				anchors.left: parent.left
+				anchors.leftMargin: 8
+				color: theme.inverted ? "white" : "black"
+				font.pointSize: 20
+				font.bold: true
+			}
+			Image {
+				id: countNumberBackground
+				source: "image://theme/meegotouch-button-background-selected"
+				anchors.right: parent.right
+				anchors.rightMargin: 8
+				anchors.verticalCenter: parent.verticalCenter
+				Label {
+					id: countNumber
+					text: contactsModel.count
+					anchors.centerIn: parent
+					color: "white"
+					font.pointSize: 18
+				}
+			}
+		}
         }
 
 	FastScroll {

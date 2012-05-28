@@ -1,6 +1,8 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
+
+
 import "conversations.js" as ConvScript
 import "Global.js" as Helpers
 //import QtMobility.systeminfo 1.1
@@ -21,6 +23,7 @@ Page {
         }
 
     }
+
 
 
     TextFieldStyle {
@@ -204,11 +207,11 @@ Page {
                 size:50
                 imgsource: user_picture
                 anchors.verticalCenter: parent.verticalCenter
-        anchors.right: parent.right
-        anchors.rightMargin: 8
+                anchors.right: parent.right
             }
 
         }
+
         Rectangle {
             height: 1
             width: parent.width
@@ -230,19 +233,10 @@ Page {
     }
 
     Component{
-       id:myDelegate
-
-Column {
-width: parent.width
-    Rectangle {
-           id: margin_top
-           width: parent.width
-           height: 8
-           color: "transparent"
-       }
+        id:myDelegate
 
        SpeechBubble{
-           message: Helpers.emojifyBig(Helpers.newlinefy(Helpers.linkify(model.message)));
+           message: Helpers.emojifyBig(Helpers.linkify(model.message));
            date:model.timestamp
            from_me:model.type==1
            //picture: user_picture
@@ -254,15 +248,6 @@ width: parent.width
                bubbleMenu.open();
            }
        }
-
-Rectangle {
-           id: margin_bottom
-           width: parent.width
-           height: 4
-           color: "transparent"
-       }
-}
-
     }
 
     Timer {
@@ -287,10 +272,30 @@ Rectangle {
         return s;
     }
 
+    function cleanText(txt) {
+        var repl = "p, li { white-space: pre-wrap; }";
+        var res = txt;
+        //res = res.replace("pics/emoji-20/emoji-", "\">emoji-")
+        //res = res.replace(".png\" />", "")
+        res = Helpers.getCode(res);
+        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
+        return res;
+    }
+
+    function text2message(txt) {
+        var repl = "p, li { white-space: pre-wrap; }";
+        var res = txt;
+        res = res.replace(/([\E001-\E537]).png/g, "[img").replace(" />", "]")
+        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
+        res = res.replace("[", "<").replace("]", ">");
+        return res;
+    }
+
     Flickable {
         id: flickArea
-        anchors.bottom: input_button_holder.top
-    anchors.top: top_bar.bottom
+        anchors.bottom: parent.bottom
+        //anchors.topMargin: 73
+        height: parent.height - top_bar.height
         width: parent.width
         contentWidth: width
         contentHeight: column1.height
@@ -299,7 +304,7 @@ Rectangle {
         Column {
             id: column1
             anchors.topMargin: 0
-            anchors { top: parent.top; left: parent.left; margins: 0;}
+            anchors { top: parent.top; left: parent.left; margins: 0 }
             width: parent.width
             spacing: 0
 
@@ -307,9 +312,8 @@ Rectangle {
                 id: spacer_top
                 color: "transparent"
                 width: parent.width
-                visible: top_bar.visible
-                height: conv_items.height<(flickArea.height-input_holder.height-10) ?
-                        flickArea.height-input_holder.height-conv_items.height-10 : 0
+                height: conv_items.height<(flickArea.height-input_holder.height-10-input_button_holder.height) ?
+                        flickArea.height-input_holder.height-conv_items.height-10-input_button_holder.height : 0
 
                 Label{
                     anchors.centerIn: parent;
@@ -325,7 +329,7 @@ Rectangle {
 
             ListView{
                 id:conv_items
-
+                spacing: 6
                 width:parent.width
                 delegate: myDelegate
                 model: conv_data
@@ -335,13 +339,13 @@ Rectangle {
                 //onCountChanged: { flickArea.contentY = conv_items.height }
                 onHeightChanged: {
                     var s = 0;
-                                                       if (conv_items.height > (flickArea.height-input_holder.height-73-10) )
-                                                                 s = conv_items.height - flickArea.height +75
-                                                         else
-                                                                 s = conv_items.height
-                                                          flickArea.contentY = s
-
-
+                    if (conv_items.height > (flickArea.height-input_holder.height-73-10) )
+                        s = conv_items.height - flickArea.height +75
+                    else
+                        s = conv_items.height
+                    if (showSendButton)
+                        s = s + input_button_holder.height
+                    flickArea.contentY = s
                 }
 
             }
@@ -357,39 +361,41 @@ Rectangle {
                 id: input_holder
                 anchors.left: parent.left
                 width: parent.width
-                height: chat_text.height
-                color: "white"
+                height: Math.max(chat_text.height, 65)
+                color: theme.inverted? "#1A1A1A" : "white"
 
                 property bool alreadyFocused: false
 
                 Image {
-                    id: logoW
-                    x: 16
-                    y: 22
-                    height: 42; width: 42; smooth: true
+                    x: 16; y: 12;
+                    height: 36; width: 36; smooth: true
                     source: "pics/wazapp48.png"
-                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                MouseArea {
+                    id: input_holder_area
+                    anchors.fill: parent
+                    onClicked: {
+                        showSendButton=true;
+                        flickArea.contentY = flickArea.contentY
+                        chat_text.forceActiveFocus()
+                    }
                 }
 
 
-                FontLoader { id: wazappFont; source: "/opt/waxmppplugin/bin/wazapp/UI/fonts/WazappPureRegular.ttf" }
-
-                TextArea {
+                MyTextArea {
                     id: chat_text
-                    anchors.left: logoW.right
-
-                    height: 65
-                    width: parent.width-logoW.width-32
+                    width:parent.width -60
+                    x: 54
+                    //height: 65
                     anchors.verticalCenter: parent.verticalCenter
-                    placeholderText: "Write your message here"
+                    placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : "Write your message here"
                     platformStyle: myTextFieldStyle
                     wrapMode: TextEdit.Wrap
-                                textFormat: Text.PlainText
-                    font.family: wazappFont.name
+                    textFormat: Text.RichText
                     font.pixelSize: 24
 
                     onTextChanged: {
-
                         if(!iamtyping)
                         {
                             console.log("TYPING");
@@ -399,104 +405,113 @@ Rectangle {
                         typing_timer.restart();
                     }
 
-
-
                     onActiveFocusChanged: {
-                        showSendButton = chat_text.focus || input_button_holder_area.focus
-                        if (showSendButton) {
-                            if (!input_holder.alreadyFocused) {
-                               input_holder.alreadyFocused = true
-                                //flickArea.contentY = input_button_holder.height+chat_text.height
+                        showSendButton = chat_text.focus || input_button_holder_area.focus || emoji_button.focus
+                        /*if (showSendButton) {
+                            if (!alreadyFocused) {
+                                alreadyFocused = true
+                                flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
                             }
                         } else
-                            input_holder.alreadyFocused = false
-
+                            alreadyFocused = false*/
 
                     }
 
                     onHeightChanged: {
-                        flickArea.contentY = flickArea.contentHeight
+                        flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
                     }
 
                 }
             }
-        }
-    }
+
+            Rectangle {
+                id: input_button_holder
+                anchors.left: parent.left
+                width: parent.width
+                height: (showSendButton)? 76 : 0
+                color: input_holder.color
+                clip: true
+
+                MouseArea {
+                    id: input_button_holder_area
+                    anchors.fill: parent
+                    onClicked: {
+                        showSendButton=true;
+                        flickArea.contentY = flickArea.contentY
+                        chat_text.forceActiveFocus()
+                    }
+                }
 
 
-    Rectangle {
-        id: input_button_holder
-       // anchors.left: parent.left
-        width: parent.width
-        height: (showSendButton)? 65 : 0
-        anchors.bottom:parent.bottom
-        color: "white"
-        clip: true
+                Rectangle {
+                    height: 1
+                    width: parent.width
+                    x:0; y:0
+                    color: "gray"
+                    opacity: 0.4
+                }
 
-        MouseArea {
-            id: input_button_holder_area
-            anchors.fill: parent
-            onClicked: {
-                showSendButton=true;
-                flickArea.contentY = flickArea.contentY
-                chat_text.forceActiveFocus()
+                Button
+                {
+                    id:emoji_button
+                    //platformStyle: ButtonStyle { inverted: true }
+                    width:50
+                    height:50
+                    /*iconSource: "pics/emoji-32/emoji-E05A.png"
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    y: 10
+                    onClicked:{
+                        showSendButton=true
+                        //var i = chat_text.cursorPosition
+                        //var t = cleanText(chat_text.text)
+                        //t = getCode(t)
+                        //var t = Helpers.emojify2(chat_text.text + "\ue05A")
+                        chat_text.text = Helpers.emojify2(chat_text.text + "\ue05A")
+                        chat_text.forceActiveFocus()
+                        chat_text.cursorPosition = chat_text.text.lenght
+                        flickArea.contentY = flickArea.contentY
+                    }*/
+
+                    iconSource: "pics/emoji/emoji-E415.png"
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.verticalCenter: send_button.verticalCenter
+                    onClicked:{
+                        var component = Qt.createComponent("Emojidialog.qml");
+                        var sprite = component.createObject(conversation_view, {});
+                    }
+                }
+
+
+                Button
+                {
+                    id:send_button
+                    platformStyle: ButtonStyle { inverted: true }
+                    width:160
+                    height:50
+                    text: "Send"
+                    anchors.right: parent.right
+                    anchors.rightMargin: 16
+                    y: 10
+                    //enabled: cleanText(chat_text.text).trim()!=""
+                    onClicked:{
+                        showSendButton=true;
+                        chat_text.forceActiveFocus()
+                        flickArea.contentY = flickArea.contentY
+                        var toSend = cleanText(chat_text.text);
+                        toSend = toSend.trim();
+                        if ( toSend != "")
+                        {
+                            sendMessage(user_id,toSend);
+                            chat_text.text = "";
+                        }
+                    }
+                }
             }
-        }
 
 
-        Rectangle {
-            height: 1
-            width: parent.width
-            x:0; y:0
-            color: "gray"
-            opacity: 0.6
-        }
 
-        Button
-        {
-            id: emoji_button
-
-            platformStyle:  ButtonStyle{
-               inverted: false
-            }
-            width: height
-            height: send_button.height
-            iconSource: "pics/emoji/emoji-E415.png"
-            anchors.left: parent.left
-        anchors.leftMargin: 16
-            anchors.verticalCenter: send_button.verticalCenter
-            onClicked:{
-        var component = Qt.createComponent("Emojidialog.qml");
-            var sprite = component.createObject(conversation_view, {origin: "chat"});
-
-            }
-        }
-
-
-        Button
-        {
-            id:send_button
-            platformStyle: ButtonStyle { inverted: true }
-            iconSource:"image://theme/icon-m-toolbar-send-chat-white"
-            width:160
-            height:45
-            text: "Send"
-            anchors.right: parent.right
-            anchors.rightMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            //enabled: chat_text.text.trim() != ""
-            onClicked:{
-                chat_text.text = chat_text.text+"\n"; //cheap hack to stabilize flickArea when regaining focus
-                chat_text.focus = true;
-                 var toSend = chat_text.text.trim();
-                 if ( toSend != "")
-                 {
-                    sendMessage(user_id,toSend);
-                    chat_text.text = "";
-                 }
-                 //chat_text.focus = true;
-                 //flickArea.contentY = input_button_holder.y+input_button_holder.height
-            }
         }
     }
 
@@ -518,4 +533,6 @@ Rectangle {
             }
         }
     }
+
+
 }

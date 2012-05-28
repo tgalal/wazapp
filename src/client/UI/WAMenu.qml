@@ -35,9 +35,10 @@ Menu {
        // MenuItem { text: qsTr("Reset profile/Register") }
         //MenuItem { text: qsTr("Settings") }
 
-    MenuItem {
+		MenuItem {
             id:change_status
-            text: qsTr("My status");
+            text: qsTr("Change my status");
+
             onClicked: pageStack.push (Qt.resolvedUrl("ChangeStatus.qml"))
         }
 

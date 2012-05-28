@@ -78,6 +78,7 @@ WAStackWindow {
 
 
     /****** Signal and Slot definitions *******/
+
     signal changeStatus(string new_status)
     signal sendMessage(string user_id, string msg);
     signal sendRegRequest(string number, string cc);
@@ -322,9 +323,7 @@ WAStackWindow {
 
             ToolIcon{
                 iconSource: "pics/wazapp48.png"
-
-               platformStyle: ToolButtonStyle{inverted: stealth || theme.inverted}
-
+				platformStyle: ToolButtonStyle{inverted: stealth || theme.inverted}
             }
 
             ButtonRow {
@@ -396,43 +395,17 @@ WAStackWindow {
         onAccepted: appWindow.pageStack.push(updatePage);
     }
 
-    Dialog{
-       // anchors.fill: parent
+    QueryDialog {
         property string phone_number;
         id:aboutDialog
-        width:parent.width
-       // Component.onCompleted: {regconfirm.accepted.connect(_sendReg)}
-
-
-
-        title:Text{
-            color:"white"
-            text:"About Wazapp"
-            font.pixelSize: 20
-        }
-
-        content: Text{
-            color:"white"
-            width:parent.width
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            font.pixelSize: 22
-               // horizontalAlignment: Text.AlignHCenter
-            text:"Version "+waversion+" \n\n This is a "+waversiontype+" version. You are trying it at your own risk. Please report any bugs to tarek@wazapp.im "
-        }
-
-        buttons:ButtonRow {
-            style: ButtonStyle { }
-            anchors.horizontalCenter: parent.horizontalCenter
-
-
-            Button{
-                text:"Close"
-                onClicked: aboutDialog.close();
-            }
-
-
-        }
-
+        anchors.fill: parent
+		icon: "pics/wazapp80.png"
+        titleText: "Wazapp"
+        message: "version " + waversion + "\n\n" + 
+                 "This is a " + waversiontype + " version.\n" + 
+				 "You are trying it at your own risk.\n" + 
+				 "Please report any bugs to \n" + "tarek@wazapp.im"
+ 
     }
 
 }

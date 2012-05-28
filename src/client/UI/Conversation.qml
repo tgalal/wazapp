@@ -491,7 +491,8 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             //enabled: chat_text.text.trim() != ""
             onClicked:{
-                chat_text.text = chat_text.text+"\n"; //cheap hack to stabilize flickArea when regaining focus
+                //chat_text.text = chat_text.text+"\n"; //cheap hack to stabilize flickArea when regaining focus
+		flickArea.contentY = getListSize(); //very resource expensive trick if abused because fo the for loop
                 chat_text.focus = true;
                  var toSend = chat_text.text.trim();
                  if ( toSend != "")

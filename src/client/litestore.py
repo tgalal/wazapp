@@ -103,9 +103,16 @@ class LiteStore(DataStore):
 		
 		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0)'
 		
-		conversations_q = 'CREATE TABLE "main"."singleconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"contact_id" INTEGER NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'#, "is_read" INTEGER NOT NULL DEFAULT 0) '
+		conversations_q = 'CREATE TABLE "main"."singleconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"contact_id" INTEGER NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
 		#conversations_users_q = 'CREATE TABLE "main"."conversations_contacts" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, contact_id,conversation_id)'
+		
+		
+		groupmessages_q = 'CREATE  TABLE "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "groupconversations_contacts_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0)'
+		
+		groupconversations_q = 'CREATE TABLE "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,"picture" VARCHAR NOT NULL,"name" VARCHAR NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
+		
+		groupconversations_contacts_q = 'CREATE TABLE "main".groupconversations_contacts ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"groupconversation_id" INTEGER NOT NULL,"contact_id" INTEGER NOT NULL)'
 	
 		
 		c.execute(contacts_q);

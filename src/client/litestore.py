@@ -21,7 +21,7 @@ import sqlite3
 import os
 import shutil
 from Models.contact import Contact;
-from Models.message import Message;
+from Models.message import Message, GroupMessage;
 from Models.conversation import *
 
 
@@ -62,10 +62,21 @@ class LiteStore(DataStore):
 		self.SingleConversation = SingleConversation();
 		self.SingleConversation.setStore(self);
 		
-		self.Conversation = self.SingleConversation
+		self.Conversation = Conversation();
+		self.Conversation.setStore(self);
+		
+		
+		self.GroupconversationsContacts = GroupconversationsContacts();
+		self.GroupconversationsContacts.setStore(self);
+		
+		self.GroupConversation = GroupConversation();
+		self.GroupConversation.setStore(self);
 		
 		self.Message = Message();
 		self.Message.setStore(self);
+		
+		self.GroupMessage = GroupMessage();
+		self.GroupMessage.setStore(self);
 		
 	def get_db_path(self,user_id):
 		return LiteStore.db_dir+"/"+self.db_name;
@@ -82,7 +93,8 @@ class LiteStore(DataStore):
 	
 	def getContacts(self):
 		return self.Contact.fetchAll();
-
+	
+	
 	def reset(self):
 		
 		self.db_path = self.get_db_path(self.currentId);
@@ -90,45 +102,81 @@ class LiteStore(DataStore):
 		#shutil.rmtree(LiteStore.db_dir);
 		
 		
+			
+		self.c = self.conn.cursor()
+		
+		self.prepareBase();
+		self.prepareGroupConversations();
+		
+		self.status = True;
+		self.initModels();
+		
+	
+	
+	def tableExists(self,tableName):
 		c = self.conn.cursor()
+		q = "SELECT name FROM sqlite_master WHERE type='table' AND name='%s'" % tableName;
+		c.execute(q);
+		return len(c.fetchall())
 
-
+	def prepareBase(self):
 		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR)'
-		#chats_q = 'CREATE  TABLE "main"."chats" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL , "date" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP, "status" INTEGER NOT NULL  DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL )'
-		
-		#sent_q = 'CREATE  TABLE "main"."sent" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL , "date" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP, "status" INTEGER NOT NULL  DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL )'
-		
-		#received_q = 'CREATE  TABLE "main"."received" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL , "date" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL )'
 		
 		
 		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0)'
 		
 		conversations_q = 'CREATE TABLE "main"."singleconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"contact_id" INTEGER NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
-		#conversations_users_q = 'CREATE TABLE "main"."conversations_contacts" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, contact_id,conversation_id)'
+		self.c.execute(contacts_q);
+		self.c.execute(messages_q);
+		self.c.execute(conversations_q);
+
+	def prepareGroupConversations(self):
 		
+		groupmessages_q = 'CREATE TABLE IF NOT EXISTS "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "groupconversations_contacts_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"mediatype_id" INTEGER NOT NULL DEFAULT 1, "type" INTEGER NOT NULL DEFAULT 0)'
 		
-		groupmessages_q = 'CREATE  TABLE "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "groupconversations_contacts_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0)'
+		groupconversations_q = 'CREATE TABLE IF NOT EXISTS "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,groupconversations_contacts_id INTEGER NOT NULL,"picture" VARCHAR NOT NULL,"name" VARCHAR NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
-		groupconversations_q = 'CREATE TABLE "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,"picture" VARCHAR NOT NULL,"name" VARCHAR NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
+		groupconversations_contacts_q = 'CREATE TABLE IF NOT EXISTS "main".groupconversations_contacts ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"groupconversation_id" INTEGER NOT NULL,"contact_id" INTEGER NOT NULL)'
 		
-		groupconversations_contacts_q = 'CREATE TABLE "main".groupconversations_contacts ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"groupconversation_id" INTEGER NOT NULL,"contact_id" INTEGER NOT NULL)'
+		c = self.conn.cursor()
+		c.execute(groupmessages_q);
+		c.execute(groupconversations_q);
+		c.execute(groupconversations_contacts_q);
 	
+	def prepareMedia(self):
+		if not self.tableExists("mediatypes"):
+			q = 'CREATE TABLE IF NOT EXISTS "main"."mediatypes" ("id" INTEGER PRIMARY KEY NOT NULL, "type" VARCHAR NOT NULL, "enabled" INTEGER NOT NULL DEFAULT 1)'
 		
-		c.execute(contacts_q);
-		#c.execute(sent_q);
-		#c.execute(received_q);
-		c.execute(messages_q);
-		c.execute(conversations_q);
-		#c.execute(conversations_users_q);
+			q_mediatypes = "INSERT INTO mediatypes (id,type,enabled) VALUES (1,'text',1),(2,'image',0),(3,'video',0),(4,'voice',0),(5,'location',0)"
+
+			c.execute(q);
+			c.execute(q_mediatypes)
 		
+
+
+	def prepareSettings(self):
+	
+		if not self.tableExists('settingtypes') or not self.tableExists('settings'):
+			types = 'CREATE TABLE IF NOT EXISTS "main".settingtypes ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "label" VARCHAR NOT NULL,"description" VARCHAR,"order" INTEGER NOT NULL DEFAULT 999,"visible" INTEGER NOT NULL)'
 		
+			settings = 'CREATE TABLE IF NOT EXISTS "settings" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"settingtype_id" INTEGER NOT NULL,"label" VARCHAR NOT NULL, "description" VARCHAR, "selector" VARCHAR NOT NULL,"order" INTEGER NOT NULL DEFAULT 999,"visible" INTEGER NOT NULL DEFAULT 1, "value" VARCHAR)'
 		
-		self.c = c;
-		
-		self.status = True;
-		self.initModels();
-		
-if __name__ == "__main__":
-	l = LiteStore("1234");
+			selector_unique = "CREATE UNIQUE INDEX IF NOT EXISTS SettingSelector ON settings (selector)"
+			
+			c = self.conn.cursor()
+			c.execute(types);
+			c.execute(settings);
+			c.execute(selector_unique);
+			
+			####Define Basic Settings####
+			#group notifications
+				#tone
+				#vibra
+			#message notifications
+				#tone
+				#vibra
+			#Conversation settings
+				#enter is send
+				#conversation sounds
 	

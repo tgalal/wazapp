@@ -134,31 +134,31 @@ Dialog {
         y: 10
         Button {
             id: peopleEmoji
-            iconSource: "pics/emoji/emoji-E415.png"
+            iconSource: "pics/emoji-32/emoji-E415.png"
             onClicked: emojiSelector.loadEmoji(0,109);
         }
 
         Button {
             id: natureEmoji
-            iconSource: "pics/emoji/emoji-E303.png"
+            iconSource: "pics/emoji-32/emoji-E303.png"
             onClicked: emojiSelector.loadEmoji(109,162)
         }
 
         Button {
             id: eventsEmoji
-            iconSource: "pics/emoji/emoji-E325.png"
+            iconSource: "pics/emoji-32/emoji-E325.png"
             onClicked: emojiSelector.loadEmoji(162,297)
         }
 
         Button {
             id: placesEmoji
-            iconSource: "pics/emoji/emoji-E036.png"
+            iconSource: "pics/emoji-32/emoji-E036.png"
             onClicked: emojiSelector.loadEmoji(297,367)
         }
 
         Button {
             id: symbolsEmoji
-            iconSource: "pics/emoji/emoji-E210.png"
+            iconSource: "pics/emoji-32/emoji-E210.png"
             onClicked: emojiSelector.loadEmoji(367,466)
         }
      }
@@ -196,7 +196,7 @@ Dialog {
                     //chat_text.text = Helpers.emojify2(chat_text.text)
 
                     if (emojiSelector.origin == "chat"){
-                        chat_text.text += '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji/emoji-E'+codeX+'.png" />'
+                        chat_text.text += '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-32/emoji-E'+codeX+'.png" />'
                         chat_text.cursorPosition = chat_text.positionAt(chat_text.paintedWidth,chat_text.paintedWidth,TextInput.CursorOnCharacter);
                     }
                     else if (emojiSelector.origin == "status")
@@ -235,7 +235,7 @@ Dialog {
         emojiGrid.model.clear();
         for(var n = start; n < end; n++)
         {
-            emojiGrid.model.append({"emojiPath": "pics/emoji/emoji-E"+Helpers.emoji_code[n]+".png", "emojiCode": Helpers.emoji_code[n]});
+            emojiGrid.model.append({"emojiPath": "pics/emoji-32/emoji-E"+Helpers.emoji_code[n]+".png", "emojiCode": Helpers.emoji_code[n]});
         }
 
     }

@@ -7,8 +7,10 @@ Item {
     property string imgsource
     property int size
     property bool rounded: true
+	property string istate: "Loading..."
 
-    //signal clicked
+	//signal clicked
+	//signal pressAndHold
 
     height: size
     width: size
@@ -35,8 +37,18 @@ Item {
             width: size
             height: size
             smooth: true
-            fillMode: Image.Stretch
-            source: imgsource
+            fillMode: Image.PreserveAspectCrop
+            source: imgsource.substr(-4)==".mp3" ? "pics/content-audio.png" :
+					imgsource.substr(-4)==".m4a" ? "pics/content-audio.png" :
+					imgsource.substr(-4)==".wav" ? "pics/content-audio.png" :    
+					imgsource.substr(-4)==".mp4" ? "pics/content-video.png" : 
+					imgsource.substr(-4)==".3gp" ? "pics/content-video.png" :
+					imgsource.substr(-4)==".avi" ? "pics/content-video.png" :
+					imgsource.substr(-4)==".vcf" ? "pics/user.png" : imgsource
+			onStatusChanged: {
+                if (image1.status==Image.Ready) istate="Loaded!";
+				if (image1.status==Image.Error) istate=imgsource;
+            }
         }
     }
 
@@ -55,6 +67,7 @@ Item {
         id: mouseArea
         anchors.fill: parent
         onClicked: container.clicked()
+		onPressAndHold: container.pressAndHold()
     }*/
 
 }

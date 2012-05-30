@@ -131,9 +131,11 @@ Rectangle{
 			RoundedImage {
                 id:contact_picture
                 size:72
-                imgsource: picture
+                imgsource: name.indexOf("Group (")==0 ? "pics/group.png" : picture
                 x: 2; y: -1;
 				opacity:appWindow.stealth?0.2:1
+				//onClicked: mouseArea.clicked()
+				//onPressAndHold: mouseArea.pressAndHold()
             }
 
             /*Image {
@@ -167,8 +169,9 @@ Rectangle{
  				}
                 Label{
                     id:last_msg
-                    text:lastMsg
-                   // width:parent.width
+		            text: lastMsg.indexOf("wazappmms:")===0 ? lastMsg.substr(-4)==".vcf" ? lastMsg.replace("wazappmms:","") : 
+							qsTr("Multimedia message") : lastMsg.indexOf("wazapplocation:")===0 ? qsTr("My location") : lastMsg
+                   	//width:parent.width
                     elide: Text.ElideRight
                     font.pixelSize: 20
                     height: 30

@@ -147,7 +147,17 @@ Page {
         }
     ]
 
-
+	function getAuthor(inputText) {
+		var resp;
+		resp = inputText.split('@')[0];
+		for(var i =0; i<contactsModel.count; i++)
+		{
+            var item = contactsModel.get(i).jid;
+		    if(item == inputText)
+		        resp = contactsModel.get(i).name;
+		}
+		return resp;
+	}
 
     ListModel{
         id:chatsModel
@@ -158,7 +168,9 @@ Page {
         Chat{
             property variant contactInfo:ContactsScript.getContactData(model.jid)
             picture: contactInfo.picture;
-            name: contactInfo.name
+            name: contactInfo.name.indexOf("-")>0 ? "Group (" +
+					getAuthor( contactInfo.name.split('-')[0] + "@s.whatsapp.net" ) +
+					")" : contactInfo.name
             number:model.jid;
             lastMsg:Helpers.emojify(Helpers.linkify(model.content));
             time:model.timestamp

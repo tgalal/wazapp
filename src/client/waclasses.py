@@ -19,11 +19,11 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 from whatsapp import WAXMPP;
 
 class Key():
-	def __init__(self,remote_jid, from_me,idd):
+	def __init__(self,remote_jid, from_me,idd,remote_author):
 		self.remote_jid = remote_jid;
 		self.from_me = from_me;
 		self.id = idd;
-
+		self.remote_author = remote_author;
 	
 	def exists(self, paramKey):
 		try:
@@ -54,7 +54,11 @@ class Key():
 				return False;
 		elif self.remote_jid != other.remote_jid:
 			return False;
-
+		if self.remote_author is None:
+			if other.remote_author is not None:
+				return False;
+		elif self.remote_author != other.remote_author:
+			return False;
 		return True;
 
 
@@ -63,12 +67,13 @@ class Key():
 		result = 1;
 		result = 31 * result + (1231 if self.from_me else 1237)
 		result = 31 * result + (0 if self.id is None else Utilities.hashCode(self.id);
-		result = 31 * result + (0 if self.remote_jid is None else Utilities.hashCode(self.remote_jid));
+		result = 31 * result + (0 if self.remote_author is None else Utilities.hashCode(self.remote_author));
+		result = 31 * result + (0 if self.remote_author is None else Utilities.hashCode(self.remote_author));
 	
 
 
 	def toString(self):
-		return "Key[id=" + self.id + ", from_me=" + self.from_me + ", remote_jid=" + self.remote_jid + "]";
+		return "Key[id=" + self.id + ", from_me=" + self.from_me + ", remote_jid=" + self.remote_jid + "\", remote_author=\"" + self.remote_author + "\")";
 
 
 
@@ -79,17 +84,17 @@ class Key():
 class FMessage():
 	generating_id = 0;
 	generating_header = str(int(time.time()))+"-";
-	def __init__(self,key, remote_jid = None,from_me=None,data=None,image=None):
+	def __init__(self,key, remote_jid = None,from_me=None,data=None,image=None, remote_author=None):
 
 		if key is not None:
 			self.key = key;
 			WAXMPP.message_store.put(key,self);
 		else:
-			localKey = Key(remote_jid,from_me,self.generating_header+int(generating_id))
+			localKey = Key(remote_jid,from_me,self.generating_header+int(generating_id),remote_author)
 
 			while message_store.get(localKey) is not None:
 				generating_id += 1
-				localKey = Key(remote_jid,from_me,self.generating_header+int(generating_id))
+				localKey = Key(remote_jid,from_me,self.generating_header+int(generating_id),remote_author)
 				
 			self.message_store.put(localKey,self);
 			self.key = localKey;

@@ -42,7 +42,6 @@ function getContactData(user_id)
         if(contacts[i].jid == user_id)
             return contacts[i]
     }
-
     return {name:user_id.split('@')[0],picture:"pics/user.png",jid:user_id}
 
 }
@@ -62,7 +61,6 @@ function populateContacts()
         else
             contacts[i].hasPicture = true;
         contactsModel.append(contacts[i]);
-
 
     }
 }

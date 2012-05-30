@@ -30,9 +30,12 @@ function addMessage(message)
 {
     var msg_status = message.status == 0?"sending":message.status==1?"pending":"delivered";
 
+	var author = message.key;
+	var n = author.indexOf("remote_author=");
+    author = author.slice(n+15).replace("\")","");
 
+    conv_data.insert(conv_data.count,{"msg_id":message.id,"message":message.content,"type":message.type, "timestamp":message.formattedDate,"status":msg_status,"author":author})
 
-    conv_data.insert(conv_data.count,{"msg_id":message.id,"message":message.content,"type":message.type, "timestamp":message.formattedDate,"status":msg_status})
     //conv_data.append({"msg_id":id,"message":message,"type":type, "timestamp":timestamp,"status":msg_status});
      conv_items.positionViewAtEnd()
     // conversation_view.conversationUpdated(id,type,conversation_view.user_id,message,timestamp,formattedDate);

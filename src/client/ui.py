@@ -66,6 +66,7 @@ class WAUI(QDeclarativeView):
 		self.c.contactsRefreshed.connect(self.populateContacts);
 		self.c.contactsRefreshed.connect(self.rootObject().onRefreshSuccess);
 		self.c.contactsRefreshFailed.connect(self.rootObject().onRefreshFail);
+		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
 		self.rootObject().refreshContacts.connect(self.c.resync)
 		
 		
@@ -156,6 +157,8 @@ class WAUI(QDeclarativeView):
 		#if self.whatsapp is not None:
 		#	self.whatsapp.eventHandler.networkDisconnected()
 		
+	def populateConversations(self):
+
 		self.rootObject().onReloadingConversations()
 		
 		self.messageStore.loadConversations()

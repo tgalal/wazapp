@@ -27,7 +27,7 @@ class Contact(Model):
 	def setRealTimeData(self,name,picture):
 		self.name = name;
 		self.picture = picture;
-		self.alphabet = name[0];
+		self.alphabet = name[0].upper();
 		
 		self.modelData.append("name");
 		self.modelData.append("picture");

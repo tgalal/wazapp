@@ -104,8 +104,8 @@ class WAManager():
 		gui.quit.connect(self.quit);
 
 		gui.populateContacts();
-			
 		
+		gui.populateConversations();
 		
 		gui.showFullScreen();
 		

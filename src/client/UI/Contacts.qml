@@ -171,12 +171,6 @@ Page {
         chatWindow.conversation.newMessage(msg_data);
     }
 
-    ListModel{
-
-        id:contactsModel
-
-
-    }
 
     Component{
         id:myDelegate
@@ -263,7 +257,8 @@ Page {
 
         ListView {
             id: list_view1
-            anchors.top: wa_notifier.botttom
+            anchors.top: parent.top
+			anchors.topMargin: wa_notifier.height
             width:parent.width
             height:parent.height-wa_notifier.height
             clip: true
@@ -277,10 +272,10 @@ Page {
 			Component.onCompleted: fast.listViewChanged()
         }
 
-	FastScroll {
-	    id: fast
-	    listView: list_view1
-	}
+		FastScroll {
+			id: fast
+			listView: list_view1
+		}
 
     }
 

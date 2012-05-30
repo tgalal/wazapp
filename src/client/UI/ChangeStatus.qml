@@ -35,8 +35,6 @@ Page {
 	function cleanText(txt) {
 		var repl = "p, li { white-space: pre-wrap; }";
 		var res = txt;
-		//res = res.replace("pics/emoji-20/emoji-", "\">emoji-")
-		//res = res.replace(".png\" />", "")
 		res = Helpers.getCode(res);
 		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
 		return res;
@@ -44,62 +42,17 @@ Page {
 
 	tools: statusTool
 
-    Rectangle{
-        id:top_bar
+    WAHeader{
+        title: qsTr("Change status")
+        anchors.top:parent.top
         width:parent.width
-		color: "transparent"
-        height: 73
-		clip: true
-		
-        Image{
-		    id:wazapp_icon
-		    anchors.left: parent.left
-			anchors.leftMargin: 12
-		    anchors.verticalCenter: parent.verticalCenter
-		    height:56
-		    width:height
-			smooth: true
-		    source:'pics/wazapp80.png'
-		}
-
-		Label{
-		    text: "Wazapp"
-		    color:"#27a01b"
-		    font.pixelSize: 30
-		    y: 6
-		    anchors.left: wazapp_icon.right
-		    anchors.leftMargin: 12
-		}
-
-		Label{
-		    text: "Change status"
-		    color: theme.inverted? "white" : "darkgray"
-		    anchors.left: wazapp_icon.right
-		    anchors.leftMargin: 12
-		    font.pixelSize: 22
-		    y: 38
-		}
-
-		Rectangle {
-			height: 1
-			width: parent.width
-			x:0; y: 71
-			color: "gray"
-			opacity: 0.6
-		}
-		Rectangle {
-			height: 1
-			width: parent.width
-			x:0; y: 72
-			color: theme.inverted ? "lightgray" : "white"
-			opacity: 0.8
-		}	
+		height: 73
     }
 
 
     Rectangle {
-        anchors.top: top_bar.bottom
-		anchors.topMargin: 24
+        anchors.top: parent.top
+		anchors.topMargin: 90
 		width: parent.width
 		height: parent.height - top_bar.height
         color: "transparent"
@@ -118,13 +71,8 @@ Page {
             MyTextArea {
 			    id: status_text
 			    width:parent.width
-			    //height: 65
-				//anchors.verticalCenter: parent.verticalCenter
-				placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : "Write your message here"
-				//platformStyle: myTextFieldStyle
 				wrapMode: TextEdit.Wrap
 				textFormat: Text.RichText
-		    				
 			}
 
 			Rectangle {
@@ -146,7 +94,8 @@ Page {
 					anchors.leftMargin: 0
 					anchors.verticalCenter: send_button.verticalCenter
 					onClicked:{
-						var component = Qt.createComponent("EmojidialogStatus.qml");
+						emojiDialogParent = "status"
+						var component = Qt.createComponent("Emojidialog.qml");
 				 		var sprite = component.createObject(content, {});
 					}
 				}

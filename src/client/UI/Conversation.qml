@@ -159,7 +159,7 @@ Page {
         //onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
         width:parent.width
 		color: "transparent"
-        height: appWindow.inPortrait ? 73 : showSendButton ? 0 : 73
+        height: appWindow.inPortrait ? 73 : (showSendButton ? 0 : 73)
 		clip: true
 		
         Rectangle {
@@ -170,7 +170,7 @@ Page {
 			color: "transparent"
 			height: 50
 
-			ToolButton
+			/*ToolButton
 			{
 				width: 50
 				height: 48
@@ -178,11 +178,34 @@ Page {
 				anchors.left: parent.left
 				anchors.verticalCenter: parent.verticalCenter
 				onClicked: { appWindow.pageStack.pop() }
+			}*/
+
+			BorderImage {
+				width: 86
+				height: 42
+				anchors.verticalCenter: parent.verticalCenter
+				source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
+						"background" + (bcArea.pressed? "-pressed" : "")
+				border { left: 22; right: 22; bottom: 22; top: 22; }
+				Label { 
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.horizontalCenter: parent.horizontalCenter
+					font.pixelSize: 22; font.bold: true
+					text: "Chats"
+				}
+				MouseArea {
+					id: bcArea
+					anchors.fill: parent
+					onClicked: appWindow.pageStack.pop()
+				}
+
 			}
+
 					
 	        Label {
 	            id: username
-	            text: user_name
+	            text: user_name.indexOf("-")>0 ? "Group (" + 
+						getAuthor( user_name.split('-')[0] + "@s.whatsapp.net" ) + ")" : user_name
 				width: parent.width - 62
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
@@ -199,7 +222,7 @@ Page {
             RoundedImage {
                 id:userimage
                 size:50
-                imgsource: user_picture
+                imgsource: username.text.indexOf("Group (")==0 ? "pics/group.png" : user_picture
                 anchors.verticalCenter: parent.verticalCenter
 				anchors.right: parent.right
             }
@@ -226,22 +249,34 @@ Page {
         id: conv_data
     }
 
+	function getAuthor(inputText) {
+		var resp;
+		resp = inputText.split('@')[0];
+		for(var i =0; i<contactsModel.count; i++)
+		{
+            var item = contactsModel.get(i).jid;
+		    if(item == inputText)
+		        resp = contactsModel.get(i).name;
+		}
+		return resp;
+	}
+
     Component{
         id:myDelegate
 
-       SpeechBubble{
-           message: Helpers.emojifyBig(Helpers.linkify(model.message));
-           date:model.timestamp
-           from_me:model.type==1
-           //picture: user_picture
-           name: getNameForBubble(user_name)
-           state_status:model.status
-           onOptionsRequested: {
-               console.log("options requested")
-               copy_facilitator.text = model.message;
-               bubbleMenu.open();
-           }
-       }
+		SpeechBubble{
+			message: Helpers.emojify(Helpers.linkify(model.message));
+			date:model.timestamp
+			from_me:model.type==1
+			//picture: user_picture
+			name: conversation_view.getAuthor(model.author)
+			state_status:model.status
+			onOptionsRequested: {
+				console.log("options requested")
+				copy_facilitator.text = model.message;
+				bubbleMenu.open();
+			}
+		}
     }
 
 	Timer {
@@ -263,33 +298,23 @@ Page {
 			//console.log("INC SIZE: " + s);
 		}
 		loadFinished=true
-		return s;
+		return s + (conv_items.count*6) + 6;
 	}
 
 	function cleanText(txt) {
 		var repl = "p, li { white-space: pre-wrap; }";
 		var res = txt;
-		//res = res.replace("pics/emoji-20/emoji-", "\">emoji-")
-		//res = res.replace(".png\" />", "")
 		res = Helpers.getCode(res);
 		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
 		return res;
 	}	
 
-	function text2message(txt) {
-		var repl = "p, li { white-space: pre-wrap; }";
-		var res = txt;
-		res = res.replace(/([\E001-\E537]).png/g, "[img").replace(" />", "]")
-		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-		res = res.replace("[", "<").replace("]", ">");
-		return res;
-	}	
-
+	
 	Flickable {
         id: flickArea
-        anchors.bottom: parent.bottom
-		//anchors.topMargin: 73
-		height: parent.height - top_bar.height
+        anchors.top: parent.top
+		anchors.topMargin: top_bar.height
+		height: parent.height - top_bar.height - input_button_holder.height
 		width: parent.width
         contentWidth: width
         contentHeight: column1.height
@@ -306,8 +331,8 @@ Page {
 				id: spacer_top
 				color: "transparent"
 				width: parent.width
-				height: conv_items.height<(flickArea.height-input_holder.height-10-input_button_holder.height) ?
-						flickArea.height-input_holder.height-conv_items.height-10-input_button_holder.height : 0
+				height: conv_items.height<(flickArea.height-input_holder.height-10) ?
+						flickArea.height-input_holder.height-conv_items.height-10 : 0
 
 		        Label{
 		            anchors.centerIn: parent;
@@ -333,12 +358,12 @@ Page {
 				//onCountChanged: { flickArea.contentY = conv_items.height }
 				onHeightChanged: { 
 					var s = 0;
-					if (conv_items.height > (flickArea.height-input_holder.height-73-10) )
-						s = conv_items.height - flickArea.height +75
+					if (conv_items.height > (flickArea.height-input_holder.height) )
+						s = conv_items.height - flickArea.height + input_holder.height +10
 					else
-						s = conv_items.height
-					if (showSendButton)
-						s = s + input_button_holder.height
+						s = conv_items.height + input_holder.height
+					//if (showSendButton)
+					//	s = s + input_holder.height
 					flickArea.contentY = s
 				}
 				
@@ -387,6 +412,7 @@ Page {
 					platformStyle: myTextFieldStyle
 					wrapMode: TextEdit.Wrap
 					textFormat: Text.RichText
+					
 
 				    onTextChanged: {
 						if(!iamtyping)
@@ -403,7 +429,7 @@ Page {
 						if (showSendButton) {
 							if (!alreadyFocused) {
 								alreadyFocused = true
-								flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
+								flickArea.contentY = flickArea.contentY + input_holder.height +10
 							} 
 						} else
 							alreadyFocused = false
@@ -411,102 +437,87 @@ Page {
                     }
 
 					onHeightChanged: {
-						flickArea.contentY = input_button_holder.y+input_button_holder.height+chat_text.height
+						flickArea.contentY = flickArea.contentY + chat_text.height
 					}
 					
 				}
 			}
 
-			Rectangle {
-				id: input_button_holder
-				anchors.left: parent.left
-				width: parent.width
-				height: (showSendButton)? 76 : 0
-				color: input_holder.color
-				clip: true
-				
-			    MouseArea {
-					id: input_button_holder_area
-					anchors.fill: parent
-					onClicked: { 
-						showSendButton=true; 
-						flickArea.contentY = flickArea.contentY
-						chat_text.forceActiveFocus()
-					}
-				}
-
-				
-				Rectangle {
-					height: 1
-					width: parent.width
-					x:0; y:0
-					color: "gray"
-					opacity: 0.4
-				}
-
-				Button
-				{
-				    id:emoji_button
-				    //platformStyle: ButtonStyle { inverted: true }
-				    width:50
-				    height:50
-					/*iconSource: "pics/emoji-32/emoji-E05A.png"
-				    anchors.left: parent.left
-					anchors.leftMargin: 16
-					y: 10
-				    onClicked:{
-						showSendButton=true
-						//var i = chat_text.cursorPosition
-						//var t = cleanText(chat_text.text)
-						//t = getCode(t)
-						//var t = Helpers.emojify2(chat_text.text + "\ue05A")
-						chat_text.text = Helpers.emojify2(chat_text.text + "\ue05A")
-						chat_text.forceActiveFocus()
-						chat_text.cursorPosition = chat_text.text.lenght
-						flickArea.contentY = flickArea.contentY
-				    }*/
-
-					iconSource: "pics/emoji-32/emoji-E415.png"
-				    anchors.left: parent.left
-					anchors.leftMargin: 16
-				    anchors.verticalCenter: send_button.verticalCenter
-				    onClicked:{
-						var component = Qt.createComponent("Emojidialog.qml");
-				 		var sprite = component.createObject(conversation_view, {});
-				    }
-				}
-
-				
-				Button
-				{
-				    id:send_button
-				    platformStyle: ButtonStyle { inverted: true }
-				    width:160
-				    height:50
-					text: "Send"
-				    anchors.right: parent.right
-					anchors.rightMargin: 16
-					y: 10
-					//enabled: cleanText(chat_text.text).trim()!=""
-				    onClicked:{
-						showSendButton=true; 
-				        chat_text.forceActiveFocus()
-						flickArea.contentY = flickArea.contentY
-				        var toSend = cleanText(chat_text.text);
-						toSend = toSend.trim();
-				        if ( toSend != "")
-				        {
-				            sendMessage(user_id,toSend);
-				        	chat_text.text = "";
-				        }
-				    }
-				}
-			}
-			
-			
-
 		}
 	}
+
+	Rectangle {
+		id: input_button_holder
+		anchors.bottom: parent.bottom
+		anchors.left: parent.left
+		width: parent.width
+		height: (showSendButton)? 76 : 0
+		color: input_holder.color
+		clip: true
+		
+	    MouseArea {
+			id: input_button_holder_area
+			anchors.fill: parent
+			onClicked: { 
+				showSendButton=true; 
+				flickArea.contentY = flickArea.contentY + input_button_holder.height
+				chat_text.forceActiveFocus()
+			}
+		}
+
+		
+		Rectangle {
+			height: 1
+			width: parent.width
+			x:0; y:0
+			color: "gray"
+			opacity: 0.4
+		}
+
+		Button
+		{
+		    id:emoji_button
+		    //platformStyle: ButtonStyle { inverted: true }
+		    width:50
+		    height:50
+			iconSource: "pics/emoji-32/emoji-E415.png"
+		    anchors.left: parent.left
+			anchors.leftMargin: 16
+		    anchors.verticalCenter: send_button.verticalCenter
+		    onClicked:{
+				emojiDialogParent = "conversation"
+				var component = Qt.createComponent("Emojidialog.qml");
+		 		var sprite = component.createObject(conversation_view, {});
+		    }
+		}
+
+		
+		Button
+		{
+		    id:send_button
+		    platformStyle: ButtonStyle { inverted: true }
+		    width:160
+		    height:50
+			text: "Send"
+		    anchors.right: parent.right
+			anchors.rightMargin: 16
+			y: 10
+			//enabled: cleanText(chat_text.text).trim()!=""
+		    onClicked:{
+				showSendButton=true; 
+		        chat_text.forceActiveFocus()
+				flickArea.contentY = flickArea.contentY + input_button_holder.height
+		        var toSend = cleanText(chat_text.text);
+				toSend = toSend.trim();
+		        if ( toSend != "")
+		        {
+		            sendMessage(user_id,toSend);
+		        	chat_text.text = "";
+		        }
+		    }
+		}
+	}
+
 
     TextField{
         id:copy_facilitator

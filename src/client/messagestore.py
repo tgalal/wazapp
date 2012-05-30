@@ -134,11 +134,11 @@ class MessageStore(QObject):
 		contact = conv.getContact();
 		
 		#key = str(int(time.time()))+"-"+MessageStore.currId;
-		localKey = Key(contact.jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId))
+		localKey = Key(contact.jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId),"")
 		
 		while self.get(localKey) is not None:
 			MessageStore.currKeyId += 1
-			localKey = Key(contact.jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId))
+			localKey = Key(contact.jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId),"")
 			
 		#message.key = localKey
 		
@@ -193,10 +193,11 @@ class MessageStore(QObject):
 		self.sendMessagesReady(conv.id, offset = 0,limit=1)
 		
 class Key():
-	def __init__(self,remote_jid, from_me,idd):
+	def __init__(self,remote_jid, from_me,idd, remote_author):
 		self.remote_jid = remote_jid;
 		self.from_me = from_me;
 		self.id = idd;
+		self.remote_author = remote_author;
 
 	
 	def exists(self, paramKey):
@@ -228,6 +229,11 @@ class Key():
 				return False;
 		elif self.remote_jid != other.remote_jid:
 			return False;
+		if self.remote_author is None:
+			if other.remote_author is not None:
+				return False;
+		elif self.remote_author != other.remote_author:
+			return False;
 
 		return True;
 
@@ -238,9 +244,10 @@ class Key():
 		result = 31 * result + (1231 if self.from_me else 1237)
 		result = 31 * result + (0 if self.id is None else Utilities.hashCode(self.id));
 		result = 31 * result + (0 if self.remote_jid is None else Utilities.hashCode(self.remote_jid));
+		result = 31 * result + (0 if self.remote_author is None else Utilities.hashCode(self.remote_author));
 	
 
 
 	def toString(self):
-		return "Key(idd=\"" + self.id + "\", from_me=" + str(self.from_me) + ", remote_jid=\"" + self.remote_jid + "\")";
+		return "Key(idd=\"" + self.id + "\", from_me=" + str(self.from_me) + ", remote_jid=\"" + self.remote_jid + "\", remote_author=\"" + self.remote_author + "\")";
 		

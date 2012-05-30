@@ -32,7 +32,7 @@ class WAUpdater(WAJsonRequest):
 	
 	def run(self):
 		print "Checking for updates"
-		res = self.sendRequest()
+		res = None #self.sendRequest()
 		if res:
 			#current = self.version.split('.');
 			#latest = res['v'].split('.')

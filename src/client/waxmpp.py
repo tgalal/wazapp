@@ -17,6 +17,7 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
+import urllib, os
 import time, threading, select;
 from utilities import Utilities, S40MD5Digest
 from protocoltreenode import BinTreeNodeWriter,BinTreeNodeReader,ProtocolTreeNode
@@ -241,6 +242,8 @@ class WAEventHandler(WAEventBase):
 				msg_contact.name= fmsg.getContact().number
 				msg_contact.picture = WAConstants.DEFAULT_CONTACT_PICTURE
 				msg_contact.jid = eval(fmsg.key.toString()).remote_jid
+				if msg_contact.jid is None: #cepi - testing
+					msg_contact.jid = eval(fmsg.key.toString()).author #cepi - testing
 				
 			
 			self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture.path()),callback = self.notificationClicked);
@@ -489,8 +492,8 @@ class StanzaReader(QThread):
 	
 		#throw media in the garbage
 		
-		if messageNode.getChild("media") is not None:
-			return
+		#if messageNode.getChild("media") is not None:
+		#	return
 	
 		fmsg = WAXMPP.message_store.store.Message.create()
 		
@@ -502,7 +505,16 @@ class StanzaReader(QThread):
 		fromAttribute = messageNode.getAttributeValue("from");
 		author = messageNode.getAttributeValue("author");
 
+		
+
+		if author is None:
+			author = "";
+
+
 		typeAttribute = messageNode.getAttributeValue("type");
+
+		#print messageNode.toString();
+		
 
 		if typeAttribute == "error":
 			errorCode = 0;
@@ -515,7 +527,7 @@ class StanzaReader(QThread):
 					'''catch value error'''
 			message = None;
 			if fromAttribute is not None and msg_id is not None:
-				key = Key(fromAttribute,True,msg_id);
+				key = Key(fromAttribute,True,msg_id,author);
 				message = message_store.get(key.toString());
 
 			if message is not None:
@@ -551,9 +563,57 @@ class StanzaReader(QThread):
 						if self.eventHandler is not None:
 							self.eventHandler.paused_received(fromAttribute);
 				
+				elif ProtocolTreeNode.tagEquals(childNode,"media") and msg_id is not None:
+					print "MULTIMEDIA MESSAGE!";
+					msgdata = messageNode.getChild("media").getAttributeValue("url");
+					
+					if msgdata is not None:
+						lastf = msgdata.rfind("/")
+						if not os.path.exists("/home/user/.cache/wazapp"):
+							os.makedirs("/home/user/.cache/wazapp")
+						urllib.urlretrieve(msgdata, "/home/user/.cache/wazapp"+msgdata[lastf:].replace(".png",".jpg") )
+						msgdata = "wazappmms:" + msgdata[lastf:].replace(".png",".jpg")
+					else:
+						mlatitude = messageNode.getChild("media").getAttributeValue("latitude")
+						mlongitude = messageNode.getChild("media").getAttributeValue("longitude")
+						if mlatitude is not None and mlongitude is not None:
+							msgdata = "wazapplocation:" + mlatitude + "," + mlongitude
+						else:
+							msgdata = messageNode.getChild("media").getChild("vcard").toString()
+							msgname = messageNode.getChild("media").getChild("vcard").getAttributeValue("name")
+							print msgdata;
+							if msgdata is not None:
+								text_file = open("/home/user/.cache/wazapp/" + msgname + ".vcf", "w")
+								n = msgdata.find(">") +1
+								msgdata = msgdata[n:]
+								text_file.write(msgdata.replace("</vcard>",""))
+								text_file.close()
+								msgdata = "wazappmms:" + msgname + ".vcf"
+					print msgdata;
+
+					
+					#if ProtocolTreeNode.tagEquals(childNode,"body"):   This suposses handle MEDIA + TEXT
+					#	msgdata = msgdata + " " + childNode.data;		But it's not supported in whatsapp?
+
+					key = Key(fromAttribute,False,msg_id, author);
+					ret = WAXMPP.message_store.get(key.toString());
+					
+					if ret is None:
+						conversation = WAXMPP.message_store.getOrCreateConversationByJid(fromAttribute);
+						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"conversation_id":conversation.id,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
+						
+						WAXMPP.message_store.pushMessage(fmsg)
+						fmsg.key = key
+						
+						#if self.eventHandler is not None:
+						#self.eventHandler.message_received(fmsg);
+					else:
+						fmsg.key = eval(ret.key)
+						duplicate = True;
+				
 				elif ProtocolTreeNode.tagEquals(childNode,"body") and msg_id is not None:
 					msgdata = childNode.data;
-					key = Key(fromAttribute,False,msg_id);
+					key = Key(fromAttribute,False,msg_id, author);
 					ret = WAXMPP.message_store.get(key.toString());
 
 					
@@ -579,7 +639,7 @@ class StanzaReader(QThread):
 						xmlns = childNode.getAttributeValue("xmlns");
 						if "jabber:x:event" == xmlns and msg_id is not None:
 							
-							key = Key(fromAttribute,True,msg_id);
+							key = Key(fromAttribute,True,msg_id, author);
 							message = WAXMPP.message_store.get(key.toString());
 							if message is not None:
 								WAXMPP.message_store.updateStatus(message,WAXMPP.message_store.store.Message.STATUS_SENT)
@@ -596,7 +656,7 @@ class StanzaReader(QThread):
 					else:
 						if ProtocolTreeNode.tagEquals(childNode,"delay") or not ProtocolTreeNode.tagEquals(childNode,"received") or msg_id is None:
 							continue;
-						key = Key(fromAttribute,True,msg_id);
+						key = Key(fromAttribute,True,msg_id, author);
 						message = WAXMPP.message_store.get(key.toString());
 						if message is not None:
 							WAXMPP.message_store.updateStatus(message,WAXMPP.message_store.store.Message.STATUS_DELIVERED)
@@ -1001,25 +1061,25 @@ class WAXMPP():
 class FMessage():
 	generating_id = 0;
 	generating_header = str(int(time.time()))+"-";
-	def __init__(self,key = None, remote_jid = None,from_me=None,data=None,image=None):
+	def __init__(self,key = None, remote_jid = None,from_me=None,data=None,image=None,remote_author=""):
 		self.data = data;
 		self.wantsReceipt = False;
 		self.timestamp = None;
 		if key is not None:
 			self.setKey(key);
 		elif remote_jid is not None and from_me is not None and data is not None:
-			self.setData(remote_jid,from_me,data,image)
+			self.setData(remote_jid,from_me,data,image,remote_author,remote_author)
 	
 	def setKey(self,key):
 		self.key = key;
 		WAXMPP.message_store.put(key,self);
 
-	def setData(self, remote_jid ,from_me,data,image=None):
-		localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id))
+	def setData(self, remote_jid ,from_me,data,image=None,remote_author=""):
+		localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id),remote_author)
 
 		while WAXMPP.message_store.get(localKey) is not None:
 			FMessage.generating_id += 1
-			localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id))
+			localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id),remote_author)
 			
 		WAXMPP.message_store.put(localKey,self);
 		self.key = localKey;

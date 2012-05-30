@@ -262,20 +262,42 @@ class Model():
 		return None;
 	
 	
+	def getComparator(self,key):
+		signs = ['<','>','<=','>=','<>','=']
+		signs.sort()
+		key = key.strip()
+		
+		for s in signs:
+			try:
+				index = key.index(s)
+				return s
+			except:
+				continue
+		
+		return False
+			
 	def buildConds(self,conditions):
 		q = [];
 		for k,v in conditions.items():
+			comparator = self.getComparator(k)
+			
+			if comparator:
+				index = k.index(comparator)
+				k = k[:index]
+			else:
+				comparator = '='
+				
 			if type(v) == list:
 			
 				tmp = []
 				for val in v:
-					tmp.append("%s = '%s'" % (k,str(val)))
+					tmp.append("%s %s '%s'" % (k, comparator, str(val)))
 				
 				tmpStr = ' OR '.join(tmp)
 			
 				q.append("(%s)"%(tmpStr))
 			else:
-				q.append("%s = '%s'" % (k,str(v)))
+				q.append("%s %s '%s'" % (k, comparator, str(v)))
 	
 		condsStr = " AND ".join(q);
 		

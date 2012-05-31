@@ -254,7 +254,7 @@ Page {
 
             Label{
                 anchors.centerIn: parent;
-                text:"No contacts yet. Try to resync"
+                text: qsTr("No contacts yet. Try to resync")
                 font.pointSize: 20
                 width:parent.width
                 horizontalAlignment: Text.AlignHCenter

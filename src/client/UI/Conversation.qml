@@ -307,7 +307,7 @@ Rectangle {
 
 		        Label{
 		            anchors.centerIn: parent;
-		            text: "Loading conversation..."
+		            text: qsTr("Loading conversation...")
                     font.pointSize: 22
 					color: "gray"
 		            width: parent.width
@@ -474,7 +474,7 @@ Rectangle {
             iconSource:"image://theme/icon-m-toolbar-send-chat-white"
             width:160
             height:45
-            text: "Send"
+            text: qsTr("Send")
             anchors.right: parent.right
             anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter

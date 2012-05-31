@@ -96,7 +96,7 @@ Sheet {
 
                 TextField {
                     id: titleInput
-                    text: ""
+                    text: qsTr("")
                     width: parent.width
                     platformStyle: myTextFieldStyle
                 }

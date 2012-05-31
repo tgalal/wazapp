@@ -85,7 +85,7 @@ Page{
         }
         Label{
             id:timout_text
-            text:"Taking too long?"
+            text: qsTr("Taking too long?")
             width:parent.width
             horizontalAlignment: Text.AlignHCenter
             visible: false

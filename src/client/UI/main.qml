@@ -23,6 +23,8 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 //import com.nokia.extras 1.0
 
+import "Global.js" as Helpers
+
 WAStackWindow {
     id: appWindow
     initialPage: mainPage
@@ -331,13 +333,13 @@ WAStackWindow {
 
                 TabButton {
                     platformStyle: TabButtonStyle{inverted: stealth || theme.inverted}
-                    text: "Chats"
+                    text: qsTr("Chats")
                     //iconSource: "../images/icon-m-toolbar-home.png"
                     tab: waChat
                 }
                 TabButton {
                      platformStyle: TabButtonStyle{inverted: stealth || theme.inverted}
-                    text:"Contacts"
+                    text: qsTr("Contacts")
                     // iconSource: "../images/icon-m-toolbar-list.png"
                     tab: waContacts
                 }
@@ -406,7 +408,7 @@ WAStackWindow {
 
         title:Text{
             color:"white"
-            text:"About Wazapp"
+            text: qsTr("About Wazapp")
             font.pixelSize: 20
         }
 
@@ -416,7 +418,7 @@ WAStackWindow {
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             font.pixelSize: 22
                // horizontalAlignment: Text.AlignHCenter
-            text:"Version "+waversion+" \n\n This is a "+waversiontype+" version. You are trying it at your own risk. Please report any bugs to tarek@wazapp.im "
+            text: Helpers.stringFormat(qsTr("Version %1 \n\n This is a %2 version. You are trying it at your own risk. Please report any bugs to tarek@wazapp.im "), [waversion, waversiontype])
         }
 
         buttons:ButtonRow {
@@ -425,7 +427,7 @@ WAStackWindow {
 
 
             Button{
-                text:"Close"
+                text: qsTr("Close")
                 onClicked: aboutDialog.close();
             }
 

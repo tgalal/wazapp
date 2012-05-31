@@ -22,6 +22,8 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
+import "Global.js" as Helpers
+
 Rectangle {
     id:container
 
@@ -87,7 +89,7 @@ Rectangle {
 
             PropertyChanges {
                 target: userstatus
-                text: "Online"
+                text: qsTr("Online")
             }
         },
 
@@ -96,7 +98,7 @@ Rectangle {
 
             PropertyChanges {
                 target: userstatus
-                text: ""
+                text: qsTr("")
             }
         },
 
@@ -104,7 +106,7 @@ Rectangle {
             name:"offline"
             PropertyChanges {
                 target: userstatus
-                text: "Last seen on "+lastSeenOn
+                text: Helpers.stringFormat(qsTr("Last seen on %1"), [lastSeenOn])
 
             }
         },
@@ -112,7 +114,7 @@ Rectangle {
             name:"typing"
             PropertyChanges{
                 target: userstatus
-                text:"Typing"
+                text: qsTr("Typing")
             }
         }
 

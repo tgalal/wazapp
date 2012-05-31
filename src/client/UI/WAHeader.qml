@@ -42,7 +42,7 @@ Rectangle{
 
     Label{
         id:mainTitle
-        text: "Wazapp"
+        text: qsTr("Wazapp")
         color:"#27a01b"
         font.pixelSize: 32
         y: 12

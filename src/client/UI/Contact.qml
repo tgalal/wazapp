@@ -131,7 +131,7 @@ Rectangle{
 
         WAButton{
             button_color: "#0b83c8";
-            button_text: "Chat"
+            button_text: qsTr("Chat")
             MouseArea{
                 anchors.fill: parent;
                 onClicked: container.clicked(number)
@@ -139,12 +139,12 @@ Rectangle{
         }
         WAButton{
             button_color: "#2ea11b";
-            button_text: "Call"
+            button_text: qsTr("Call")
         }
 
         WAButton{
             button_color: "#dc0a0a";
-            button_text: "Block"
+            button_text: qsTr("Block")
         }
 
     }

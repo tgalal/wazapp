@@ -22,8 +22,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
-import "Global.js" as Helpers
-
 Page{
     id:container
     property string cc_val;
@@ -118,7 +116,7 @@ Page{
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                   font.pixelSize: 22
                     horizontalAlignment: Text.AlignHCenter
-                text: Helpers.stringFormat( qsTr("Whatsapp will send an SMS with your 3 digit activation code to %1. Is that phone number correct?"), [regconfirm.phone_number])
+                text: qsTr("Whatsapp will send an SMS with your 3 digit activation code to %1. Is that phone number correct?").arg(regconfirm.phone_number)
             }
 
             buttons:ButtonRow {

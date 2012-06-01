@@ -139,10 +139,3 @@ function convertUnicodeCodePointsToString(unicode_codes) {
   var utf16_codes = convertUnicodeCodePointsToUtf16Codes(unicode_codes);
   return convertUtf16CodesToString(utf16_codes);
 }
-
-function stringFormat(str, args) {
-  for(var i=0; i<args.length; i++){
-    str = str.replace("%"+(i+1), args[i]);
-  }
-  return str;
-}

@@ -23,8 +23,6 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 //import com.nokia.extras 1.0
 
-import "Global.js" as Helpers
-
 WAStackWindow {
     id: appWindow
     initialPage: mainPage
@@ -418,7 +416,7 @@ WAStackWindow {
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             font.pixelSize: 22
                // horizontalAlignment: Text.AlignHCenter
-            text: Helpers.stringFormat(qsTr("Version %1 \n\n This is a %2 version. You are trying it at your own risk. Please report any bugs to tarek@wazapp.im "), [waversion, waversiontype])
+            text: qsTr("Version %1 \n\n This is a %2 version. You are trying it at your own risk. Please report any bugs to tarek@wazapp.im ").arg(waversion).arg(waversiontype)
         }
 
         buttons:ButtonRow {

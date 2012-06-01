@@ -51,8 +51,8 @@ class WAEventHandler(WAEventBase):
 	available = QtCore.Signal(str);
 	unavailable = QtCore.Signal(str);
 	showUI = QtCore.Signal(str);
-	messageSent = QtCore.Signal(dict);
-	messageDelivered = QtCore.Signal(dict);
+	messageSent = QtCore.Signal(int,str);
+	messageDelivered = QtCore.Signal(int,str);
 	lastSeenUpdated = QtCore.Signal(str,int);
 	updateAvailable = QtCore.Signal(dict);
 	
@@ -215,10 +215,17 @@ class WAEventHandler(WAEventBase):
 	
 	def onAvailable(self):
 		self.conn.sendAvailable();
+		
 	
 	def send_message(self,to_id,msg_text):
 		
-		fmsg = WAXMPP.message_store.store.Message.create();
+		fmsg = WAXMPP.message_store.createMessage(to_id);
+		
+		
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
 		
 		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
 		WAXMPP.message_store.pushMessage(to_id,fmsg)
@@ -234,16 +241,24 @@ class WAEventHandler(WAEventBase):
 
 		if fmsg.content is not None:
 			#self.new_message.emit({"data":fmsg.content,"user_id":fmsg.getContact().jid})
+			msg_contact = fmsg.getContact();
 			try:
-				msg_contact = WAXMPP.message_store.store.getCachedContacts()[fmsg.getContact().number];
+				msg_contact = WAXMPP.message_store.store.getCachedContacts()[msg_contact.number];
 			except:
-				msg_contact = WAXMPP.message_store.store.Contact.create()
 				msg_contact.name= fmsg.getContact().number
-				msg_contact.picture = WAConstants.DEFAULT_CONTACT_PICTURE
-				msg_contact.jid = eval(fmsg.key.toString()).remote_jid
+				msg_contact.picture = WAConstants.DEFAULT_GROUP_PICTURE
 				
 			
-			self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture.path()),callback = self.notificationClicked);
+			
+			if fmsg.Conversation.type == "single":
+				self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture.path()),callback = self.notificationClicked);
+			else:
+				conversation = fmsg.getConversation();
+				
+				
+					
+				
+				self.notifier.newMessage(conversation.jid, "%s in %s"%(msg_contact.name,conversation.subject), fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture.path()),callback = self.notificationClicked);
 			
 			Utilities.debug("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
 		else:
@@ -252,6 +267,8 @@ class WAEventHandler(WAEventBase):
 		if(fmsg.wantsReceipt):
 			self.conn.sendMessageReceived(fmsg);
 
+	
+		
 	
 	def subjectReceiptRequested(self,to,idx):
 		self.conn.sendSubjectReceived(to,idx);
@@ -284,14 +301,12 @@ class WAEventHandler(WAEventBase):
 		Utilities.debug("Message Error {0}\n Error Code: {1}".format(fmsg,str(errorCode)));
 
 	def message_status_update(self,fmsg):
-		Utilities.debug("Message status updated {0}".format(fmsg.status));
-		contact = fmsg.getContact();
-		modelData = fmsg.getModelData();
-		modelData["Contact"] = contact.getModelData();
+		Utilities.debug("Message status updated {0} for {1}".format(fmsg.status,fmsg.getConversation().getJid()));
+		
 		if fmsg.status == WAXMPP.message_store.store.Message.STATUS_SENT:
-			self.messageSent.emit(modelData);
+			self.messageSent.emit(fmsg.id,fmsg.getConversation().getJid());
 		elif fmsg.status == WAXMPP.message_store.store.Message.STATUS_DELIVERED:
-			self.messageDelivered.emit(modelData); 
+			self.messageDelivered.emit(fmsg.id,fmsg.getConversation().getJid()); 
 		
 
 class StanzaReader(QThread):
@@ -491,16 +506,24 @@ class StanzaReader(QThread):
 		
 		if messageNode.getChild("media") is not None:
 			return
-	
-		fmsg = WAXMPP.message_store.store.Message.create()
+		fromAttribute = messageNode.getAttributeValue("from");
+		author = messageNode.getAttributeValue("author");
 		
+		fmsg = WAXMPP.message_store.createMessage(fromAttribute)
 		fmsg.wantsReceipt = False
+		
+		
+		conversation = WAXMPP.message_store.getOrCreateConversationByJid(fromAttribute);
+		fmsg.conversation_id = conversation
+		fmsg.Conversation = conversation
+		
+		
 		
 		
 		msg_id = messageNode.getAttributeValue("id");
 		attribute_t = messageNode.getAttributeValue("t");
-		fromAttribute = messageNode.getAttributeValue("from");
-		author = messageNode.getAttributeValue("author");
+		
+		
 
 		typeAttribute = messageNode.getAttributeValue("type");
 
@@ -516,7 +539,7 @@ class StanzaReader(QThread):
 			message = None;
 			if fromAttribute is not None and msg_id is not None:
 				key = Key(fromAttribute,True,msg_id);
-				message = message_store.get(key.toString());
+				message = message_store.get(key);
 
 			if message is not None:
 				message.status = 7
@@ -554,12 +577,21 @@ class StanzaReader(QThread):
 				elif ProtocolTreeNode.tagEquals(childNode,"body") and msg_id is not None:
 					msgdata = childNode.data;
 					key = Key(fromAttribute,False,msg_id);
-					ret = WAXMPP.message_store.get(key.toString());
+					ret = WAXMPP.message_store.get(key);
 
 					
 					if ret is None:
 						
 						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
+						
+						try:
+							index = fromAttribute.index('-')
+							#group conv
+							contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+							fmsg.contact_id = contact.id
+							fmsg.contact = contact
+						except ValueError: #single conv
+							pass
 						
 						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
 						fmsg.key = key
@@ -580,7 +612,7 @@ class StanzaReader(QThread):
 						if "jabber:x:event" == xmlns and msg_id is not None:
 							
 							key = Key(fromAttribute,True,msg_id);
-							message = WAXMPP.message_store.get(key.toString());
+							message = WAXMPP.message_store.get(key)
 							if message is not None:
 								WAXMPP.message_store.updateStatus(message,WAXMPP.message_store.store.Message.STATUS_SENT)
 								
@@ -597,7 +629,7 @@ class StanzaReader(QThread):
 						if ProtocolTreeNode.tagEquals(childNode,"delay") or not ProtocolTreeNode.tagEquals(childNode,"received") or msg_id is None:
 							continue;
 						key = Key(fromAttribute,True,msg_id);
-						message = WAXMPP.message_store.get(key.toString());
+						message = WAXMPP.message_store.get(key);
 						if message is not None:
 							WAXMPP.message_store.updateStatus(message,WAXMPP.message_store.store.Message.STATUS_DELIVERED)
 							if self.eventHandler is not None:
@@ -994,37 +1026,3 @@ class WAXMPP():
 			
 			
 			return messageNode;
-
-
-
-
-class FMessage():
-	generating_id = 0;
-	generating_header = str(int(time.time()))+"-";
-	def __init__(self,key = None, remote_jid = None,from_me=None,data=None,image=None):
-		self.data = data;
-		self.wantsReceipt = False;
-		self.timestamp = None;
-		if key is not None:
-			self.setKey(key);
-		elif remote_jid is not None and from_me is not None and data is not None:
-			self.setData(remote_jid,from_me,data,image)
-	
-	def setKey(self,key):
-		self.key = key;
-		WAXMPP.message_store.put(key,self);
-
-	def setData(self, remote_jid ,from_me,data,image=None):
-		localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id))
-
-		while WAXMPP.message_store.get(localKey) is not None:
-			FMessage.generating_id += 1
-			localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id))
-			
-		WAXMPP.message_store.put(localKey,self);
-		self.key = localKey;
-		if data is not None:
-			self.data = data;
-			self.thumb_image = image;
-			self.timestamp = int(time.time())*1000;
-

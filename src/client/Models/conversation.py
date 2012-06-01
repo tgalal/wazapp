@@ -35,8 +35,12 @@ class Conversation(Model):
 		return self.Contact
 		
 	def getJid(self):
-		convObj =  self.store.Conversation.getById(self.id);
-		contact = convObj.getContact()
+		if not self.contact_id:
+			convObj =  self.store.Conversation.getById(self.id);
+			contact = convObj.getContact()
+		else:
+			contact = self.getContact()
+			
 		return contact.jid
 		
 	def getLastMessage(self):
@@ -69,24 +73,25 @@ class Conversation(Model):
 		
 		return cpy
 
-class GroupConversation(Model):
+class Groupconversation(Model):
 	
 	def __init__(self):
 		print "init a group convo"
 		self.type="group"
 		self.messages = []
-		
+	
 		
 	def getJid(self):
 		return self.jid;
 		
+		
 	def getLastMessage(self):
-		messages = self.store.GroupMessage.findAll(conditions = {"groupconversation_id":self.id}, order=["timestamp DESC"], limit = 1)
+		messages = self.store.Groupmessage.findAll(conditions = {"groupconversation_id":self.id}, order=["timestamp DESC"], limit = 1)
 		if len(messages):
 			self.lastMessage = messages[0];
 			return self.lastMessage;
 		
-		self.lastMessage = self.store.GroupMessage.create();
+		self.lastMessage = self.store.Groupmessage.create();
 		self.lastMessage.timestamp = 0
 		return None;
 		
@@ -119,9 +124,9 @@ class ConversationManager():
 	
 	def findAll(self):
 		convs = self.store.Conversation.findAll();
-		gconvs = self.store.GroupConversation.findAll();
+		gconvs = self.store.Groupconversation.findAll();
 		
-		#convs.extend(gconvs);
+		convs.extend(gconvs);
 		
 		for c in convs:
 			c.getLastMessage();

@@ -152,6 +152,9 @@ class Model():
 		for k,v in data.items():
 			if k == "id":
 				continue;
+			if v is None:
+				continue
+				
 			fields.append(k);
 			values.append(v);
 		
@@ -163,8 +166,8 @@ class Model():
 		
 		q = "INSERT INTO %s %s VALUES %s" %(self.table,fields,wq);
 		c = self.conn.cursor();
-		#print q
-		#print values
+		print q
+		print values
 		c.execute(q,values);
 		self.conn.commit();
 		
@@ -217,6 +220,7 @@ class Model():
 		
 		for i in range(0,len(resultItem)):
 			modelInstance.setInstanceVariable(self.columns[i],resultItem[i]);
+		
 			
 		return modelInstance;
 	
@@ -348,7 +352,7 @@ class Model():
 		return self.__class__.__name__
 	
 	def runQuery(self,query,whereValues = []):
-		#print query;
+		print query;
 		c = self.conn.cursor();
 		
 		if len(whereValues):

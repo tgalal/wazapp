@@ -82,15 +82,15 @@ Page {
 
      }
 
-    function onMessageSent(message){
+    function onMessageSent(message_id,jid){
 
-          var chatWindow = getChatWindow(message.Contact.jid);
-          if(chatWindow)chatWindow.conversation.messageSent(message.id);
+          var chatWindow = getChatWindow(jid);
+          if(chatWindow)chatWindow.conversation.messageSent(message_id);
     }
 
-    function onMessageDelivered(message){
-          var chatWindow = getChatWindow(message.Contact.jid);
-          if(chatWindow)chatWindow.conversation.messageDelivered(message.id);
+    function onMessageDelivered(message_id,jid){
+          var chatWindow = getChatWindow(jid);
+          if(chatWindow)chatWindow.conversation.messageDelivered(message_id);
     }
 
       function clearConversations(){

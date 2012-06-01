@@ -18,6 +18,7 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 import time;
 from model import Model;
+from mediatype import Mediatype
 
 class MessageBase(Model):
 	
@@ -39,6 +40,13 @@ class MessageBase(Model):
 		self.STATUS_PENDING = Message.STATUS_PENDING
 		self.STATUS_SENT = Message.STATUS_SENT
 		self.STATUS_DELIVERED = Message.STATUS_DELIVERED
+		
+		self.mediatype_id = Mediatype.TYPE_TEXT #Default
+		
+		
+	def setConversation(self,conversation):
+		self.conversation_id = conversation.id
+		self.Conversation = conversation
 	
 	def getConversation(self):
 		if not self.conversation_id:
@@ -56,16 +64,44 @@ class Message(MessageBase):
 		self.conn.text_factory = str
 			
 	def getContact(self):
-		if self.getConversation():
-			if not self.Conversation.Contact.id:
-				self.Contact = self.Conversation.getContact();
-		else:
-			return 0
+		conversation = self.getConversation();
 		
-		return self.Contact	
+		if not conversation.Contact.id:
+			conversation.Contact = conversation.getContact();
+		
+		
+		return conversation.Contact	
 			
 class GroupMessage(MessageBase):
 
 	def storeConnected(self):
-		self.Conversation = self.store.GroupConversation
+		self.Conversation = self.store.Groupconversation
 		self.conn.text_factory = str
+	
+	
+	def setConversation(self,conversation):
+		self.groupconversation_id = conversation.id
+		self.Groupconversation = conversation
+	
+	def setContact(self,contact):
+		self.contact_id = contact.id;
+		self.Contact = contact
+	
+	def getConversation(self):
+		if not self.groupconversation_id:
+			return 0;
+			
+		if not self.Groupconversation.id:
+			self.Groupconversation = self.Groupconversation.read(self.groupconversation_id)
+		
+		return self.Groupconversation	
+	
+	def getContact(self):
+		if not self.contact_id:
+			return 0
+			
+		if not self.Contact.id:
+			self.Contact = self.Contact.read(self.contact_id);
+		
+		return self.Contact
+	

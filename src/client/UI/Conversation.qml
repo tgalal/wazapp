@@ -42,6 +42,7 @@ Page {
     property string user_picture;
     property string prev_state:"chats"
     property bool iamtyping:false
+    property bool typingEnabled:false
     property string pageIdentifier:"conversation_page" //used in notification hiding process
 
 
@@ -396,6 +397,13 @@ Page {
                     font.pixelSize: 24
 
                     onTextChanged: {
+                        if(!typingEnabled)
+                        {
+                            //to prevent initial set of placeHolderText from firing textChanged signal
+                            typingEnabled = true
+                            return
+                        }
+
                         if(!iamtyping)
                         {
                             console.log("TYPING");

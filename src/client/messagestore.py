@@ -96,31 +96,42 @@ class MessageStore(QObject):
 	
 	def getUnsent(self):
 		messages = self.store.Message.findAll(conditions={"status":self.store.Message.STATUS_PENDING,"type":self.store.Message.TYPE_SENT},order=["id ASC"]);
+		
+		
+		groupMessages = self.store.Groupmessage.findAll(conditions={"status":self.store.Message.STATUS_PENDING,"type":self.store.Message.TYPE_SENT},order=["id ASC"]);
+		
+		
+		
+		messages.extend(groupMessages);
+		
 		return messages	
 		
 	
 	def get(self,key):
-		return self.store.Message.findFirst({"key":key});
+		
+		try:
+			key.remote_jid.index('-')
+			return self.store.Groupmessage.findFirst({"key":key.toString()});
+			
+		except ValueError:
+			return self.store.Message.findFirst({"key":key.toString()});
+		
+	def getG(self,key):
+		return self.store.Groupmessage.findFirst({"key":key});
 		
 	def getOrCreateConversationByJid(self,jid):
 	
 		groupTest = jid.split('-');
 		if len(groupTest)==2:
-			conv = self.store.GroupConversation.findFirst(conditions={"jid":jid})
+			conv = self.store.Groupconversation.findFirst(conditions={"jid":jid})
 			
 			if conv is None:
-				conv = self.store.GroupConversation.create()
+				conv = self.store.Groupconversation.create()
 				conv.setData({"jid":jid})
 				conv.save()
 			
 		else:
-		
-			contact = self.store.Contact.findFirst(conditions={"jid":jid})
-			if contact is None:
-				contact = self.store.Contact.create();
-				contact.setData({"jid":jid,"number":jid.split('@')[0]})
-				contact.save()
-		
+			contact = self.store.Contact.getOrCreateContactByJid(jid)
 			conv = self.store.Conversation.findFirst(conditions={"contact_id":contact.id})
 		
 			if conv is None:
@@ -133,14 +144,14 @@ class MessageStore(QObject):
 	def generateKey(self,message):
 		
 		conv = message.getConversation();
-		contact = conv.getContact();
+		jid = conv.getJid();
 		
 		#key = str(int(time.time()))+"-"+MessageStore.currId;
-		localKey = Key(contact.jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId))
+		localKey = Key(jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId))
 		
 		while self.get(localKey) is not None:
 			MessageStore.currKeyId += 1
-			localKey = Key(contact.jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId))
+			localKey = Key(jid,True,str(int(time.time()))+"-"+str(MessageStore.currKeyId))
 			
 		#message.key = localKey
 		
@@ -155,9 +166,17 @@ class MessageStore(QObject):
 		jid = conversation.getJid();
 		
 		index = self.getMessageIndex(jid,message.id);
+		
 		if index >= 0:
 			#message is loaded
 			self.conversations[jid].messages[index] = message
+			
+			print "WILL EMIT:"
+			print jid
+			print message.id
+			print status
+			print "END EMIT"
+			
 			self.messageStatusUpdated.emit(jid,message.id,status)
 	
 	def getMessageIndex(self,jid,msg_id):
@@ -168,16 +187,42 @@ class MessageStore(QObject):
 					return i
 		
 		return -1
+	
+	
+	def isGroupJid(self,jid):
+		try:
+			jid.index('-')
+			return True
+		except:
+			return False
+	
+	def createMessage(self,jid = None):
+		'''
+		Message creator. If given a jid, it detects the message type (normal/group) and allocates a conversation for it.
+				 Otherwise, returns a normal message
+		'''
+		if jid is not None:
+			conversation =  self.getOrCreateConversationByJid(jid);
+			if self.isGroupJid(jid):
+				msg = self.store.Groupmessage.create()
+				msg.groupconversation_id = conversation.id
+				msg.Groupconversation = conversation
+				
+				
+			else:
+				msg = self.store.Message.create()
+				msg.conversation_id = conversation.id
+				msg.Conversation = conversation
+		else:
+			msg = self.store.Message.create()
+		
+		return msg
+		
 
 	def pushMessage(self,jid,message):
-	
+		
 		conversation = self.getOrCreateConversationByJid(jid);
-		
-		
-		
-		
-		
-		message.conversation_id = conversation.id;
+		message.setConversation(conversation)
 		
 		if message.key is None:
 			message.key = self.generateKey(message).toString();
@@ -186,10 +231,6 @@ class MessageStore(QObject):
 		message.save();
 		
 		if self.conversations.has_key(jid):
-			print "CHECKKKK"
-			print self.conversations[jid]
-			print self.conversations[jid].messages;
-			
 			self.conversations[jid].messages.append(message)
 		else:
 			self.conversations[jid] = conversation

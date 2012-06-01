@@ -34,3 +34,23 @@ class Contact(Model):
 		self.modelData.append("alphabet");
 		
 	
+	def getOrCreateContactByJid(self,jid):
+		
+		contact = self.findFirst({'jid':jid})
+		
+		if not contact:
+			contact = self.create()
+			contact.setData({"jid":jid,"number":jid.split('@')[0]})
+			contact.save()
+		
+		return contact
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			

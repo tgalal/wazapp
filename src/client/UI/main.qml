@@ -236,14 +236,14 @@ WAStackWindow {
         waContacts.onTyping(user_id);
     }
 
-    function onMessageSent(message){
-        waContacts.onMessageSent(message);
-        waChat.onMessageSent(message.id)
+    function onMessageSent(message_id,jid){
+        waContacts.onMessageSent(message_id,jid);
+        waChat.onMessageSent(message_id)
     }
 
-    function onMessageDelivered(message){
-        waContacts.onMessageDelivered(message);
-        waChat.onMessageDelivered(message.id)
+    function onMessageDelivered(message_id,jid){
+        waContacts.onMessageDelivered(message_id,jid);
+        waChat.onMessageDelivered(message_id)
     }
 
     function onPaused(user_id){

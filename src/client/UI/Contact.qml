@@ -39,6 +39,7 @@ Rectangle{
     width: parent.width;
    // color: "#e6e6e6"
     color:"transparent"
+	clip: true
 
 	Rectangle {
 		anchors.fill: parent
@@ -87,7 +88,9 @@ Rectangle{
             id:contact_picture
             size:62
             imgsource: picture
-            opacity:appWindow.stealth?0.2:1
+            opacity: appWindow.stealth?0.2:1
+			anchors.topMargin: -2
+			//onClicked: mouseArea.clicked()
         }
 
         Column{

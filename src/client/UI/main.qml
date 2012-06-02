@@ -27,6 +27,11 @@ WAStackWindow {
     id: appWindow
     initialPage: mainPage
     
+	//Temporary variables for settings testing
+	property int bubbleColor: 1
+
+
+
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     
     showStatusBar: !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
@@ -35,6 +40,7 @@ WAStackWindow {
     }
     property string activeConvJId:""
     property bool stealth:false
+	property string emojiDialogParent
 
     Component.onCompleted: {
         theme.inverted = true
@@ -158,7 +164,7 @@ WAStackWindow {
 
     function onSyncClicked(){
         tabGroups.currentTab=waContacts;
-        loadingPage.operation="Refreshing Contacts"
+        //loadingPage.operation="Refreshing Contacts"
         appWindow.pageStack.push(loadingPage);
         refreshContacts();
     }
@@ -176,6 +182,13 @@ WAStackWindow {
     function onRefreshFail(){
         appWindow.pageStack.pop();
     }
+
+	function onContactsSyncStatusChanged(state) {
+		if (state=="GETTING") loadingPage.operation = "Retrieving contacts list..."
+		else if (state=="SENDING") loadingPage.operation = "Fetching contacts..."
+		else if (state=="LOADING") loadingPage.operation = "Loading contacts..."
+		else loadingPage.operation = ""
+	}
 
     function setIndicatorState(indicatorState){
 
@@ -268,6 +281,10 @@ WAStackWindow {
     /*****************************************/
 
 
+    ListModel{
+        id:contactsModel
+    }
+
     WAUpdate{
         id:updatePage
     }
@@ -346,8 +363,10 @@ WAStackWindow {
             ToolIcon {
                 platformStyle: ToolButtonStyle{inverted: stealth || theme.inverted}
                 id:toolbar_menu_item
-                platformIconId: "toolbar-view-menu"
-                onClicked: (waMenu.status === DialogStatus.Closed) ? waMenu.open() : waMenu.close()
+                platformIconId: "toolbar-settings"
+                //onClicked: (waMenu.status === DialogStatus.Closed) ? waMenu.open() : waMenu.close()
+				onClicked: { pageStack.push (Qt.resolvedUrl("Settings.qml")) }
+
             }
         }
 
@@ -365,9 +384,9 @@ WAStackWindow {
 
                 }
 
-        onAboutClicked: {
+        /*onAboutClicked: {
             aboutDialog.open();
-        }
+        }*/
 
     }
 
@@ -393,19 +412,6 @@ WAStackWindow {
         acceptButtonText: qsTrId("Details")
         rejectButtonText: qsTrId("Cancel")
         onAccepted: appWindow.pageStack.push(updatePage);
-    }
-
-    QueryDialog {
-        property string phone_number;
-        id:aboutDialog
-        anchors.fill: parent
-		icon: "pics/wazapp80.png"
-        titleText: "Wazapp"
-        message: "version " + waversion + "\n\n" + 
-                 "This is a " + waversiontype + " version.\n" + 
-				 "You are trying it at your own risk.\n" + 
-				 "Please report any bugs to \n" + "tarek@wazapp.im"
- 
     }
 
 }

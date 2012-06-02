@@ -34,6 +34,8 @@ class ContactsSyncer(WARequest):
 	'''
 	contactsRefreshSuccess = QtCore.Signal();
 	contactsRefreshFail = QtCore.Signal();
+	contactsSyncStatus = QtCore.Signal(str);
+
 	def __init__(self,store):
 		self.store = store;
 		self.base_url = "sro.whatsapp.net";
@@ -42,6 +44,7 @@ class ContactsSyncer(WARequest):
 
 	def sync(self):
 		print "INITiATING SYNC"
+		self.contactsSyncStatus.emit("GETTING");
 		cm = ContactsManager();
 		phoneContacts = cm.getContacts();
 
@@ -50,6 +53,8 @@ class ContactsSyncer(WARequest):
 
 		self.addParam("me",self.store.account.phoneNumber);
 		self.addParam("cc",self.store.account.cc)
+
+		self.contactsSyncStatus.emit("SENDING");
 		data = self.sendRequest();
 		
 		if data:
@@ -65,6 +70,7 @@ class ContactsSyncer(WARequest):
 		data =minidom.parseString(data);
 		contacts  = data.getElementsByTagName("s");
 		for c in contacts:
+			self.contactsSyncStatus.emit("LOADING");
 			contactObj = self.store.Contact.create();
 			is_valid = False;
 
@@ -100,7 +106,8 @@ class WAContacts(QObject):
 	refreshing = QtCore.Signal();
 	contactsRefreshed = QtCore.Signal();
 	contactsRefreshFailed = QtCore.Signal();
-	
+	contactsSyncStatusChanged = QtCore.Signal(str);
+
 	def __init__(self,store):
 		super(WAContacts,self).__init__();
 		self.store = store;
@@ -114,6 +121,7 @@ class WAContacts(QObject):
 		#self.syncer.done.connect(self.syncer.updateContacts);
 		self.syncer.contactsRefreshSuccess.connect(self.contactsRefreshed);
 		self.syncer.contactsRefreshFail.connect(self.contactsRefreshFailed);
+		self.syncer.contactsSyncStatus.connect(self.contactsSyncStatusChanged);
 
 	def resync(self):
 		self.initiateSyncer();
@@ -146,7 +154,7 @@ class WAContacts(QObject):
 					break;
 					
 		self.store.cacheContacts(self.contacts);
-		return sorted(tmp, key=lambda k: k['name']) ;
+		return sorted(tmp, key=lambda k: k['name'].upper()) ;
 
 
 class ContactsManager(QObject):
@@ -170,7 +178,7 @@ class ContactsManager(QObject):
 			label =  contact.displayLabel();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 			for number in numbers:
-				self.contacts.append({"alphabet":label[0],"name":label,"number":QContactPhoneNumber(number).number(),"picture":avatar});
+				self.contacts.append({"alphabet":label[0].upper(),"name":label,"number":QContactPhoneNumber(number).number(),"picture":avatar});
 
 		return self.contacts;
 

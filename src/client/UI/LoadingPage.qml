@@ -55,17 +55,19 @@ Page{
         onTriggered: {
             timout_text.visible = true
             timout_buttons.state="visible"
-            }
+        }
     }
 
 
     WAHeader{
-        title: "Refreshing"
+        title: "Wazapp"
         anchors.top:parent.top
         width:parent.width
+		height: 73
     }
+
     Column{
-        spacing:5;
+        spacing:20;
         anchors.left:parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
@@ -83,6 +85,7 @@ Page{
             width:parent.width-32
             anchors.horizontalCenter: parent.horizontalCenter
         }
+
         Label{
             id:timout_text
             text:"Taking too long?"

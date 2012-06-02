@@ -40,6 +40,8 @@ class MessageStore(QObject):
 		#	self.loadMessages(m.getContact());
 		#load messages for jids of those ids
 		
+		
+		
 	
 	def deleteConversation(self,jid):
 	

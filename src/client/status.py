@@ -27,8 +27,8 @@ class WAChangeStatus(WARequestStatus):
 	'''
 	Interfaces with whatsapp contacts server to get contact list
 	'''
-	contactsRefreshSuccess = QtCore.Signal();
-	contactsRefreshFail = QtCore.Signal();
+	#contactsRefreshSuccess = QtCore.Signal();
+	#contactsRefreshFail = QtCore.Signal();
 	def __init__(self,store):
 		self.store = store;
 		self.base_url = "s.whatsapp.net";

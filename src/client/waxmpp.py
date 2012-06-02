@@ -17,7 +17,7 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
-import time, threading, select;
+import time, threading, select, os, urllib;
 from utilities import Utilities, S40MD5Digest
 from protocoltreenode import BinTreeNodeWriter,BinTreeNodeReader,ProtocolTreeNode
 from connengine import MySocketConnection
@@ -502,10 +502,10 @@ class StanzaReader(QThread):
 
 	def parseMessage(self,messageNode):
 	
-		#throw media in the garbage
 		
-		if messageNode.getChild("media") is not None:
-			return
+		#if messageNode.getChild("media") is not None:
+		#	return
+		
 		fromAttribute = messageNode.getAttributeValue("from");
 		author = messageNode.getAttributeValue("author");
 		
@@ -573,6 +573,53 @@ class StanzaReader(QThread):
 				elif ProtocolTreeNode.tagEquals(childNode,"paused"):
 						if self.eventHandler is not None:
 							self.eventHandler.paused_received(fromAttribute);
+				
+				elif ProtocolTreeNode.tagEquals(childNode,"media") and msg_id is not None:
+					print "MULTIMEDIA MESSAGE!";
+					msgdata = messageNode.getChild("media").getAttributeValue("url");
+					
+					if msgdata is not None:
+						lastf = msgdata.rfind("/")
+						if not os.path.exists("/home/user/.cache/wazapp"):
+							os.makedirs("/home/user/.cache/wazapp")
+						urllib.urlretrieve(msgdata, "/home/user/.cache/wazapp"+msgdata[lastf:].replace(".png",".jpg") )
+						msgdata = "wazappmms:" + msgdata[lastf:].replace(".png",".jpg")
+					else:
+						mlatitude = messageNode.getChild("media").getAttributeValue("latitude")
+						mlongitude = messageNode.getChild("media").getAttributeValue("longitude")
+						if mlatitude is not None and mlongitude is not None:
+							msgdata = "wazapplocation:" + mlatitude + "," + mlongitude
+						else:
+							msgdata = messageNode.getChild("media").getChild("vcard").toString()
+							msgname = messageNode.getChild("media").getChild("vcard").getAttributeValue("name")
+							print msgdata;
+							if msgdata is not None:
+								text_file = open("/home/user/.cache/wazapp/" + msgname + ".vcf", "w")
+								n = msgdata.find(">") +1
+								msgdata = msgdata[n:]
+								text_file.write(msgdata.replace("</vcard>",""))
+								text_file.close()
+								msgdata = "wazappmms:" + msgname + ".vcf"
+					print msgdata;
+
+					
+					#if ProtocolTreeNode.tagEquals(childNode,"body"):   This suposses handle MEDIA + TEXT
+					#	msgdata = msgdata + " " + childNode.data;		But it's not supported in whatsapp?
+
+					key = Key(fromAttribute,False,msg_id);
+					ret = WAXMPP.message_store.get(key);
+					
+					if ret is None:
+						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
+						
+						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
+						fmsg.key = key
+						
+						#if self.eventHandler is not None:
+						#self.eventHandler.message_received(fmsg);
+					else:
+						fmsg.key = eval(ret.key)
+						duplicate = True;
 				
 				elif ProtocolTreeNode.tagEquals(childNode,"body") and msg_id is not None:
 					msgdata = childNode.data;

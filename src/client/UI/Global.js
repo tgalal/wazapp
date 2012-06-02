@@ -23,12 +23,17 @@
 
 
 function getCode(inputText) {
-    var replacedText;
-        var regx = /<img src="\/opt\/waxmppplugin\/bin\/wazapp\/UI\/pics\/emoji-32\/emoji-(\w{4}).png" \/>/g
-        replacedText = inputText.replace( regx, function(s, eChar){
-            var n=String.fromCharCode('0x'+eChar);
-            return n;
-        });
+	var replacedText;
+    var regx = /<img src="\/opt\/waxmppplugin\/bin\/wazapp\/UI\/pics\/emoji-20\/emoji-(\w{4}).png" \/>/g
+    replacedText = inputText.replace( regx, function(s, eChar){
+		var n=String.fromCharCode('0x'+eChar);
+        return n;
+    });
+    regx = /<img src="pics\/emoji-20\/emoji-(\w{4}).png" \/>/g
+    replacedText = replacedText.replace( regx, function(s, eChar){
+		var n=String.fromCharCode('0x'+eChar);
+        return n;
+    });
     return replacedText
 }
 

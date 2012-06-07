@@ -23,8 +23,8 @@ class Mediatype(Model):
 	
 	TYPE_TEXT	= 1
 	TYPE_IMAGE	= 2
-	TYPE_VIDEO	= 3
-	TYPE_VOICE	= 4
+	TYPE_AUDIO	= 3
+	TYPE_VIDEO	= 4
 	TYPE_LOCATION	= 5
 	
 	

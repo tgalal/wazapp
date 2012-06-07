@@ -89,7 +89,7 @@ Rectangle{
             size:62
             imgsource: picture
             opacity: appWindow.stealth?0.2:1
-			anchors.topMargin: -2
+            anchors.topMargin: -2
 			//onClicked: mouseArea.clicked()
         }
 

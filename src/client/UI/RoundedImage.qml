@@ -8,6 +8,7 @@ Item {
     property int size
     property bool rounded: true
 	property string istate: "Loading..."
+    property alias  asynchronous: image1.asynchronous
 
 	//signal clicked
 	//signal pressAndHold
@@ -38,6 +39,7 @@ Item {
             height: size
             smooth: true
             fillMode: Image.PreserveAspectCrop
+
             source: imgsource.substr(-4)==".mp3" ? "pics/content-audio.png" :
 					imgsource.substr(-4)==".m4a" ? "pics/content-audio.png" :
 					imgsource.substr(-4)==".wav" ? "pics/content-audio.png" :    
@@ -58,6 +60,7 @@ Item {
         width: size
         height: size
         smooth: true
+        asynchronous: true
         fillMode: Image.Stretch
         source: "pics/userborder.png"
         visible: imgsource != "" && rounded

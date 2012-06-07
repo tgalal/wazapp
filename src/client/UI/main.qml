@@ -97,6 +97,8 @@ WAStackWindow {
     signal quit()
     signal deleteConversation(string cid);
     signal conversationActive(string user_id);
+    signal fetchMedia(int id);
+    signal fetchGroupMedia(int id);
 
             /******************/
     function onConnected(){setIndicatorState("online")}
@@ -104,6 +106,23 @@ WAStackWindow {
     function onDisconnected(){setIndicatorState("connecting")}
     function onSleeping(){setIndicatorState("offline")}
     function onLoginFailed(){setIndicatorState("reregister")}
+
+            /**** Media ****/
+    function onMediaTransferSuccess(jid,message_id,mediaObject){
+        console.log("Caught media transfer success in main")
+        waContacts.onMediaTransferSuccess(jid,message_id,mediaObject);
+    }
+
+    function onMediaTransferError(jid,message_id,mediaObject){
+        console.log("ERROR!! "+jid)
+        waContacts.onMediaTransferError(jid,message_id,mediaObject);
+    }
+
+    function onMediaTransferProgressUpdated(progress,jid,message_id){
+        console.log("UPDATED PROGRESS "+progress)
+
+         waContacts.onMediaTransferProgressUpdated(progress,jid,message_id);
+    }
 
 
 

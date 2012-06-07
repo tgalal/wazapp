@@ -38,15 +38,18 @@ Page {
 	property bool pageIsActive: false
 	property bool showSendButton
     property string user_id;
+    property bool isGroup:user_id.split('-').length > 1
     property string user_name;
     property string user_picture;
     property string prev_state:"chats"
+    property bool typingEnabled:false
     property bool iamtyping:false
     property string pageIdentifier:"conversation_page" //used in notification hiding process
 
 
     Component.onCompleted:{
         console.log("opened chat window");
+
         //requestPresence(user_id);
     }
 
@@ -119,6 +122,38 @@ Page {
         }
 
         return -1;
+    }
+
+    function mediaTransferProgressUpdated(progress,message_id){
+        var bubble = getBubble(message_id);
+        if(bubble){
+            console.log("FOUND BUBBLE TO PUSH PROGRESS")
+            bubble.progress = progress
+            console.log("PUSHED!")
+        }
+    }
+
+    function mediaTransferSuccess(message_id,mediaObject){
+        console.log("transfer success in convo")
+        var bubble = getBubble(message_id);
+        if(bubble){
+            console.log("FOUND BUBBLE TO PUSH PROGRESS")
+            bubble.media = mediaObject
+            bubble.progress =0
+            console.log("Media Bubble Updated")
+        }
+    }
+
+    function mediaTransferError(message_id,mediaObject){
+        var bubble = getBubble(message_id);
+        if(bubble){
+            console.log("FOUND BUBBLE TO PUSH PROGRESS")
+            bubble.media = mediaObject
+            bubble.progress = 1;
+            bubble.progress--;//to trigger fail->fail state change
+            console.log(mediaObject.transfer_status)
+            console.log("Media bubble updated to error")
+        }
     }
 
     function messageSent(msg_id){
@@ -201,11 +236,10 @@ Page {
 
 			}
 
-					
+
 	        Label {
 	            id: username
-	            text: user_name.indexOf("-")>0 ? "Group (" + 
-						getAuthor( user_name.split('-')[0] + "@s.whatsapp.net" ) + ")" : user_name
+                text: user_name
 				width: parent.width - 62
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
@@ -217,7 +251,7 @@ Page {
 		        id:ustatus
 		        height:30
 		        itemwidth: parent.width -62
-				anchors.top: username.bottom
+                anchors.top: username.bottom
 		    }
             RoundedImage {
                 id:userimage
@@ -249,34 +283,40 @@ Page {
         id: conv_data
     }
 
-	function getAuthor(inputText) {
-		var resp;
-		resp = inputText.split('@')[0];
-		for(var i =0; i<contactsModel.count; i++)
-		{
+    function getAuthor(inputText) {
+        var resp;
+        resp = inputText.split('@')[0];
+        for(var i =0; i<contactsModel.count; i++)
+        {
             var item = contactsModel.get(i).jid;
-		    if(item == inputText)
-		        resp = contactsModel.get(i).name;
-		}
-		return resp;
-	}
+            if(item == inputText)
+                resp = contactsModel.get(i).name;
+        }
+        return resp;
+    }
 
     Component{
         id:myDelegate
 
-		SpeechBubble{
-			message: Helpers.emojify(Helpers.linkify(model.message));
-			date:model.timestamp
+        BubbleDelegate{
+            mediatype_id: model.mediatype_id
+            message: model.message
+            media:model.media
+            date:model.timestamp
 			from_me:model.type==1
+            progress:model.progress
 			//picture: user_picture
-			name: conversation_view.getAuthor(model.author)
+            name: conversation_view.getAuthor(model.author.jid)
+            author:model.author
 			state_status:model.status
+            isGroup: conversation_view.isGroup
 			onOptionsRequested: {
 				console.log("options requested")
 				copy_facilitator.text = model.message;
 				bubbleMenu.open();
 			}
-		}
+
+        }
     }
 
 	Timer {
@@ -350,7 +390,7 @@ Page {
 				id:conv_items
 				spacing: 6
 				width:parent.width
-				delegate: myDelegate
+                delegate: myDelegate
 				model: conv_data
 				interactive: false
 				height: pageIsActive ? getListSize() : 0
@@ -415,6 +455,15 @@ Page {
 					
 
 				    onTextChanged: {
+
+                        if(!typingEnabled)
+                        {
+                            //to prevent initial set of placeHolderText from firing textChanged signal
+                            typingEnabled = true
+                            return
+                        }
+
+
 						if(!iamtyping)
 				        {
 				            console.log("TYPING");

@@ -21,9 +21,10 @@ import sqlite3
 import os
 import shutil
 from Models.contact import Contact;
-from Models.message import Message, GroupMessage;
+from Models.message import Message, Groupmessage;
 from Models.conversation import *
 from Models.mediatype import Mediatype
+from Models.media import Media
 
 
 class LiteStore(DataStore):
@@ -76,11 +77,21 @@ class LiteStore(DataStore):
 		self.Groupconversation = Groupconversation();
 		self.Groupconversation.setStore(self);
 		
+		
+		self.Media = Media()
+		self.Media.setStore(self)
+		
 		self.Message = Message();
 		self.Message.setStore(self);
 		
-		self.Groupmessage = GroupMessage();
+		self.Groupmessage = Groupmessage();
 		self.Groupmessage.setStore(self);
+		
+		
+		
+		
+		#self.Groupmedia = Groupmedia()
+		#self.Groupmedia.setStore(self)
 		
 	def get_db_path(self,user_id):
 		return LiteStore.db_dir+"/"+self.db_name;
@@ -143,7 +154,7 @@ class LiteStore(DataStore):
 			#UPDATE SQLITE_MASTER SET SQL = 'CREATE TABLE BOOKS ( title TEXT NOT NULL, publication_date TEXT)' WHERE NAME = 'BOOKS';
 			#q = "PRAGMA writable_schema = 0";
 		
-		print "Checking addition of mediatype_id to messages"
+		print "Checking addition of media_id to messages"
 		
 		q = "PRAGMA table_info(messages)"
 		c = self.conn.cursor()
@@ -151,22 +162,20 @@ class LiteStore(DataStore):
 		
 		found = False
 		for item in c.fetchall():
-			if item[1] == "mediatype_id":
+			if item[1] == "media_id":
 				found = True
 				break
 		
 		if not found:
 			print "Not found, altering table"
-			c.execute("Alter TABLE messages add column 'mediatype_id' INTEGER NOT NULL DEFAULT 1")
-		
-		
+			c.execute("Alter TABLE messages add column 'media_id' INTEGER")
 		
 
 	def prepareBase(self):
 		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR)'
 		
 		
-		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0,"mediatype_id" INTEGER NOT NULL DEFAULT 1)'
+		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0,"media_id" INTEGER)'
 		
 		conversations_q = 'CREATE TABLE "main"."conversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"contact_id" INTEGER NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
@@ -177,7 +186,7 @@ class LiteStore(DataStore):
 
 	def prepareGroupConversations(self):
 		
-		groupmessages_q = 'CREATE TABLE IF NOT EXISTS "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL, "groupconversation_id" INTEGER NOT NULL,"timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"mediatype_id" INTEGER NOT NULL DEFAULT 1, "type" INTEGER NOT NULL DEFAULT 0)'
+		groupmessages_q = 'CREATE TABLE IF NOT EXISTS "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL, "groupconversation_id" INTEGER NOT NULL,"timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"media_id" INTEGER, "type" INTEGER NOT NULL DEFAULT 0)'
 		
 		groupconversations_q = 'CREATE TABLE IF NOT EXISTS "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,groupconversations_contacts_id INTEGER,"picture" VARCHAR,"subject" VARCHAR, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
@@ -205,6 +214,15 @@ class LiteStore(DataStore):
 			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (4,'voice',0)")
 			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (5,'location',0)")
 			
+			
+			
+			q = 'CREATE TABLE IF NOT EXISTS "main"."media" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "mediatype_id" INTEGER NOT NULL, "preview" VARCHAR,"remote_url" VARCHAR, "local_path" VARCHAR, transfer_status INTEGER NOT NULL DEFAULT 0)'
+			
+			c.execute(q)
+			
+			qgroup = 'CREATE TABLE IF NOT EXISTS "main"."groupmedia" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "mediatype_id" INTEGER NOT NULL,"preview" VARCHAR, "remote_url" VARCHAR, "local_path" VARCHAR, groupmessage_id INTEGER NOT NULL,transfer_status INTEGER NOT NULL DEFAULT 0)'
+			
+			#c.execute(qgroup)
 			
 			self.conn.commit()
 		

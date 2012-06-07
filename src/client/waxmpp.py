@@ -35,6 +35,7 @@ from PySide import QtCore
 from PySide.QtCore import QThread, QTimer
 from PySide.QtGui import QApplication
 from waupdater import WAUpdater
+from wamediahandler import WAMediaHandler
 import thread
 
 class WAEventHandler(WAEventBase):
@@ -56,6 +57,10 @@ class WAEventHandler(WAEventBase):
 	lastSeenUpdated = QtCore.Signal(str,int);
 	updateAvailable = QtCore.Signal(dict);
 	
+	##############Media#####################
+	mediaTransferSuccess = QtCore.Signal(str,int,dict)
+	mediaTransferError = QtCore.Signal(str,int,dict)
+	mediaTransferProgressUpdated = QtCore.Signal(int,str,int)
 	#########################################
 	
 	sendTyping = QtCore.Signal(str);
@@ -82,7 +87,7 @@ class WAEventHandler(WAEventBase):
 		#self.connMonitor.sleeping.connect(self.networkUnavailable);
 		#self.connMonitor.checked.connect(self.checkConnection);
 		
-		
+		self.mediaHandlers = []
 		self.sendTyping.connect(self.conn.sendTyping);
 		self.sendPaused.connect(self.conn.sendPaused);
 		self.getLastOnline.connect(self.conn.getLastOnline);
@@ -115,6 +120,7 @@ class WAEventHandler(WAEventBase):
 			self.connMonitor.connected.emit()
 		else:
 			self.connMonitor.createSession();
+	
 		
 	
 	def onFocus(self):
@@ -144,7 +150,78 @@ class WAEventHandler(WAEventBase):
 		
 		if seconds is not None:
 			self.lastSeenUpdated.emit(jid,int(seconds));
+	
+	
+	def fetchMedia(self,mediaId):
 		
+		mediaMessage = WAXMPP.message_store.store.Message.create()
+		message = mediaMessage.findFirst({"media_id":mediaId})
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+		
+		mediaHandler = WAMediaHandler(jid,message.id,media.remote_url,media.mediatype_id)
+		
+		mediaHandler.success.connect(self._mediaTransferSuccess)
+		mediaHandler.error.connect(self._mediaTransferError)
+		mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+		
+		mediaHandler.pull();
+		
+		self.mediaHandlers.append(mediaHandler);
+		
+	def fetchGroupMedia(self,mediaId):
+		
+		mediaMessage = WAXMPP.message_store.store.Groupmessage.create()
+		message = mediaMessage.findFirst({"media_id":mediaId})
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+		
+		mediaHandler = WAMediaHandler(jid,message.id,media.remote_url,media.mediatype_id)
+		
+		mediaHandler.success.connect(self._mediaTransferSuccess)
+		mediaHandler.error.connect(self._mediaTransferError)
+		mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+		
+		mediaHandler.pull();
+		
+		self.mediaHandlers.append(mediaHandler);
+	
+	
+	def _mediaTransferSuccess(self, jid, messageId,savePath):
+		try:
+			jid.index('-')
+			message = WAXMPP.message_store.store.Groupmessage.create()
+		
+		except ValueError:
+			message = WAXMPP.message_store.store.Message.create()
+		
+		message = message.findFirst({'id':messageId});
+		
+		if(message.id):
+			media = message.getMedia()
+			media.preview = savePath if media.mediatype_id == WAConstants.MEDIA_TYPE_IMAGE else None
+			media.local_path = savePath
+			media.transfer_status = 2
+			media.save()
+			print media.getModelData();
+			self.mediaTransferSuccess.emit(jid,messageId, media.getModelData())
+		
+		
+	def _mediaTransferError(self, jid, messageId):
+		try:
+			jid.index('-')
+			message = WAXMPP.message_store.store.Groupmessage.create()
+		
+		except ValueError:
+			message = WAXMPP.message_store.store.Message.create()
+		
+		message = message.findFirst({'id':messageId});
+		
+		if(message.id):
+			media.transfer_status = 1
+			media.save()
+			self.mediaTransferError.emit(jid,messageId, media.getModelData())
+	
 	
 	def onDirty(self,categories):
 		print categories
@@ -576,14 +653,48 @@ class StanzaReader(QThread):
 				
 				elif ProtocolTreeNode.tagEquals(childNode,"media") and msg_id is not None:
 					print "MULTIMEDIA MESSAGE!";
-					msgdata = messageNode.getChild("media").getAttributeValue("url");
+					url = messageNode.getChild("media").getAttributeValue("url");
+					filename = messageNode.getChild("media").getAttributeValue("file");
+					mediaType = messageNode.getChild("media").getAttributeValue("type")
+					msgdata = mediaType
 					
-					if msgdata is not None:
-						lastf = msgdata.rfind("/")
-						if not os.path.exists("/home/user/.cache/wazapp"):
-							os.makedirs("/home/user/.cache/wazapp")
-						urllib.urlretrieve(msgdata, "/home/user/.cache/wazapp"+msgdata[lastf:].replace(".png",".jpg") )
-						msgdata = "wazappmms:" + msgdata[lastf:].replace(".png",".jpg")
+					try:
+						index = fromAttribute.index('-')
+						#group conv
+						contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+						fmsg.contact_id = contact.id
+						fmsg.contact = contact
+					except ValueError: #single conv
+						pass
+					
+					if url is not None:
+						
+						preview = None
+						
+						mediaItem = WAXMPP.message_store.store.Media.create()
+						
+						if mediaType == "image":
+							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_IMAGE
+							msgdata = "Image"
+							preview = messageNode.getChild("media").data
+						elif mediaType == "audio":
+							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_AUDIO
+							msgdata = "Audio"
+						elif mediaType == "video":
+							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
+							msgdata = "Video"
+						else:
+							print "Unknown media type"
+							return
+						
+						mediaItem.setData({
+								"preview":preview,
+								"remote_url":url
+								})
+								
+						fmsg.Media = mediaItem
+							
+						
 					else:
 						mlatitude = messageNode.getChild("media").getAttributeValue("latitude")
 						mlongitude = messageNode.getChild("media").getAttributeValue("longitude")
@@ -600,7 +711,7 @@ class StanzaReader(QThread):
 								text_file.write(msgdata.replace("</vcard>",""))
 								text_file.close()
 								msgdata = "wazappmms:" + msgname + ".vcf"
-					print msgdata;
+					
 
 					
 					#if ProtocolTreeNode.tagEquals(childNode,"body"):   This suposses handle MEDIA + TEXT

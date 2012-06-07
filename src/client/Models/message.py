@@ -40,8 +40,21 @@ class MessageBase(Model):
 		self.STATUS_PENDING = Message.STATUS_PENDING
 		self.STATUS_SENT = Message.STATUS_SENT
 		self.STATUS_DELIVERED = Message.STATUS_DELIVERED
+		self.Media = None
+		self.media_id = None
 		
-		self.mediatype_id = Mediatype.TYPE_TEXT #Default
+		
+	
+	def getMedia(self):
+		if self.media_id is not None:
+			if self.Media.id is not None and self.Media.id != 0:
+				return self.Media
+			else:
+				media = self.store.Media.create()
+				self.Media = media.findFirst({"id":self.media_id})
+				return self.Media
+
+		return None;
 		
 		
 	def setConversation(self,conversation):
@@ -72,7 +85,8 @@ class Message(MessageBase):
 		
 		return conversation.Contact	
 			
-class GroupMessage(MessageBase):
+class Groupmessage(MessageBase):
+
 
 	def storeConnected(self):
 		self.Conversation = self.store.Groupconversation
@@ -86,6 +100,9 @@ class GroupMessage(MessageBase):
 	def setContact(self,contact):
 		self.contact_id = contact.id;
 		self.Contact = contact
+		
+	
+		
 	
 	def getConversation(self):
 		if not self.groupconversation_id:

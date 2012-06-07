@@ -89,7 +89,11 @@ class MessageStore(QObject):
 			msg['formattedDate'] = datetime.datetime.fromtimestamp(int(msg['timestamp'])/1000).strftime('%d-%m-%Y %H:%M')
 			msg['content'] = msg['content'].decode('utf-8');
 			msg['jid'] = jid
+			msg['contact'] = m.getContact().getModelData()
+			media = m.getMedia()
+			msg['media']= media.getModelData() if media is not None else None
 			tmp["data"].append(msg)
+			
 			
 			
 		self.messagesReady.emit(tmp);
@@ -230,7 +234,15 @@ class MessageStore(QObject):
 			message.key = self.generateKey(message).toString();
 		#check not duplicate
 		#if not self.store.Message.findFirst({"key",message.key}):
+		
+		if message.Media is not None and message.Media.mediatype_id:
+			#message.Media.setMessageId(message.id)
+			message.Media.save()
+		
+		message.media_id = message.Media.id
 		message.save();
+		
+		
 		
 		if self.conversations.has_key(jid):
 			self.conversations[jid].messages.append(message)

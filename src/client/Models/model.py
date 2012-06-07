@@ -20,10 +20,10 @@ import sqlite3
 import copy
 import time
 
-class Model():
+class Model(object):
 
 	def setConnection(self,connection):
-		self.table = self.whoami().lower()+"s";
+		self.table = self.getTableName();
 		self.conn = connection
 		try:
 			self.cursor  = connection.cursor()
@@ -70,7 +70,14 @@ class Model():
 			
 	
 			
-			
+	def getTableName(self):
+		table = self.whoami().lower()
+		if table[-2:] == "ia":
+			return table
+		else:
+			return table + "s"
+		
+		
 		
 	def storeConnected(self):
 		''''''
@@ -166,8 +173,8 @@ class Model():
 		
 		q = "INSERT INTO %s %s VALUES %s" %(self.table,fields,wq);
 		c = self.conn.cursor();
-		print q
-		print values
+		#print q
+		#print values
 		c.execute(q,values);
 		self.conn.commit();
 		
@@ -352,7 +359,7 @@ class Model():
 		return self.__class__.__name__
 	
 	def runQuery(self,query,whereValues = []):
-		print query;
+		#print query;
 		c = self.conn.cursor();
 		
 		if len(whereValues):

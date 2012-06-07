@@ -93,6 +93,26 @@ Page {
           if(chatWindow)chatWindow.conversation.messageDelivered(message_id);
     }
 
+      function onMediaTransferProgressUpdated(progress,jid,message_id){
+          var chatWindow = getChatWindow(jid);
+
+          if(chatWindow)chatWindow.conversation.mediaTransferProgressUpdated(progress,message_id);
+      }
+
+      function onMediaTransferSuccess(jid,message_id,mediaObject){
+          var chatWindow = getChatWindow(jid);
+          console.log("Caught transfer success in contacts")
+          if(chatWindow)chatWindow.conversation.mediaTransferSuccess(message_id,mediaObject);
+      }
+
+      function onMediaTransferError(jid,message_id,mediaObject){
+          var chatWindow = getChatWindow(jid);
+
+          if(chatWindow)chatWindow.conversation.mediaTransferError(message_id,mediaObject);
+
+
+      }
+
       function clearConversations(){
         ContactsManager.chats = new Array();
       }

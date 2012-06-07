@@ -224,6 +224,11 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.unavailable.connect(self.rootObject().onUnavailable);
 		whatsapp.eventHandler.lastSeenUpdated.connect(self.rootObject().onLastSeenUpdated);
 		whatsapp.eventHandler.updateAvailable.connect(self.rootObject().onUpdateAvailable)
+		
+		whatsapp.eventHandler.mediaTransferSuccess.connect(self.rootObject().onMediaTransferSuccess);
+		whatsapp.eventHandler.mediaTransferError.connect(self.rootObject().onMediaTransferError);
+		whatsapp.eventHandler.mediaTransferProgressUpdated.connect(self.rootObject().onMediaTransferProgressUpdated)
+		
 		whatsapp.eventHandler.doQuit.connect(self.preQuit);
 		
 		whatsapp.eventHandler.notifier.ui = self
@@ -236,6 +241,8 @@ class WAUI(QDeclarativeView):
 		self.rootObject().conversationActive.connect(whatsapp.eventHandler.getLastOnline);
 		self.rootObject().conversationActive.connect(whatsapp.eventHandler.conversationOpened);
 		self.rootObject().quit.connect(whatsapp.eventHandler.quit)
+		self.rootObject().fetchMedia.connect(whatsapp.eventHandler.fetchMedia)
+		self.rootObject().fetchGroupMedia.connect(whatsapp.eventHandler.fetchGroupMedia)
 		
 		#self.reg = Registration();
 		self.whatsapp = whatsapp;

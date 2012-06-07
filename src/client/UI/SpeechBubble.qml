@@ -1,29 +1,89 @@
+
+/***************************************************************************
+**
+** Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
+**
+** This file is part of Wazapp, an IM application for Meego Harmattan
+** platform that allows communication with Whatsapp users.
+**
+** Wazapp is free software: you can redistribute it and/or modify it under
+** the terms of the GNU General Public License as published by the
+** Free Software Foundation, either version 2 of the License, or
+** (at your option) any later version.
+**
+** Wazapp is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+** See the GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with Wazapp. If not, see http://www.gnu.org/licenses/.
+**
+****************************************************************************/
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 1.1
 import com.nokia.meego 1.0
-import "Global.js" as Helpers
 
-Rectangle {
-
+BorderImage {
     id: bubble
 
+
+//	Component.onCompleted: console.log(message)
+
+
+  //  property int mediatype_id;
+
     property string picture;
-    property string message;
+
     property bool from_me;
     property string date;
     property string name;
     property int msg_id;
     property string state_status;
+    property variant media;
+
+    property alias bubbleContent:bubbleContent.children
+
+    property int inboundBubbleColor: 1 // 1 is blue and 2 is darkblue 3 is orange 4 is brown 5 is pink 6 is purple 7 is green 8 is darkgreen
+    property int outboundBubbleColor: 1
+
+
+    QtObject {
+        id: d
+        property int inboundBubbleNumber: parseInt( (bubble.inboundBubbleColor / 2) + 0.5 )
+        property int outboundBubbleNumber: parseInt( (bubble.outboundBubbleColor /2) + 0.5 )
+        property string inboundBubbleState: bubbleMouseArea.pressed ? "pressed" : "normal"
+        property string outboundBubbleState: bubbleMouseArea.pressed ? "pressed" : "normal"
+    }
+
 
 
     state: state_status;
 
     signal optionsRequested();
 
-    width: parent.width
-    height:msg_text.height+msg_date.height+margin1.height+margin2.height+
-			margincenter.height+(sender_name.text!=""?sender_name.height:0);
-    color: "transparent" //from_me? "gray" : "red"
+    width: Math.max(bubbleContent.width+10,dataRow.width+20)
+     //bubble.mediatype_id == 1 ? calcBubbleWidth() : (bubble.mediatype_id == 2 ? dataRow.width+22 : dataRow.width+22)
+    height: from_me ? content.height+12 : content.height
+
+
+
+    TextFieldStyle {
+        id: textFieldStyle
+    }
+
+
+
+    border {
+        left: 22
+        right: 22
+        bottom: 22
+        top: 22
+    }
+
+    source: from_me ?
+            "image://theme/meegotouch-messaging-conversation-bubble-outgoing" + d.outboundBubbleNumber + "-" + d.outboundBubbleState :
+                "image://theme/meegotouch-messaging-conversation-bubble-incoming" + d.inboundBubbleNumber + "-" + d.inboundBubbleState
 
     states: [
         State {
@@ -49,162 +109,62 @@ Rectangle {
         }
     ]
 
-    Rectangle
-    {
-        id:realBubble
-        radius: 5
-        width: parent.width
-        height: parent.height
-        color: "transparent" //appWindow.stealth?"transparent":(from_me?"#cfd2d4":"#42b6f2");
-
-		function sizefy() {
-			var result = Math.max(msg_text.paintedWidth, msg_date.paintedWidth+(from_me?40:0)) + 30
-			return result+20;
-		}
-
-        anchors.right: from_me?this.right:parent.right
-        anchors.left: from_me?parent.left:this.left
-        anchors.rightMargin: 10
-        anchors.leftMargin: from_me? 10 : parent.width-sizefy()-10
-		
-		BorderImage {
-			anchors.top: parent.top
-			anchors.topMargin: from_me ? 8 : 0
-			anchors.left: parent.left
-			anchors.leftMargin: from_me ? 0 : parent.width - width
-			width: Math.max(msg_text.paintedWidth, msg_date.paintedWidth+(from_me?24:0)) +30 + (mmsimage.size>0 ? mmsimage.size+5:0)
-			height: parent.height + (from_me ? 2 : 0)
-
-			source: from_me ? "image://theme/meegotouch-messaging-conversation-bubble-outgoing1-" + (mArea.pressed? "pressed" : "normal") :
-					"image://theme/meegotouch-messaging-conversation-bubble-incoming" + parseInt(bubbleColor) + "-" + (mArea.pressed? "pressed" : "normal")
-
-			border { left: 22; right: 22; bottom: 22; top: 22; }
-
-			opacity:theme.inverted?0.8:1
-
-			MouseArea{
-				id: mArea
-				anchors.fill: parent
-				/*onClicked: {
-				    console.log("CLICKED!!!");
-				     optionsRequested();
-				}*/
-
-				onClicked: {
-					if (message.indexOf("wazapplocation:")===0)
-						Qt.openUrlExternally(message.replace("wazapplocation:", "geo:"))
-					else if (message.indexOf("wazappmms:")===0)
-						Qt.openUrlExternally(message.replace("wazappmms:", "file:///home/user/.cache/wazapp/"))
-				}
-
-				onPressAndHold:{
-				    console.log("pressed and held!")
-				    optionsRequested();
-				}
-			}
-
-		}
-
-
-        Image {
-            id: status
-            visible: from_me
-            anchors.left: parent.left
-            anchors.leftMargin: msg_date.paintedWidth + 24 +(mmsimage.width>0? mmsimage.width:0)
-            anchors.bottom:parent.bottom
-            anchors.bottomMargin: 12
-			height: 16; width: 16
-			smooth: true
-        }
-
-		
-		RoundedImage {
-			id: mmsimage
-			width: istate=="Loaded!" ? 66 : 0 
-			size: istate=="Loaded!" ? 60 : 0
-			x: from_me ? 12 : parent.width - 72
-			y: from_me ? 14 : 16
-			visible: message.indexOf("wazappmms:")===0 || message.indexOf("wazapplocation:")===0
-			imgsource: conversation_view.status==PageStatus.Inactive ? "" :
-						message.indexOf("wazapplocation:")===0 ? "pics/content-location.png" :
-						message.replace("wazappmms:", "file:///home/user/.cache/wazapp/")
-			//onClicked: Qt.openUrlExternally(imgsource);
-			
-		}
-
-        Column{
-            id:content
-            x: from_me ? 0+mmsimage.width : 0
-            height:parent.height
-            width:parent.width-mmsimage.width
-
-			Rectangle {
-                id: margin1; height: from_me? 14 : 16
-				width: parent.width; color: "transparent"
-			}
-
-            Label{
-                id:sender_name
-                width:parent.width -30
-                color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
-                text: name
-                font.pixelSize: 20
-                font.bold: true
-                anchors.left: parent.left
-                anchors.leftMargin: 15
-				horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
-				visible: name!=""
-            }
-
-            Label{
-                id:msg_text
-                text: message.indexOf("wazappmms:")===0 ? message.substr(-4)==".vcf" ? message.replace("wazappmms:","") : 
-						qsTr("Multimedia message") : message.indexOf("wazapplocation:")===0 ? qsTr("My location") : message
-                color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
-                width: parent.width -100 -mmsimage.size
-                wrapMode: "WrapAtWordBoundaryOrAnywhere"
-                anchors.left: parent.left
-				anchors.leftMargin: from_me ? 15 : 85 + (mmsimage.width>0? mmsimage.width-6:0)
-				font.family: "Nokia Pure Light"
-                font.weight: Font.Light
-                font.pixelSize: 24
-				horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
-                onLinkActivated: Qt.openUrlExternally(link);
-            }
-
-            Label{
-                id:colorPicker
-                visible:false
-            }
-
-            Rectangle {
-                id: margincenter; height: 4
-                width: parent.width; color: "transparent"
-            }
-
-            Label{
-                id:msg_date
-                color:appWindow.stealth?colorPicker.color:(from_me?"black":"white")
-                text: date.replace(" ", " | ")
-                anchors.left: parent.left
-				anchors.leftMargin: 15
-				width: parent.width-30
-                font.pixelSize: 16
-                font.weight: Font.Light
-				horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
-				opacity: from_me && !theme.inverted? 0.5 : 0.7
-            }
-
-			Rectangle {
-                id: margin2; height: 8
-				width: parent.width; color: "transparent"
-			}
-
+    MouseArea{
+        id: bubbleMouseArea
+        anchors.fill: parent
+        onClicked: {
+            console.log("CLICKED!!!");
 
         }
 
+        onPressAndHold:{
+            console.log("pressed and held!")
+            optionsRequested();
+        }
     }
 
+    Column{
+        id:content
+        spacing: 4
+        width: bubble.width-20
+        anchors.horizontalCenter: bubble.horizontalCenter
 
+        Item {
+            id: margin1;
+            height: from_me? 10 : 18
+            width: parent.width;
+        }
+
+
+
+        Item{
+            id:bubbleContent
+            width:bubbleContent.children[0].width
+            height:bubbleContent.children[0].height
+        }
+
+
+
+    Row {
+        id: dataRow
+        spacing: 10
+        x: from_me? 0 : bubble.width-msg_date.width-20
+            Label{
+                    id:msg_date
+                    color: from_me?"black":"white"
+                    text: date
+                    font.pixelSize: 18
+                    font.family: textFieldStyle.textFont
+                    horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
+                    opacity: 0.7
+            }
+        Image {
+                id: status
+                visible: from_me
+            width: sourceSize.width  //from_me ? sourceSize.width : 0
+            y: msg_date.y+3
+        }
+    }
+    }
 }
 

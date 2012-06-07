@@ -209,7 +209,7 @@ class WALogin(QThread):
 	
 	def readSuccess(self):
 		node = self.inn.nextTree();
-		Utilities.debug("Login Status: "+node.tag);
+		Utilities.debug("Login Status: %s"%(node.tag));
 		
 		
 		
@@ -228,7 +228,7 @@ class WALogin(QThread):
 			
 	
 		kind = node.getAttributeValue("kind");
-		Utilities.debug("Account type: "+kind)
+		Utilities.debug("Account type: %s"%(kind))
 		
 		if kind == "paid":
 			self.connection.account_kind = 1;
@@ -238,7 +238,7 @@ class WALogin(QThread):
 			self.connection.account_kind = -1;
 			
 		status = node.getAttributeValue("status");
-		Utilities.debug("Account status: "+status);
+		Utilities.debug("Account status: %s"%(status));
 		
 		if status == "expired":
 			self.loginFailed.emit()

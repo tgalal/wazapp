@@ -21,6 +21,7 @@
 ****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "Global.js" as Helpers
 
 Rectangle {
     id:container
@@ -28,7 +29,6 @@ Rectangle {
     property string lastSeenOn;
     property string prevState;
     property int itemwidth
-    property alias horizontalAlignment: userstatus.horizontalAlignment
 
     state: "default"
     color:"transparent"
@@ -38,28 +38,23 @@ Rectangle {
         container.state="online"
     }
 
-    function setOffline(secondsAgo){
 
+    function setOffline(secondsAgo) {
 
         var d = new Date();
 
         if(secondsAgo){
             d.setSeconds(Qt.formatDateTime ( d, "ss" )-secondsAgo)
 
-
-            if(container.state != "online" && container.state!="typing"){
-                 lastSeenOn = Qt.formatDateTime(d,"hh:mm ap dd.MM.yyyy");
+            if(container.state != "online" && container.state!="typing") {
+                 lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:MM");
                  container.state="offline"
             }
         }
         else{
-             lastSeenOn = Qt.formatDateTime(d,"hh:mm ap dd.MM.yyyy");
+             lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:MM");
              container.state="offline"
         }
-
-       // d = secondsAgo?d.addSecs(-secondsAgo):d
-
-
     }
 
     function setTyping(){
@@ -76,6 +71,7 @@ Rectangle {
 
     Label{
         id:userstatus
+        horizontalAlignment: Text.AlignRight
 		font.pixelSize: 18
 		width: itemwidth
 		opacity: 0.7
@@ -87,7 +83,7 @@ Rectangle {
 
             PropertyChanges {
                 target: userstatus
-                text: "Online"
+                text: qsTr("Online")
             }
         },
 
@@ -104,15 +100,15 @@ Rectangle {
             name:"offline"
             PropertyChanges {
                 target: userstatus
-                text: "Last seen on "+lastSeenOn
-
+                text: qsTr("Last seen:") + " " + 
+						Helpers.getDateText(lastSeenOn).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
             }
         },
         State{
             name:"typing"
             PropertyChanges{
                 target: userstatus
-                text:"Typing"
+                text: qsTr("Typing...")
             }
         }
 

@@ -22,7 +22,7 @@ import sys
 from PySide.QtGui import QApplication
 import PySide
 from wamanager import WAManager
-
+from PySide import QtCore
 
 #from waxmpp import WAXMPP
 #from utilities import Utilities
@@ -32,8 +32,14 @@ from wamanager import WAManager
 if __name__ == "__main__":
 
 	
+	lang_name = unicode(QtCore.QLocale.system().name())
+	print lang_name
+	translator = QtCore.QTranslator()
+	translator.load("/opt/waxmppplugin/bin/wazapp/i18n/tr_" + lang_name[:2] + ".qm")
 	app = QApplication(sys.argv)
+	app.installTranslator(translator)
 	#PySide.QtGui.QErrorMessage.qtHandler().show()
 	wam = WAManager(app)
+
 	
 	sys.exit(app.exec_())

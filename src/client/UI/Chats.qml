@@ -33,6 +33,9 @@ Page {
     id: chatsContainer
     property alias indicator_state:wa_notifier.state
 
+	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
     //width: parent.width
     //anchors.fill: parent
     //color: "#e6e6e6"
@@ -168,13 +171,13 @@ Page {
         Chat{
             property variant contactInfo:ContactsScript.getContactData(model.jid)
             picture: contactInfo.picture;
-            name: contactInfo.name.indexOf("-")>0 ? "Group (" +
-					getAuthor( contactInfo.name.split('-')[0] + "@s.whatsapp.net" ) +
-					")" : contactInfo.name
-            number:model.jid;
-            lastMsg:Helpers.emojify(Helpers.linkify(model.content));
+            name: contactInfo.name.indexOf("-")>0 ? 
+					qsTr("Group (%1)").arg(getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net")) : contactInfo.name
+			isGroup: contactInfo.name.indexOf("-")>0
+			number:model.jid;
+            lastMsg: model.content=="Multimedia message" ? qsTr("Multimedia message") : Helpers.emojify(Helpers.linkify(model.content))
             time:model.timestamp
-            formattedDate:model.formattedDate
+            formattedDate: Helpers.getDateText(model.formattedDate).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
             onClicked: chatsContainer.clicked(model.jid,"chats")
             width:chatsContainer.width
             msgId: model.id
@@ -243,10 +246,10 @@ Page {
     QueryDialog {
         id: chatDelConfirm
         property string cid_confirm;
-        titleText: qsTrId("Confirm Delete")
-        message: "Are you sure you want to delete this conversation and all its messages?"
-        acceptButtonText: qsTrId("Yes")
-        rejectButtonText: qsTrId("No")
+        titleText: qsTr("Confirm Delete")
+        message: qsTr("Are you sure you want to delete this conversation and all its messages?")
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
         onAccepted: {
                 deleteConversation(cid_confirm)
                 removeChatItem(cid_confirm)

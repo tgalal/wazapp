@@ -23,7 +23,11 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 
 Page{
-    property string operation: "Loading"
+
+	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
+    property string operation: qsTr("Loading")
     property alias buttonOneText: buttonOne.text
     property alias buttonTwoText: buttonTwo.text
 
@@ -88,7 +92,7 @@ Page{
 
         Label{
             id:timout_text
-            text:"Taking too long?"
+            text: qsTr("Taking too long?")
             width:parent.width
             horizontalAlignment: Text.AlignHCenter
             visible: false

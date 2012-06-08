@@ -16,10 +16,12 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
+import os
+from PySide.QtGui import *
 from utilities import Utilities
 from warequest import WARequest
 from xml.dom import minidom
-from PySide.QtCore import QObject
+from PySide.QtCore import *
 from PySide import QtCore;
 from QtMobility.Contacts import *
 from litestore import LiteStore as DataStore
@@ -142,9 +144,26 @@ class WAContacts(QObject):
 		tmp = []
 		self.contacts = {};
 		
+		if not os.path.exists("/home/user/.cache/wazapp/contacts"):
+			os.makedirs("/home/user/.cache/wazapp/contacts")
+
 		for wc in contacts:
 			for c in phoneContacts:
 				if wc.number == c['number']:
+
+					user_img = QImage(QUrl(c['picture']).toString().replace("file://",""))
+					mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/pics/usermask.png")
+					preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
+					PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
+					Mask = QPixmap.fromImage(mask_img);
+					Painter = QPainter(PixmapToBeMasked);
+					Painter.drawPixmap(0, 0, 96, 96, preimg);
+					Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
+					Painter.drawPixmap(0, 0, 96, 96, Mask);
+					Painter.end()
+					PixmapToBeMasked.save("/home/user/.cache/wazapp/contacts/" + c['name'] + ".png", "PNG")
+					c['picture'] = "/home/user/.cache/wazapp/contacts/" + c['name'] + ".png";
+
 					wc.setRealTimeData(c['name'],c['picture']);
 					if wc.status is not None:
 						wc.status = wc.status.decode('utf-8');

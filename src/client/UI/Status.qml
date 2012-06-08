@@ -40,19 +40,19 @@ Rectangle {
         },
 
         State {
-        name: "offline"
-        PropertyChanges {
-        target: indicator
-        color:"red"
-     }
-    },
+	        name: "offline"
+	        PropertyChanges {
+ 		       target: indicator
+ 		       color:"red"
+ 		    }
+    	},
 
         State {
-        name: ""
-        PropertyChanges {
-        target: indicator
-        color:"gray"
-     }
-    }
+ 	       name: ""
+			PropertyChanges {
+				target: indicator
+				color:"gray"
+			}
+    	}
     ]
 }

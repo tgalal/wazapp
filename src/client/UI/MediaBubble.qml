@@ -14,6 +14,8 @@ SpeechBubble {
 
     property string transferState;
 
+	property bool loaded: false
+
     signal downloadClicked()
     signal uploadClicked()
 
@@ -26,184 +28,172 @@ SpeechBubble {
 
     Component.onCompleted: {
         var thumb = ""
-
+		loaded = true
         if(!media.preview){
             switch(media.mediatype_id){
-                case 2:thumb = "pics/content-video.png"; break;
+                case 2:thumb = "pics/content-image.png"; break;
                 case 3:thumb = "pics/content-audio.png";break;
-                case 4:thumb = "pics/content-location.png";break;
+                case 4:thumb = "pics/content-video.png";break;
             }
         }
         else if(media.mediatype_id == 2){
             thumb = media.transfer_status == 2?media.preview:("data:image/jpg;base64," + media.preview)
         }
 
-        msg_image.imgsource = thumb
+        msg_image = thumb
     }
 
 
 //download,open,retry
 
+	childrenWidth: realContainer.width
 
-    bubbleContent:Rectangle{
+    bubbleContent: Rectangle {
 
-            id:realContainer
-            width:300
-            height:80
-            color:"transparent"
-           // height:parent.height
-            state:(mediaBubble.progress > 0 && mediaBubble.progress < 100)?"inprogress": mediaBubble.transferState
+        id:realContainer
+        width: state=="success" ? openButton.paintedWidth : 180
+        height: state=="success" ? 32 : 60
+        color:"transparent"
+		anchors.left: parent.left
+		anchors.leftMargin: (appWindow.inPortrait?480:854) -(openButton.visible?openButton.paintedWidth:180) - 86
+       // height:parent.height
+        state:(mediaBubble.progress > 0 && mediaBubble.progress < 100)?"inprogress": mediaBubble.transferState
+		
+        states: [
 
-            states: [
-
-                State {
-                    name: "init"
-                    PropertyChanges {
-                        target: progressBar
-                        visible:true
-                    }
-
-                    PropertyChanges {
-                        target: operationButton
-                        visible:!delegateContainer.from_me
-                        enabled:true
-                        text:delegateContainer.from_me?"Send":"Download"
-                    }
-                },
-
-
-                State {
-                    name: "success"
-                    PropertyChanges {
-                        target: progressBar
-                        visible:false
-                    }
-
-                    PropertyChanges {
-                        target: openButton
-                        visible:true
-                    }
-
-                    PropertyChanges {
-                        target: operationButton
-                        visible:false
-                    }
-
-                    PropertyChanges {
-                        target: realContainer
-                        height:69
-                    }
-
-
-
-                },
-
-                State {
-                    name: "inprogress"
-
-                    PropertyChanges {
-                        target: progressBar
-                        visible:true
-                    }
-
-                    PropertyChanges{
-                        target: operationButton
-                        enabled:false
-                        visible:true
-                        text:delegateContainer.from_me?"Sending":"Downloading"
-                    }
-
-
-                },
-
-                State {
-                    name: "failed"
-                    PropertyChanges {
-                        target: progressBar
-                        visible:false
-                    }
-                    PropertyChanges {
-                        target: operationButton
-                        visible:true
-                        enabled:true
-                        text:"Retry"
-                    }
+            State {
+                name: "init"
+                PropertyChanges {
+                    target: progressBar
+                    visible:true
                 }
 
-            ]
+                PropertyChanges {
+                    target: operationButton
+                    visible:!delegateContainer.from_me
+                    enabled:true
+                    text:delegateContainer.from_me? qsTr("Send"):qsTr("Download")
+                }
+            },
 
-            RoundedImage {
-                    id: msg_image
-                    width: 75
-                    size: 69
-                    //imgsource: thumb;
-                    anchors.left: parent.left
+
+            State {
+                name: "success"
+                PropertyChanges {
+                    target: progressBar
+                    visible: false
                 }
 
-                Item{
-                    id:buttonsHolder
+                PropertyChanges {
+                    target: openButton
+                    visible:true
+                }
+
+                PropertyChanges {
+                    target: operationButton
+                    visible:false
+                }
+
+            },
+
+            State {
+                name: "inprogress"
+
+                PropertyChanges {
+                    target: progressBar
+                    visible:true
+                }
+
+                PropertyChanges{
+                    target: operationButton
+                    enabled:false
+                    visible:true
+                    text:delegateContainer.from_me? qsTr("Sending"):qsTr("Downloading")
+                }
 
 
-                    width:200
-                    height:openButton.height
-                    anchors.verticalCenter: msg_image.verticalCenter
-                    anchors.left: msg_image.right
-                    anchors.leftMargin: 3
+            },
 
-                    Button {
-                        id: openButton
-                        visible:false
+            State {
+                name: "failed"
+                PropertyChanges {
+                    target: progressBar
+                    visible:false
+                }
+                PropertyChanges {
+                    target: operationButton
+                    visible:true
+                    enabled:true
+                    text: qsTr("Retry")
+                }
+            }
 
-                        width: parent.width
-                        //height: parent.height
-                        font.pixelSize: 25
+        ]
 
-                        text: "Open"
-                        onClicked: {
-                            Qt.openUrlExternally("file:///"+media.local_path)
+        Item{
+            id:buttonsHolder
 
-                        }
-                    }
+            width: openButton.visible? openButton.paintedWidth : 180
+            height:openButton.height
+            anchors.verticalCenter: msg_image.verticalCenter
+            anchors.right: msg_image.left
+            anchors.rightMargin: 10
 
-                    Button {
-                        id: operationButton
-                        visible:false
+            Label {
+                id: openButton
+                visible: state=="success"
+                width: appWindow.inPortrait ? 480 : 854
+				font.family: "Nokia Pure Light"
+				font.weight: Font.Light
+				font.pixelSize: 23
+				color: from_me? "black" : "white"
+                text: qsTr("Multimedia message")
+				onVisibleChanged: {
+					//if (state!="success") return;
+					//fromMediaDownloaded = true
+					//listSizeNum = listSizeNum-28
+					//fromMediaDownloaded = false
+				}
+            }
 
-                        width: parent.width
-                       // height: parent.height
-                        font.pixelSize: 25
-                        text: "Download"
+            Button {
+                id: operationButton
+                visible:false
 
+                width: parent.width
+                height: 38
+                font.pixelSize: 20
+                text: qsTr("Download")
 
+                onClicked: {
+                     operationButton.enabled=false
+                    operationButton.text= qsTr("Initializing")
 
-                        onClicked: {
-                             operationButton.enabled=false
-                            operationButton.text="Initializing"
+                    if(delegateContainer.from_me)
+                        uploadClicked()
+                    else
+                        downloadClicked()
 
-                            if(delegateContainer.from_me)
-                                uploadClicked()
-                            else
-                                downloadClicked()
-
-
-                        }
-
-
-                    }
 
                 }
 
-                ProgressBar {
-                    id: progressBar
-                    minimumValue: 0
-                    maximumValue: 100
-                    value:progress
-                    width: parent.width-20
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top:msg_image.bottom
-                    anchors.topMargin: 5
 
-                }
+            }
+
+        }
+
+        ProgressBar {
+            id: progressBar
+            minimumValue: 0
+            maximumValue: 100
+            value:progress
+            width: parent.width-20
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top:buttonsHolder.bottom
+            anchors.topMargin: 10
+			visible: state!="success"
+
+        }
 
     }
 

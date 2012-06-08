@@ -23,15 +23,18 @@ class Contact(Model):
 		self.name = "";
 		self.picture = "none";
 		self.alphabet = "";
+		self.falphabet = "";
 	
 	def setRealTimeData(self,name,picture):
 		self.name = name;
 		self.picture = picture;
 		self.alphabet = name[0].upper();
+		self.falphabet = name[0].upper();
 		
 		self.modelData.append("name");
 		self.modelData.append("picture");
 		self.modelData.append("alphabet");
+		self.modelData.append("falphabet");
 		
 	
 	def getOrCreateContactByJid(self,jid):

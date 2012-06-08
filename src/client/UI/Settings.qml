@@ -27,6 +27,9 @@ Page {
 
 	signal syncClicked();
 
+	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
 	Component.onCompleted: {
         syncClicked.connect(onSyncClicked)
     }
@@ -42,7 +45,8 @@ Page {
         ToolButton
         {
 			anchors.horizontalCenter: parent.horizontalCenter
-            text: "Quit Wazapp"
+			width: 300
+            text: qsTr("Quit Wazapp")
             onClicked: appWindow.quitInit()
         }
 
@@ -64,13 +68,13 @@ Page {
     QueryDialog {
         property string phone_number;
         id:aboutDialog
-        anchors.fill: parent
+        //anchors.fill: parent
 		icon: "pics/wazapp80.png"
         titleText: "Wazapp"
-        message: "version " + waversion + "\n\n" + 
-                 "This is a " + waversiontype + " version.\n" + 
-				 "You are trying it at your own risk.\n" + 
-				 "Please report any bugs to \n" + "tarek@wazapp.im"
+        message: qsTr("version") + " " + waversion + "\n\n" + 
+                 qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
+				 qsTr("You are trying it at your own risk.") + "\n" + 
+				 qsTr("Please report any bugs to") + "\n" + "tarek@wazapp.im"
  
     }
 
@@ -88,7 +92,7 @@ Page {
         height: parent.height -73
 		width: parent.width
         contentWidth: width
-        contentHeight: column.height + 20
+        contentHeight: column.height + 40
 		clip: true
 
         Column {
@@ -103,7 +107,7 @@ Page {
 			Rectangle {
 				color: "transparent"
 				width: parent.width
-				height: 60
+				height: 40
 				Label {
 					width: parent.width
 					anchors.verticalCenter: parent.verticalCenter
@@ -130,12 +134,39 @@ Page {
 			Button {
 				width: parent.width
 				onClicked: pageStack.push (Qt.resolvedUrl("ChangeStatus.qml"))
-				text: "Hi there I'm using Wazapp"
+				text: qsTr("Change status")
             }
 
 			GroupSeparator {
 				title: qsTr("Appearance")
 			}
+			Label {
+				text: qsTr("Orientation:")
+			}
+			ButtonRow {
+                Button {
+                    text: qsTr("Automatic")
+                    checked: myOrientation==0
+                    onClicked: {
+                        myOrientation=0
+                    }
+                }
+                Button {
+                    text: qsTr("Portrait")
+                    checked: myOrientation==1
+                    onClicked: {
+                        myOrientation=1
+                    }
+                }
+                Button {
+                    text: qsTr("Landscape")
+                    checked: myOrientation==2
+                    onClicked: {
+                        myOrientation=2
+                    }
+                }
+            }
+
 			Label {
 				text: qsTr("Theme color:")
 			}

@@ -33,7 +33,7 @@ Rectangle {
             name: "connecting"
             PropertyChanges {
                 target: curr_operation
-                text:"Connecting"
+                text: qsTr("Connecting")
             }
 
         },
@@ -42,7 +42,7 @@ Rectangle {
             name: "refreshing"
             PropertyChanges {
                 target: curr_operation
-                text:"Refreshing Favorites"
+                text: qsTr("Refreshing Favorites")
 
             }
         },
@@ -51,7 +51,7 @@ Rectangle {
             name: "connected"
             PropertyChanges {
                 target: curr_operation
-                text:"Connected"
+                text: qsTr("Connected")
 
             }
         },
@@ -60,7 +60,7 @@ Rectangle {
             name: "disconnected"
             PropertyChanges {
                 target: curr_operation
-                text:"Disconnected"
+                text: qsTr("Disconnected")
 
             }
         }

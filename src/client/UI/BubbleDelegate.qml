@@ -29,16 +29,16 @@ Item {
 
     anchors.right: from_me?this.right:parent.right
     anchors.left: !from_me?this.left:parent.left
-    anchors.rightMargin: 10
-    anchors.leftMargin: 10
+    anchors.rightMargin: 0
+    anchors.leftMargin: 0
 
 
 
     function getBubble(){
 
         switch(mediatype_id){
-        case 1: return textDelegate
-        case 2: case 3: case 4: return mediaDelegate
+		    case 1: return textDelegate
+		    case 2: case 3: case 4: return mediaDelegate
         }
     }
 

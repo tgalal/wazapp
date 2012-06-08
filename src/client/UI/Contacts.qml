@@ -30,6 +30,10 @@ Page {
    // tools: commonTools
     //width: parent.width
     //anchors.fill: parent
+
+	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
       Component.onCompleted: {
                 ContactsManager.populateContacts();
            // contactsContainer.newMessage({data:"Hi","user_id":"201006960035"})
@@ -191,84 +195,183 @@ Page {
         chatWindow.conversation.newMessage(msg_data);
     }
 
+    function hideSearchBar() {
+        searchbar.h1 = 71
+        searchbar.h2 = 0
+        searchbar.height = 0
+        searchInput.enabled = false
+        sbutton.enabled = false
+        searchInput.text = ""
+        searchInput.platformCloseSoftwareInputPanel()
+        timer.stop()
+    }
+
+    function showSearchBar() {
+        searchbar.h1 = 0
+        searchbar.h2 = 71
+        searchbar.height = 71
+        searchInput.enabled = true
+        sbutton.enabled = true
+        searchInput.text = ""
+        searchInput.focus = false
+        list_view1.forceActiveFocus()
+        timer.start()
+    }
+
+	function filterContacts() {
+		for ( var i=0; i<list_view1.count; ++i )
+        {
+			if ( contactsModel.get(i).name.match(new RegExp(searchInput.text,"i")) )
+				contactsModel.get(i).falphabet = contactsModel.get(i).alphabet
+			else
+				contactsModel.get(i).falphabet = ""
+		}
+	}
+
+    function replaceText(text,str) {
+        var ltext = text.toLowerCase()
+        var lstr = str.toLowerCase()
+        var ind = ltext.indexOf(lstr)
+        var txt = text.substring(0,ind)
+        text = txt + "<u><font color=#4591FF>" +
+               text.slice(ind,ind+str.length)  + "</font></u>" +
+               text.slice(ind+str.length,text.length);
+        return text;
+    }
+
+
+    Timer {
+        id: timer
+        interval: 5000
+        onTriggered: {
+            if (searchInput.text==="") hideSearchBar()
+        }
+    }
 
     Component{
         id:myDelegate
-        Contact{
 
-            jid:model.jid
+        Contact{
+			property bool filtered: model.name.match(new RegExp(searchInput.text,"i")) != null
+            height: filtered ? 80 : 0
+
+			jid:model.jid
             number:model.number
             picture:model.picture
-            name:model.name;
+            name: searchInput.text.length>0 ? replaceText(model.name, searchInput.text) : model.name
             status:model.status?model.status:""
 			myData: model
 
-            //onClicked: {ContactsManager.openChatWindow(model.number,"contacts");contactsContainer.parent.parent.state="conversation"}
-            onClicked: {openChatWindow(model.jid)}
+            onClicked: {
+				//hideSearchBar()
+				if(searchbar.height==71) searchInput.platformCloseSoftwareInputPanel()
+				openChatWindow(model.jid)
+			}
         }
     }
-    Component {
-           id: sectionHeading
-           Rectangle {
-               width: parent.width
-               height: 50
-              // color: "#e6e6e6"
-               color:"transparent"
 
-				Rectangle {
-					id: divline
-                    anchors.verticalCenter: parent.verticalCenter
-					anchors.leftMargin: 16
-					anchors.left: parent.left
-					anchors.rightMargin: 16
-					anchors.right: sectionLabel.left
-					height: 1
-					color: "gray"
-					opacity: 0.6
-				}
-				Text {
-					id: sectionLabel
-					text: section
-					font.pointSize: 18
-                    font.bold: true
-                    anchors.verticalCenter: parent.verticalCenter
-					anchors.right: parent.right
-					anchors.rightMargin: 16
-					color: "gray"
-				}
-               /*Text {
-                   text: section
-                   font.pixelSize: 42
-                   font.bold: true
-                   color:"#27a01b"
-                   anchors.verticalCenter: parent.verticalCenter
-                   horizontalAlignment: Text.AlignRight
-                   width:parent.width-5
-               }*/
-		
-           }
-       }
+    WANotify{
+		anchors.top: parent.top
+        id:wa_notifier
+    }
 
-    Rectangle {
-        anchors.fill: parent;
-        width:parent.width
-        height:parent.height
+	Rectangle {
+		id: searchbar
+		width: parent.width
+		height: 0
+		anchors.top: parent.top
+		anchors.topMargin: wa_notifier.height
 		color: "transparent"
 
-        WANotify{
-			anchors.top: parent.top
-            id:wa_notifier
+		property int h1
+		property int h2
+
+		Rectangle {
+
+			id: srect
+			anchors.fill: searchbar
+			anchors.leftMargin: 12
+			anchors.rightMargin: 12
+			anchors.top: searchbar.top
+			anchors.topMargin: searchbar.height - 62
+			anchors.bottomMargin: 2
+			color: "transparent"
+
+			TextField {
+			    id: searchInput
+			    inputMethodHints: Qt.ImhNoPredictiveText
+			    placeholderText: qsTr("Quick search")
+			    anchors.top: srect.top
+			    anchors.left: srect.left
+			    width: parent.width
+			    enabled: false
+			    onTextChanged: {
+			        timer.restart()
+					filterContacts()
+			    }
+			}
+
+			Image {
+			    id: sbutton
+			    smooth: true
+			    anchors.top: srect.top
+			    anchors.topMargin: 1
+			    anchors.right: srect.right
+			    anchors.rightMargin: 4
+			    height: 52
+			    width: 52
+			    enabled: false
+			    source: searchInput.text==="" ? "image://theme/icon-m-common-search" : "image://theme/icon-m-input-clear"
+			    MouseArea {
+			        anchors.fill: parent
+			        onClicked: {
+						console.log("MOUSE AREA PRESSED!")
+			            searchInput.text = ""
+			            searchInput.forceActiveFocus()
+			        }
+			    }
+			}
+
+		}
+
+		onHeightChanged: SequentialAnimation {
+			PropertyAction { target: searchbar; property: "height"; value: searchbar.h1 }
+			NumberAnimation { target: searchbar; property: "height"; to: searchbar.h2; duration: 300; easing.type: Easing.InOutQuad }
+		}
+
+        states: [
+            State {
+                name: 'hidden'; when: searchbar.height == 0
+                PropertyChanges { target: searchbar; opacity: 0; }
+            },
+            State {
+                name: 'showed'; when: searchbar.height == 71
+                PropertyChanges { target: searchbar; opacity: 1; }
+            }
+        ]
+        transitions: Transition {
+            NumberAnimation { properties: "opacity"; easing.type: Easing.InOutQuad; duration: 300 }
         }
 
+
+	}
+
+    Rectangle {
+        anchors.top: parent.top
+		anchors.topMargin: wa_notifier.height + searchbar.height
+        width:parent.width
+        height:parent.height - wa_notifier.height - searchbar.height
+		color: "transparent"
+		clip: true
+
         Item{
-            width:parent.width
-            height:parent.height-wa_notifier.height
+        	anchors.fill: parent
             visible:false;
             id:no_data
 
             Label{
                 anchors.centerIn: parent;
-                text:"No contacts yet. Try to resync"
+                text: qsTr("No contacts yet. Try to resync")
                 font.pointSize: 20
                 width:parent.width
                 horizontalAlignment: Text.AlignHCenter
@@ -277,19 +380,32 @@ Page {
 
         ListView {
             id: list_view1
-            anchors.top: parent.top
-			anchors.topMargin: wa_notifier.height
-            width:parent.width
-            height:parent.height-wa_notifier.height
+			anchors.fill: parent
             clip: true
             model: contactsModel
             delegate: myDelegate
             spacing: 1
-            section.property: "alphabet"
-            section.criteria: ViewSection.FirstCharacter
-            section.delegate: sectionHeading
 			highlightFollowsCurrentItem: false
+            section.property: "falphabet"
+            section.criteria: ViewSection.FirstCharacter
+
+            section.delegate: GroupSeparator {
+				anchors.left: parent.left
+				anchors.leftMargin: 16
+				width: parent.width - 44
+				height: section!="" ? 50 : 0
+				title: section
+			}
+
 			Component.onCompleted: fast.listViewChanged()
+
+            onContentYChanged:  {
+                if ( list_view1.visibleArea.yPosition < 0)
+                {
+                    if ( searchbar.height==0 )
+                        showSearchBar()
+                }
+            }
         }
 
 		FastScroll {
@@ -298,11 +414,6 @@ Page {
 		}
 
     }
-
-    /*SectionScroller{
-        listView: list_view1
-    }*/
-
 
 
 }

@@ -28,6 +28,9 @@ Page{
     signal sendReg(string number, string cc);
     //function _sendReg(){sendReg(phone_number.text,cc.text)}
 
+	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
     Column{
         //anchors.fill: parent
         anchors{

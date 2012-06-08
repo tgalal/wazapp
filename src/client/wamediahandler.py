@@ -82,6 +82,9 @@ class WAMediaHandler(QObject):
 		
 		if mediatype_id == WAConstants.MEDIA_TYPE_VIDEO:
 			return WAConstants.VIDEO_PATH
+
+		if mediatype_id == WAConstants.MEDIA_TYPE_CONTACT:
+			return WAConstants.CONTACT_PATH
 			
 		return None
 

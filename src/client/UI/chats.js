@@ -65,6 +65,7 @@ function updateChats(message){
 
 
     //{msgId:msgId,msgType:msgType,number:number, lastMsg:lastMsg, time:time, formattedDate:formattedDate}
+	//console.log("ADDING: " + message.content)
     chatsModel.insert(targetIndex,message);
    // chatsModel.insert(targetIndex,{msgId:message.id,msgType:message.type,number:message.jid, lastMsg:message.content, time:message.timestamp, formattedDate:message.formattedDate})
    // chatsModel.sync();

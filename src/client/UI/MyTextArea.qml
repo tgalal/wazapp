@@ -44,7 +44,7 @@ FocusScope {
     property alias platformPreedit: inputMethodObserver.preedit
 
 	platformSipAttributes: SipAttributes { 
-		actionKeyEnabled: cleanText(chat_text.text).trim()!=""
+		actionKeyEnabled: true
 		actionKeyIcon: "image://theme/icon-m-toolbar-send-chat-white"
 		actionKeyLabel: ""
 	}

@@ -28,6 +28,7 @@ WAStackWindow {
     initialPage: mainPage
     
 	//Temporary variables for settings testing
+	property int myOrientation: 0
 	property int bubbleColor: 1
 
 
@@ -43,7 +44,7 @@ WAStackWindow {
 	property string emojiDialogParent
 
     Component.onCompleted: {
-        theme.inverted = true
+        //theme.inverted = true
     }
 
     platformStyle: defaultStyle
@@ -203,9 +204,9 @@ WAStackWindow {
     }
 
 	function onContactsSyncStatusChanged(state) {
-		if (state=="GETTING") loadingPage.operation = "Retrieving contacts list..."
-		else if (state=="SENDING") loadingPage.operation = "Fetching contacts..."
-		else if (state=="LOADING") loadingPage.operation = "Loading contacts..."
+		if (state=="GETTING") loadingPage.operation = qsTr("Retrieving contacts list...")
+		else if (state=="SENDING") loadingPage.operation = qsTr("Fetching contacts...")
+		else if (state=="LOADING") loadingPage.operation = qsTr("Loading contacts...")
 		else loadingPage.operation = ""
 	}
 
@@ -319,6 +320,10 @@ WAStackWindow {
 
         tools: mainTools
 
+		orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+						myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
+
         TabGroup {
             id: tabGroups
             currentTab: waChat
@@ -366,14 +371,15 @@ WAStackWindow {
                 style: TabButtonStyle { inverted:stealth || theme.inverted }
 
                 TabButton {
+					id: chatsTabButton
                     platformStyle: TabButtonStyle{inverted: stealth || theme.inverted}
-                    text: "Chats"
+                    text: qsTr("Chats")
                     //iconSource: "../images/icon-m-toolbar-home.png"
                     tab: waChat
                 }
                 TabButton {
-                     platformStyle: TabButtonStyle{inverted: stealth || theme.inverted}
-                    text:"Contacts"
+                 	platformStyle: TabButtonStyle{inverted: stealth || theme.inverted}
+                    text: qsTr("Contacts")
                     // iconSource: "../images/icon-m-toolbar-list.png"
                     tab: waContacts
                 }
@@ -411,10 +417,10 @@ WAStackWindow {
 
     QueryDialog {
         id: quitConfirm
-        titleText: qsTrId("Confirm Quit")
-        message: "Are you sure you want to quit Wazapp?"
-        acceptButtonText: qsTrId("Yes")
-        rejectButtonText: qsTrId("No")
+        titleText: qsTr("Confirm Quit")
+        message: qsTr("Are you sure you want to quit Wazapp?")
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
         onAccepted: quit();
     }
 
@@ -426,10 +432,10 @@ WAStackWindow {
         property string changes;
         property string severity;
 
-        titleText: qsTrId("Wazapp "+version+" is now available for update!")
+        titleText: qsTr("Wazapp %1 is now available for update!").arg(version)
         message: "Urgency:"+severity+"\nSummary:\n"+changes
-        acceptButtonText: qsTrId("Details")
-        rejectButtonText: qsTrId("Cancel")
+        acceptButtonText: qsTr("Details")
+        rejectButtonText: qsTr("Cancel")
         onAccepted: appWindow.pageStack.push(updatePage);
     }
 

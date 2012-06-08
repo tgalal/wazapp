@@ -37,6 +37,22 @@ function getCode(inputText) {
     return replacedText
 }
 
+function getDateText (mydate) {
+    var today = new Date();
+	var yesterday = new Date();	
+	yesterday.setDate(yesterday.getDate()-1);
+
+    var check = Qt.formatDate(today, "dd-MM-yyyy");
+	var check2 = Qt.formatDate(yesterday, "dd-MM-yyyy");
+	var str = mydate.slice(0,10)
+
+	if (str==check)
+		return qsTr("Today") + " | " + mydate.slice(11)
+	else if (str==check2)
+		return qsTr("Yesterday") + " | " + mydate.slice(11)
+	else
+    	return mydate.replace(" ", " | ");
+}
 
 /* emojify by @knobtviker */
 function emojify(inputText) {

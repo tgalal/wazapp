@@ -36,6 +36,7 @@ Rectangle{
     property int msgId;
     property int msgType;
     property string state_status
+	property bool isGroup
 
     Component.onCompleted: {
         if(msgType ==0){
@@ -121,28 +122,17 @@ Rectangle{
 		anchors.verticalCenter: parent.verticalCenter
 
         //contact image
-        Rectangle{
+		RoundedImage {
+            id:contact_picture
             width:80
             height: 80
-            id:contact_picture_container
-            color:"transparent"
+            size:72
+            imgsource: isGroup? "pics/group.png" : picture
+            x: 2;
 			anchors.verticalCenter: parent.verticalCenter
-
-			RoundedImage {
-                id:contact_picture
-                size:72
-                imgsource: name.indexOf("Group (")==0 ? "pics/group.png" : picture
-                x: 2; y: -1;
-				opacity:appWindow.stealth?0.2:1
-				//onClicked: mouseArea.clicked()
-				//onPressAndHold: mouseArea.pressAndHold()
-            }
-
-            /*Image {
-	            id: status
-                x: 60; y: 58
-            }*/
-
+			opacity:appWindow.stealth?0.2:1
+			//onClicked: mouseArea.clicked()
+			//onPressAndHold: mouseArea.pressAndHold()
         }
 
         Column{
@@ -169,7 +159,7 @@ Rectangle{
  				}
                 Label{
                     id:last_msg
-		            text: lastMsg.indexOf("wazappmms:")===0 ? lastMsg.substr(-4)==".vcf" ? lastMsg.replace("wazappmms:","") : 
+		            text: lastMsg.indexOf("wazappmms:")===0 ? lastMsg.substr(-4)==".vcf" ? lastMsg.replace("wazappmms:","").replace(".vcf","") : 
 							qsTr("Multimedia message") : lastMsg.indexOf("wazapplocation:")===0 ? qsTr("My location") : lastMsg
                    	//width:parent.width
                     elide: Text.ElideRight

@@ -35,7 +35,7 @@ Rectangle{
     property bool hasPicture;
     signal clicked();
 
-    height:80;
+    //height:80;
     width: parent.width;
    // color: "#e6e6e6"
     color:"transparent"
@@ -90,6 +90,7 @@ Rectangle{
             imgsource: picture
             opacity: appWindow.stealth?0.2:1
             anchors.topMargin: -2
+			y: -1
 			//onClicked: mouseArea.clicked()
         }
 
@@ -100,24 +101,20 @@ Rectangle{
 		        id: contact_name
 		        text:name
 		        font.pointSize: 18
+				elide: Text.ElideRight
+				width: parent.width -16
 				font.bold: true
 		    }
 
-		    /*Label{
-		        id:contact_number
-		        text:number
-		        //anchors.
-		        font.pointSize: 14
-		        height: 25
-		    }*/
-
-		   Label{
+		    Label{
 		        id:contact_status
                 text:Helpers.emojify(status)
 		        font.pixelSize: 20
 		        color: "gray"
-				width: parent.width - 16
+				width: parent.width -16
 				elide: Text.ElideRight
+				height: 24
+				clip: true
 		   }
 
         }
@@ -134,7 +131,7 @@ Rectangle{
 
         WAButton{
             button_color: "#0b83c8";
-            button_text: "Chat"
+            button_text: qsTr("Chat")
             MouseArea{
                 anchors.fill: parent;
                 onClicked: container.clicked(number)
@@ -142,12 +139,12 @@ Rectangle{
         }
         WAButton{
             button_color: "#2ea11b";
-            button_text: "Call"
+            button_text: qsTr("Call")
         }
 
         WAButton{
             button_color: "#dc0a0a";
-            button_text: "Block"
+            button_text: qsTr("Block")
         }
 
     }

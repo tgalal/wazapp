@@ -32,6 +32,10 @@ Page{
 
     tools: updateTools
 
+	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
+
     WAHeader{
         id:page_header
         title: "Update"
@@ -135,7 +139,7 @@ Page{
        }
 
         ToolButton {
-            text: qsTrId("Update")
+            text: qsTr("Update")
             anchors.centerIn: parent
             onClicked: {
                 Qt.openUrlExternally(url);

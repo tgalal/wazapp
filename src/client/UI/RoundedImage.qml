@@ -43,6 +43,7 @@ Item {
             source: imgsource.substr(-4)==".mp3" ? "pics/content-audio.png" :
 					imgsource.substr(-4)==".m4a" ? "pics/content-audio.png" :
 					imgsource.substr(-4)==".wav" ? "pics/content-audio.png" :    
+					imgsource.substr(-4)==".amr" ? "pics/content-audio.png" :    
 					imgsource.substr(-4)==".mp4" ? "pics/content-video.png" : 
 					imgsource.substr(-4)==".3gp" ? "pics/content-video.png" :
 					imgsource.substr(-4)==".avi" ? "pics/content-video.png" :

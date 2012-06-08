@@ -12,6 +12,9 @@ import "Global.js" as Helpers
 Page {
     id:conversation_view
 
+	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
+			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
     onStatusChanged: {
         if(status == PageStatus.Deactivating){
             appWindow.setActiveConv("")
@@ -23,8 +26,6 @@ Page {
 		}
         
     }
-
-	
 
 	TextFieldStyle {
         id: myTextFieldStyle
@@ -205,16 +206,6 @@ Page {
 			color: "transparent"
 			height: 50
 
-			/*ToolButton
-			{
-				width: 50
-				height: 48
-				iconSource: theme.inverted? "image://theme/icon-m-toolbar-previous-white" : "image://theme/icon-m-toolbar-previous"
-				anchors.left: parent.left
-				anchors.verticalCenter: parent.verticalCenter
-				onClicked: { appWindow.pageStack.pop() }
-			}*/
-
 			BorderImage {
 				width: 86
 				height: 42
@@ -231,7 +222,10 @@ Page {
 				MouseArea {
 					id: bcArea
 					anchors.fill: parent
-					onClicked: appWindow.pageStack.pop()
+					onClicked: { 
+						chatsTabButton.clicked()
+						appWindow.pageStack.pop(1)
+					}
 				}
 
 			}
@@ -239,7 +233,8 @@ Page {
 
 	        Label {
 	            id: username
-                text: user_name
+                text: user_name.indexOf("-")>0 ? 
+						qsTr("Group (%1)").arg(getAuthor(user_name.split('-')[0]+"@s.whatsapp.net")) : user_name
 				width: parent.width - 62
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
@@ -256,7 +251,7 @@ Page {
             RoundedImage {
                 id:userimage
                 size:50
-                imgsource: username.text.indexOf("Group (")==0 ? "pics/group.png" : user_picture
+                imgsource: user_name.indexOf("-")>0 ? "pics/group.png" : user_picture
                 anchors.verticalCenter: parent.verticalCenter
 				anchors.right: parent.right
             }
@@ -302,7 +297,7 @@ Page {
             mediatype_id: model.mediatype_id
             message: model.message
             media:model.media
-            date:model.timestamp
+            date: model.timestamp
 			from_me:model.type==1
             progress:model.progress
 			//picture: user_picture
@@ -315,7 +310,6 @@ Page {
 				copy_facilitator.text = model.message;
 				bubbleMenu.open();
 			}
-
         }
     }
 
@@ -331,11 +325,11 @@ Page {
 
 	function getListSize () {
 		var s = 0;
+		if (conv_items.count==0) return s;
 		for ( var i=0; i<conv_items.count; ++i )
 		{
 			conv_items.currentIndex = i;
 		    s = s + conv_items.currentItem.height
-			//console.log("INC SIZE: " + s);
 		}
 		loadFinished=true
 		return s + (conv_items.count*6) + 6;
@@ -350,6 +344,9 @@ Page {
 	}	
 
 	
+	property int listSizeNum: 0
+	property bool fromMediaDownloaded: false
+
 	Flickable {
         id: flickArea
         anchors.top: parent.top
@@ -376,12 +373,12 @@ Page {
 
 		        Label{
 		            anchors.centerIn: parent;
-		            text: "Loading conversation..."
+		            text: qsTr("Loading conversation...")
 		            font.pointSize: 22
 					color: "gray"
 		            width: parent.width
 		            horizontalAlignment: Text.AlignHCenter
-					visible: !loadFinished
+					visible: false // !loadFinished
 		        }
 
 			}
@@ -393,10 +390,16 @@ Page {
                 delegate: myDelegate
 				model: conv_data
 				interactive: false
-				height: pageIsActive ? getListSize() : 0
-				visible: loadFinished
-				//onCountChanged: { flickArea.contentY = conv_items.height }
+				height: listSizeNum //pageIsActive ? getListSize() : 0
+				//visible: loadFinished
+				onCountChanged: {
+					if (conv_items.count > 0) {
+						conv_items.currentIndex = conv_items.count-1;
+						listSizeNum += conv_items.currentItem.height +6
+					}
+				}
 				onHeightChanged: { 
+					if (fromMediaDownloaded) return;
 					var s = 0;
 					if (conv_items.height > (flickArea.height-input_holder.height) )
 						s = conv_items.height - flickArea.height + input_holder.height +10
@@ -448,7 +451,7 @@ Page {
 					x: 54
 				    //height: 65
 					anchors.verticalCenter: parent.verticalCenter
-					placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : "Write your message here"
+					placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : qsTr("Write your message here")
 					platformStyle: myTextFieldStyle
 					wrapMode: TextEdit.Wrap
 					textFormat: Text.RichText
@@ -547,7 +550,7 @@ Page {
 		    platformStyle: ButtonStyle { inverted: true }
 		    width:160
 		    height:50
-			text: "Send"
+			text: qsTr("Send")
 		    anchors.right: parent.right
 			anchors.rightMargin: 16
 			y: 10

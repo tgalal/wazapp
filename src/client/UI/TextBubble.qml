@@ -4,50 +4,35 @@ import com.nokia.meego 1.0
 
 SpeechBubble {
     property string message;
+	childrenWidth: msg_text.paintedWidth
+	msg_image: ""
 
-    //width: calcBubbleWidth()
-
-    function calcTextWidth() {
-        return Math.max(calcLabel.width+10, dataRow.width+20)
-    }
-
-    function calcLabelWidth() {
-        return Math.min(calcLabel.width, (screen.currentOrientation == Screen.Landscape?screen.displayWidth:screen.displayHeight)-30);
-    }
-
-    function calcBubbleWidth() {
-        return Math.min(calcTextWidth(), bubble.parent.width-60);
-    }
+	Component.onCompleted: {
+		if (message.indexOf("wazappmms:")===0) {
+			msg_image = "pics/user.png"
+		}
+		if (message.indexOf("wazapplocation:")===0) {
+			msg_image = "pics/content-location.png"
+		}
 
 
+	}
 
-    Label {
-        id: calcLabel
-        text: message
-        visible: false
-        font.family: textFieldStyle.textFont
-        font.pixelSize: textFieldStyle.textFont.pixelSize
-    }
+	bubbleContent: Label {
+		id:msg_text
 
-
-    TextFieldStyle {
-        id: textFieldStyle
-    }
-
-   bubbleContent:  Label{
-                        id:msg_text
-
-                        text:message
-                        color: from_me?"black":"white"
-                        width: calcLabelWidth()
-                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                       // x: dataRow.width+20 > width ? (dataRow.width-width)/2 : 0
-                        textFormat: Text.RichText
-                        font.pixelSize: 22
-                        font.family: textFieldStyle.textFont
-                        //horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
-                        onLinkActivated: Qt.openUrlExternally(link);
-                    }
-
+		text: message.indexOf("wazappmms:")===0 ?message.replace("wazappmms:","").replace(".vcf","") : 
+				message.indexOf("wazapplocation:")===0 ? qsTr("My location") : message
+	    color: from_me ? "black" : "white"
+	    width: (appWindow.inPortrait ? 380 : 754) - (msg_image=="" ? 0 : 66)
+	    wrapMode: "WrapAtWordBoundaryOrAnywhere"
+	    anchors.left: parent.left
+		anchors.leftMargin: from_me ? 20 : 80
+		font.family: "Nokia Pure Light"
+	    font.weight: Font.Light
+	    font.pixelSize: 23
+		horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
+	    onLinkActivated: Qt.openUrlExternally(link);
+	}
 
 }

@@ -138,7 +138,7 @@ SpeechBubble {
 			size: istate=="Loaded!" ? 60 : 0
 			height: width
 			x: from_me ? 18 : parent.width - 58
-			y: -1
+			y: name==="" ? -1 : - 28
 			visible: msg_image!=""
 			imgsource: msg_image
 		}

@@ -54,7 +54,7 @@ Rectangle {
 			}
 			onPressAndHold:{
 				console.log("pressed and held!")
-				optionsRequested();
+				if (mediatype_id==1) optionsRequested();
 			}
 		}
 
@@ -75,13 +75,13 @@ Rectangle {
 	Label{
 	    id: sender_name
 		y: 18
-	    width: parent.width-40
+	    width: parent.width-100
 	    color: "white"
-	    text: "" //name
+	    text: name
 	    font.pixelSize: 20
 	    font.bold: true
 	    anchors.left: parent.left
-	    anchors.leftMargin: 20
+		anchors.leftMargin: from_me ? (20+(mediatype_id==1?0:66)) : (80-(mediatype_id==1?0:66))
 		horizontalAlignment: Text.AlignRight
 		visible: name!=""
 	}
@@ -89,7 +89,7 @@ Rectangle {
 	Item{
         id: bubbleContent
 		anchors.top: parent.top
-		anchors.topMargin: from_me ? 16 : sender_name.text=="" ? 18 : 44
+		anchors.topMargin: from_me ? 16 : sender_name.text=="" ? 18 : 48
 		height: bubbleContent.children[0].height
 	}
 	

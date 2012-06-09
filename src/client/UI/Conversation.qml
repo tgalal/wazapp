@@ -306,7 +306,7 @@ Page {
 			from_me:model.type==1
             progress:model.progress
 			//picture: user_picture
-            name: mediatype_id==10 ? "" : getAuthor(model.author.jid)
+            name: mediatype_id==10 || from_me || user_name.indexOf("-")==-1 ? "" : getAuthor(model.author.jid)
             author:model.author
 			state_status:model.status
             isGroup: conversation_view.isGroup

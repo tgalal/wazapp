@@ -21,10 +21,12 @@ from model import Model;
 
 class Mediatype(Model):
 	
-	TYPE_TEXT	= 1
-	TYPE_IMAGE	= 2
-	TYPE_AUDIO	= 3
-	TYPE_VIDEO	= 4
+	TYPE_TEXT		= 1
+	TYPE_IMAGE		= 2
+	TYPE_AUDIO		= 3
+	TYPE_VIDEO		= 4
+	TYPE_LOCATION	= 5
+	TYPE_CONTACT	= 6
 	
 	
 	

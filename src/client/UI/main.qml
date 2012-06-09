@@ -31,6 +31,12 @@ WAStackWindow {
 	property int myOrientation: 0
 	property int bubbleColor: 1
 
+	signal goToEndOfList
+	signal setFocusToChatText
+	signal sendCurrentMessage
+	signal addEmojiToChat
+	property string addedEmojiCode
+	property bool showSendButton
 
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'

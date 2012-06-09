@@ -170,7 +170,7 @@ Dialog {
 							onClicked: {
 								var codeX = emojiDelegate.codeS;
 								if ( emojiDialogParent=="conversation" )
-									chat_text.text += '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-20/emoji-E'+codeX+'.png" />'
+									addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-20/emoji-E'+codeX+'.png" />'
 								else if ( emojiDialogParent=="status" )
 									status_text.text += '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-20/emoji-E'+codeX+'.png" />'
 								emojiSelector.reject()
@@ -193,9 +193,9 @@ Dialog {
 	onRejected: {
 		if ( emojiDialogParent=="conversation" ) {
 			showSendButton=true
-			chat_text.forceActiveFocus()
-			chat_text.positionAt = chat_text.text.lenght
-			flickArea.contentY = flickArea.contentY
+			addEmojiToChat()
+			goToEndOfList()
+			setFocusToChatText()
 		}
 		else if ( emojiDialogParent=="status" ) {
 			status_text.forceActiveFocus()

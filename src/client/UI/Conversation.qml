@@ -51,6 +51,11 @@ Page {
     Component.onCompleted:{
         console.log("opened chat window");
 
+    	conv_data.insert(0,{"msg_id":"", "message":"", "type":0,
+                            "timestamp":"", "status":"","author":"",
+                            "mediatype_id":10, "media":"", "progress":0})
+
+
         //requestPresence(user_id);
     }
 
@@ -301,7 +306,7 @@ Page {
 			from_me:model.type==1
             progress:model.progress
 			//picture: user_picture
-            name: conversation_view.getAuthor(model.author.jid)
+            name: mediatype_id==10 ? "" : getAuthor(model.author.jid)
             author:model.author
 			state_status:model.status
             isGroup: conversation_view.isGroup
@@ -323,178 +328,35 @@ Page {
 	    }
 	}
 
-	function getListSize () {
-		var s = 0;
-		if (conv_items.count==0) return s;
-		for ( var i=0; i<conv_items.count; ++i )
-		{
-			conv_items.currentIndex = i;
-		    s = s + conv_items.currentItem.height
-		}
-		loadFinished=true
-		return s + (conv_items.count*6) + 6;
-	}
-
-	function cleanText(txt) {
-		var repl = "p, li { white-space: pre-wrap; }";
-		var res = txt;
-		res = Helpers.getCode(res);
-		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-		return res;
-	}	
-
-	
-	property int listSizeNum: 0
-	property bool fromMediaDownloaded: false
-
-	Flickable {
-        id: flickArea
-        anchors.top: parent.top
+	Rectangle {
+		color: "transparent"
+		anchors.top: parent.top
 		anchors.topMargin: top_bar.height
-		height: parent.height - top_bar.height - input_button_holder.height
 		width: parent.width
-        contentWidth: width
-        contentHeight: column1.height
+		height: parent.height - top_bar.height - input_button_holder.height
 		clip: true
 
-		Column {
-            id: column1
-            anchors.topMargin: 0
-            anchors { top: parent.top; left: parent.left; margins: 0 }
-            width: parent.width
-            spacing: 0
+		Rectangle {
+			id: topMargin
+			color: "transparent"
+			width: parent.width
+			height: Math.max(0, parent.height-input_button_holder.height-conv_items.contentHeight)
+		}
 
-			Rectangle {
-				id: spacer_top
-				color: "transparent"
-				width: parent.width
-				height: conv_items.height<(flickArea.height-input_holder.height-10) ?
-						flickArea.height-input_holder.height-conv_items.height-10 : 0
-
-		        Label{
-		            anchors.centerIn: parent;
-		            text: qsTr("Loading conversation...")
-		            font.pointSize: 22
-					color: "gray"
-		            width: parent.width
-		            horizontalAlignment: Text.AlignHCenter
-					visible: false // !loadFinished
-		        }
-
-			}
-			
-			ListView{
-				id:conv_items
-				spacing: 6
-				width:parent.width
-                delegate: myDelegate
-				model: conv_data
-				interactive: false
-				height: listSizeNum //pageIsActive ? getListSize() : 0
-				//visible: loadFinished
-				onCountChanged: {
-					if (conv_items.count > 0) {
-						conv_items.currentIndex = conv_items.count-1;
-						listSizeNum += conv_items.currentItem.height +6
-					}
-				}
-				onHeightChanged: { 
-					if (fromMediaDownloaded) return;
-					var s = 0;
-					if (conv_items.height > (flickArea.height-input_holder.height) )
-						s = conv_items.height - flickArea.height + input_holder.height +10
-					else
-						s = conv_items.height + input_holder.height
-					//if (showSendButton)
-					//	s = s + input_holder.height
-					flickArea.contentY = s
-				}
-				
-			}
-
-			Rectangle {
-				id: spacer_bottom
-				width: parent.width
-				height: 10
-				color: "transparent"
-			}
-			
-			Rectangle {
-				id: input_holder
-				anchors.left: parent.left
-				width: parent.width
-				height: Math.max(chat_text.height, 65)
-				color: theme.inverted? "#1A1A1A" : "white"
-
-				property bool alreadyFocused: false
-
-				Image {
-					x: 16; y: 12; 
-					height: 36; width: 36; smooth: true
-					source: "pics/wazapp48.png"
-				}
-
-				MouseArea {
-					id: input_holder_area
-					anchors.fill: parent
-					onClicked: { 
-						showSendButton=true; 
-						flickArea.contentY = flickArea.contentY
-						chat_text.forceActiveFocus()
-					}
-				}
-
-
-				MyTextArea {
-				    id: chat_text
-				    width:parent.width -60
-					x: 54
-				    //height: 65
-					anchors.verticalCenter: parent.verticalCenter
-					placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : qsTr("Write your message here")
-					platformStyle: myTextFieldStyle
-					wrapMode: TextEdit.Wrap
-					textFormat: Text.RichText
-					
-
-				    onTextChanged: {
-
-                        if(!typingEnabled)
-                        {
-                            //to prevent initial set of placeHolderText from firing textChanged signal
-                            typingEnabled = true
-                            return
-                        }
-
-
-						if(!iamtyping)
-				        {
-				            console.log("TYPING");
-				            typing(user_id);
-				        }
-				        iamtyping = true;
-				        typing_timer.restart();
-					}
-
-					onActiveFocusChanged: {
-                        showSendButton = chat_text.focus || input_button_holder_area.focus || emoji_button.focus
-                        /*if (showSendButton) {
-							if (!alreadyFocused) {
-								alreadyFocused = true
-								flickArea.contentY = flickArea.contentY + input_holder.height +10
-							} 
-						} else
-                            alreadyFocused = false*/
-
-                    }
-
-					onHeightChanged: {
-						flickArea.contentY = flickArea.contentY + chat_text.height
-					}
-					
-				}
-			}
-
+		ListView{
+			id:conv_items
+			spacing: 6
+			delegate: myDelegate
+			model: conv_data
+			anchors.top: parent.top
+			anchors.topMargin: topMargin.height
+			//height: pageIsActive ? getListSize() : 0
+			//visible: loadFinished
+			height: parent.height - topMargin.height
+			anchors.left: parent.left
+			width: parent.width
+			//clip: true
+			cacheBuffer: 10000
 		}
 	}
 
@@ -504,7 +366,7 @@ Page {
 		anchors.left: parent.left
 		width: parent.width
 		height: (showSendButton)? 76 : 0
-		color: input_holder.color
+		color: theme.inverted? "#1A1A1A" : "white"
 		clip: true
 		
 	    MouseArea {
@@ -512,8 +374,8 @@ Page {
 			anchors.fill: parent
 			onClicked: { 
 				showSendButton=true; 
-				flickArea.contentY = flickArea.contentY + input_button_holder.height
-				chat_text.forceActiveFocus()
+				goToEndOfList()
+				setFocusToChatText()
 			}
 		}
 
@@ -528,7 +390,7 @@ Page {
 
 		Button
 		{
-		    id:emoji_button
+		    id: emoji_button
 		    //platformStyle: ButtonStyle { inverted: true }
 		    width:50
 		    height:50
@@ -536,7 +398,7 @@ Page {
 		    anchors.left: parent.left
 			anchors.leftMargin: 16
 		    anchors.verticalCenter: send_button.verticalCenter
-		    onClicked:{
+		    onClicked: {
 				emojiDialogParent = "conversation"
 				var component = Qt.createComponent("Emojidialog.qml");
 		 		var sprite = component.createObject(conversation_view, {});
@@ -557,16 +419,16 @@ Page {
 			//enabled: cleanText(chat_text.text).trim()!=""
 		    onClicked:{
 				showSendButton=true; 
-		        chat_text.forceActiveFocus()
-				flickArea.contentY = flickArea.contentY + input_button_holder.height
-		        var toSend = cleanText(chat_text.text);
-				toSend = toSend.trim();
-		        if ( toSend != "")
-		        {
-		            sendMessage(user_id,toSend);
-		        	chat_text.text = "";
-		        }
+				sendCurrentMessage()
+				setFocusToChatText()
 		    }
+		}
+	}
+
+	Connections {
+		target: appWindow
+		onGoToEndOfList: {
+			conv_items.positionViewAtEnd()
 		}
 	}
 

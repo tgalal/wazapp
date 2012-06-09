@@ -325,19 +325,12 @@ class WAEventHandler(WAEventBase):
 				msg_contact.name= fmsg.getContact().number
 				msg_contact.picture = WAConstants.DEFAULT_GROUP_PICTURE
 
-			contentString = fmsg.content;
-			if contentString[4:]==".vcf" :
-				contentString = contentString.replace("wazappmms:","").replace(".vcf","")
-			if contentString[:10] == "wazappmms:" :
-				contentString = QtCore.QCoreApplication.translate("WAEventHandler", "Multimedia message")
-			if contentString[:15] == "wazapplocation:" :
-				contentString = QtCore.QCoreApplication.translate("WAEventHandler", "My location")
 				
 			if fmsg.Conversation.type == "single":
-				self.notifier.newMessage(msg_contact.jid, msg_contact.name, contentString,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
+				self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
 			else:
 				conversation = fmsg.getConversation();
-				self.notifier.newMessage(conversation.jid, "%s in %s"%(msg_contact.name,conversation.subject), contentString,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
+				self.notifier.newMessage(conversation.jid, "%s in %s"%(msg_contact.name,conversation.subject), fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
 			
 			Utilities.debug("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
 		else:
@@ -677,14 +670,14 @@ class StanzaReader(QThread):
 						
 						if mediaType == "image":
 							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_IMAGE
-							msgdata = "Image"
+							msgdata = QtCore.QCoreApplication.translate("StanzaReader", "Image")
 							preview = messageNode.getChild("media").data
 						elif mediaType == "audio":
 							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_AUDIO
-							msgdata = "Audio"
+							msgdata = QtCore.QCoreApplication.translate("StanzaReader", "Audio")
 						elif mediaType == "video":
 							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
-							msgdata = "Video"
+							msgdata = QtCore.QCoreApplication.translate("StanzaReader", "Video")
 						else:
 							print "Unknown media type"
 							return
@@ -701,8 +694,13 @@ class StanzaReader(QThread):
 						mlatitude = messageNode.getChild("media").getAttributeValue("latitude")
 						mlongitude = messageNode.getChild("media").getAttributeValue("longitude")
 						if mlatitude is not None and mlongitude is not None:
-							msgdata = "wazapplocation:" + mlatitude + "," + mlongitude
-
+							mediaItem = WAXMPP.message_store.store.Media.create()
+							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_LOCATION
+							msgdata = "My location"
+							mediaItem.setData({
+									"remote_url": "geo:" + mlatitude + "," + mlongitude
+									})
+							fmsg.Media = mediaItem
 						else:
 							msgdata = messageNode.getChild("media").getChild("vcard").toString()
 							msgname = messageNode.getChild("media").getChild("vcard").getAttributeValue("name")
@@ -715,7 +713,13 @@ class StanzaReader(QThread):
 								msgdata = msgdata[n:]
 								text_file.write(msgdata.replace("</vcard>",""))
 								text_file.close()
-								msgdata = "wazappmms:" + msgname + ".vcf"
+								mediaItem = WAXMPP.message_store.store.Media.create()
+								mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_CONTACT
+								msgdata = msgname
+								mediaItem.setData({
+										"local_path": "/home/user/.wazapp/media/contacts/" + msgname + ".vcf"
+										})
+								fmsg.Media = mediaItem
 
 					#if ProtocolTreeNode.tagEquals(childNode,"body"):   This suposses handle MEDIA + TEXT
 					#	msgdata = msgdata + " " + childNode.data;		But it's not supported in whatsapp?

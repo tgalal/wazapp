@@ -25,7 +25,8 @@ Rectangle {
 	signal optionsRequested();
 
 	width: appWindow.inPortrait ? 480 : 854
-	height: bubbleContent.children[0].height + msg_date.height + (sender_name.text!=""?sender_name.height:0) + (from_me?28:30) ;
+	height: bubbleContent.children[0].height + (mediatype_id==1?msg_date.height:0) + 
+			(sender_name.text!=""?sender_name.height:0) + (from_me?28:30) ;
 	color: "transparent"
 
 	BorderImage {
@@ -33,7 +34,7 @@ Rectangle {
 		anchors.topMargin: from_me ? 8 : 0
 		anchors.left: parent.left
 		anchors.leftMargin: from_me ? 10 : parent.width-width-10
-		width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0), sender_name.paintedWidth) +26 + (mmsimage.size>0 ? mmsimage.size+5:0)
+		width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0), sender_name.paintedWidth) +26
 		height: parent.height + (from_me ? 2 : 0)
 
 		source: from_me ? "image://theme/meegotouch-messaging-conversation-bubble-outgoing1-" + (mArea.pressed? "pressed" : "normal") :
@@ -47,10 +48,9 @@ Rectangle {
 			id: mArea
 			anchors.fill: parent
 			onClicked: {
-				if (message.indexOf("wazapplocation:")===0)
-					Qt.openUrlExternally(message.replace("wazapplocation:", "geo:"))
-				else if (message.indexOf("wazappmms:")===0)
-					Qt.openUrlExternally(message.replace("wazappmms:", "file:///home/user/.cache/wazapp/"))
+				if (mediatype_id!=1 && transferState=="success") {
+				 	Qt.openUrlExternally("file:///"+media.local_path)
+				}
 			}
 			onPressAndHold:{
 				console.log("pressed and held!")
@@ -58,17 +58,6 @@ Rectangle {
 			}
 		}
 
-	}
-
-	RoundedImage {
-		id: mmsimage
-		width: istate=="Loaded!" ? 66 : 0 
-		size: istate=="Loaded!" ? 60 : 0
-		height: width
-		x: from_me ? 16 : parent.width - 76
-		y: from_me ? 16 : 16
-		visible: msg_image!=""
-		imgsource: msg_image
 	}
 
 	Image {
@@ -86,13 +75,13 @@ Rectangle {
 	Label{
 	    id: sender_name
 		y: 18
-	    width: parent.width-40-mmsimage.size
+	    width: parent.width-40
 	    color: "white"
 	    text: "" //name
 	    font.pixelSize: 20
 	    font.bold: true
 	    anchors.left: parent.left
-	    anchors.leftMargin: 20-(mmsimage.width>0? 6:0)
+	    anchors.leftMargin: 20
 		horizontalAlignment: Text.AlignRight
 		visible: name!=""
 	}
@@ -105,18 +94,19 @@ Rectangle {
 	}
 	
 	Label {
-        id: msg_date
+	    id: msg_date
 		anchors.top: bubbleContent.bottom
-		anchors.topMargin: 2
-        text: Helpers.getDateText(date).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
-        color: from_me ? "black" : "white"
-        anchors.left: parent.left
-		anchors.leftMargin: from_me ? 20+(mmsimage.width>0? mmsimage.width:0) : 80-(mmsimage.width>0? 6:0)
-		width: parent.width -mmsimage.size -100
-        font.pixelSize: 16
-        font.weight: Font.Light
+		anchors.topMargin: mediatype_id==1? 4 : (mediatype_id==1?-20:-18)
+	    text: date
+	    color: from_me ? "black" : "white"
+	    anchors.left: parent.left
+		anchors.leftMargin: from_me ? (20+(mediatype_id==1?0:66)) : (80-(mediatype_id==1?0:66))
+		width: parent.width -100
+	    font.pixelSize: 16
+	    font.weight: Font.Light
 		horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
 		opacity: from_me && !theme.inverted? 0.5 : 0.7
-    }
+	}
+
 
 }

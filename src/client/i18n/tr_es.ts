@@ -2,6 +2,21 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="es_ES">
 <context>
+    <name>BubbleDelegate</name>
+    <message>
+        <location filename="../UI/BubbleDelegate.qml" line="51"/>
+        <location filename="../UI/BubbleDelegate.qml" line="86"/>
+        <source>Today</source>
+        <translation>Hoy</translation>
+    </message>
+    <message>
+        <location filename="../UI/BubbleDelegate.qml" line="51"/>
+        <location filename="../UI/BubbleDelegate.qml" line="86"/>
+        <source>Yesterday</source>
+        <translation>Ayer</translation>
+    </message>
+</context>
+<context>
     <name>ChangeStatus</name>
     <message>
         <location filename="../UI/ChangeStatus.qml" line="49"/>
@@ -40,9 +55,8 @@
         <translation>Grupo (%1)</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="178"/>
         <source>Multimedia message</source>
-        <translation>Mensaje multimedia</translation>
+        <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
         <location filename="../UI/Chats.qml" line="180"/>
@@ -202,38 +216,38 @@
 <context>
     <name>MediaBubble</name>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="75"/>
+        <location filename="../UI/MediaBubble.qml" line="77"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="75"/>
-        <location filename="../UI/MediaBubble.qml" line="166"/>
+        <location filename="../UI/MediaBubble.qml" line="77"/>
+        <location filename="../UI/MediaBubble.qml" line="179"/>
         <source>Download</source>
         <translation>Descargar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="111"/>
+        <location filename="../UI/MediaBubble.qml" line="113"/>
         <source>Sending</source>
         <translation>Enviando</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="111"/>
+        <location filename="../UI/MediaBubble.qml" line="113"/>
         <source>Downloading</source>
         <translation>Descargando</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="127"/>
+        <location filename="../UI/MediaBubble.qml" line="129"/>
         <source>Retry</source>
         <translation>Reintentar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="150"/>
+        <location filename="../UI/MediaBubble.qml" line="163"/>
         <source>Multimedia message</source>
         <translation>Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="170"/>
+        <location filename="../UI/MediaBubble.qml" line="183"/>
         <source>Initializing</source>
         <translation>Inicializando</translation>
     </message>
@@ -410,12 +424,12 @@
         <translation>Mi ubicación</translation>
     </message>
     <message>
-        <location filename="../UI/SpeechBubble.qml" line="111"/>
+        <location filename="../UI/SpeechBubble.qml" line="100"/>
         <source>Today</source>
         <translation>Hoy</translation>
     </message>
     <message>
-        <location filename="../UI/SpeechBubble.qml" line="111"/>
+        <location filename="../UI/SpeechBubble.qml" line="100"/>
         <source>Yesterday</source>
         <translation>Ayer</translation>
     </message>
@@ -446,9 +460,8 @@
 <context>
     <name>TextBubble</name>
     <message>
-        <location filename="../UI/TextBubble.qml" line="25"/>
         <source>My location</source>
-        <translation>Mi ubicación</translation>
+        <translation type="obsolete">Mi ubicación</translation>
     </message>
 </context>
 <context>
@@ -480,14 +493,22 @@
     </message>
 </context>
 <context>
-    <name>WAEventHandler</name>
+    <name>StanzaReader</name>
     <message>
-        <source>Multimedia message</source>
-        <translation type="obsolete">Mensaje multimedia</translation>
+        <source>Image</source>
+        <translation>Imagen</translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation>Audio</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation>Video</translation>
     </message>
     <message>
         <source>My location</source>
-        <translation type="obsolete">Mi ubicación</translation>
+        <translation>Mi ubicación</translation>
     </message>
 </context>
 <context>

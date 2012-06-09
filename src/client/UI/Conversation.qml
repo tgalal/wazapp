@@ -340,7 +340,7 @@ Page {
 			id: topMargin
 			color: "transparent"
 			width: parent.width
-			height: Math.max(0, parent.height-input_button_holder.height-conv_items.contentHeight)
+			height: Math.max(0, parent.height-(conv_items.count>3?input_button_holder.height:0)-conv_items.contentHeight)
 		}
 
 		ListView{
@@ -350,12 +350,9 @@ Page {
 			model: conv_data
 			anchors.top: parent.top
 			anchors.topMargin: topMargin.height
-			//height: pageIsActive ? getListSize() : 0
-			//visible: loadFinished
 			height: parent.height - topMargin.height
 			anchors.left: parent.left
 			width: parent.width
-			//clip: true
 			cacheBuffer: 10000
 		}
 	}

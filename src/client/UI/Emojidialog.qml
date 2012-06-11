@@ -198,6 +198,7 @@ Dialog {
 			setFocusToChatText()
 		}
 		else if ( emojiDialogParent=="status" ) {
+			status_text.cursorPosition = status_text.lastPosition + 1
 			status_text.forceActiveFocus()
 		}
 	}

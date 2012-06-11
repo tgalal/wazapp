@@ -121,7 +121,6 @@ Item {
 
 			Component.onCompleted: { delegateContainer.height= spacer.height }
 
-
 			Connections {
 				target: appWindow
 				onSendCurrentMessage: {
@@ -144,6 +143,7 @@ Item {
 				onAddEmojiToChat: {
 					if (activeConvJId==conversation_view.user_id) {
 						chat_text.text += addedEmojiCode
+						chat_text.cursorPosition = chat_text.lastPosition + 1
 						chat_text.forceActiveFocus()
 					}
 		    	}
@@ -221,6 +221,8 @@ Item {
 				    onEnterKeyClicked: { console.log("ENTER PRESSED!"); sendCurrentMessage(); setFocusToChatText() }
 
 					onActiveFocusChanged: {
+						lastPosition = chat_text.cursorPosition
+						console.log("LAST POSITION: " + lastPosition)
 				        showSendButton = chat_text.focus || input_button_holder_area.focus || emoji_button.focus
 						if (showSendButton) {
 							if (!alreadyFocused) {

@@ -34,7 +34,6 @@ class Contact(Model):
 		self.modelData.append("name");
 		self.modelData.append("picture");
 		self.modelData.append("alphabet");
-		self.modelData.append("falphabet");
 		
 	
 	def getOrCreateContactByJid(self,jid):

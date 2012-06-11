@@ -10,6 +10,8 @@ import "/usr/lib/qt4/imports/com/nokia/meego/Magnifier.js" as MagnifierPopup
 FocusScope {
     id: root
 
+	signal enterKeyClicked
+
     // Common public API
     property alias text: textEdit.text
     property alias placeholderText: prompt.text
@@ -42,14 +44,6 @@ FocusScope {
     property alias style: root.platformStyle
 
     property alias platformPreedit: inputMethodObserver.preedit
-
-	platformSipAttributes: SipAttributes { 
-		actionKeyEnabled: true
-		actionKeyIcon: "image://theme/icon-m-toolbar-send-chat-white"
-		actionKeyLabel: ""
-	}
-    Keys.onEnterPressed: input_button_holder.send_button.clicked()
-    Keys.onReturnPressed: input_button_holder.send_button.clicked()
 
     onPlatformSipAttributesChanged: {
         platformSipAttributes.registerInputElement(textEdit)
@@ -180,6 +174,10 @@ FocusScope {
         // Exposed for the edit bubble
         property alias preedit: inputMethodObserver.preedit
         property alias preeditCursorPosition: inputMethodObserver.preeditCursorPosition
+
+		Keys.onEnterPressed: { enterKeyClicked() }
+		Keys.onReturnPressed: { enterKeyClicked() }
+
 
         x: UI.PADDING_XLARGE
         y: (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize) / 2

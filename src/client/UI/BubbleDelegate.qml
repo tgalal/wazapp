@@ -213,6 +213,13 @@ Item {
 						typing_timer.restart();
 					}
 
+					platformSipAttributes: SipAttributes { 
+						actionKeyEnabled: true
+						actionKeyIcon: "image://theme/icon-m-toolbar-send-chat-white"
+						actionKeyLabel: qsTr("Send")
+					}
+				    onEnterKeyClicked: { console.log("ENTER PRESSED!"); sendCurrentMessage(); setFocusToChatText() }
+
 					onActiveFocusChanged: {
 				        showSendButton = chat_text.focus || input_button_holder_area.focus || emoji_button.focus
 						if (showSendButton) {

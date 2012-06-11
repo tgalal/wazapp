@@ -142,7 +142,9 @@ Item {
 				}
 				onAddEmojiToChat: {
 					if (activeConvJId==conversation_view.user_id) {
-						chat_text.text += addedEmojiCode
+						var str = cleanText(chat_text.text)
+						str = str.substring(0,chat_text.lastPosition) + cleanText(addedEmojiCode) + str.slice(chat_text.lastPosition)
+						chat_text.text = Helpers.emojify2(str)
 						chat_text.cursorPosition = chat_text.lastPosition + 1
 						chat_text.forceActiveFocus()
 					}
@@ -154,7 +156,7 @@ Item {
 				var res = txt;
 				res = Helpers.getCode(res);
 				res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-				return res;
+				return res.replace(/^\s+/,"");
 			}	
 
 	

@@ -39,7 +39,7 @@
         <translation>Ingrese su nuevo estado</translation>
     </message>
     <message>
-        <location filename="../UI/ChangeStatus.qml" line="113"/>
+        <location filename="../UI/ChangeStatus.qml" line="114"/>
         <source>Done</source>
         <translation>Listo</translation>
     </message>
@@ -496,7 +496,7 @@
     <message>
         <location filename="../UI/UserStatus.qml" line="103"/>
         <source>Last seen:</source>
-        <translation>Visto el:</translation>
+        <translation>Visto última vez:</translation>
     </message>
     <message>
         <location filename="../UI/UserStatus.qml" line="104"/>

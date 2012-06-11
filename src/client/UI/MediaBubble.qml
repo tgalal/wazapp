@@ -31,11 +31,11 @@ SpeechBubble {
 		loaded = true
         if(!media.preview){
             switch(media.mediatype_id){
-                case 2: thumb = "pics/content-image.png"; break;
-                case 3: thumb = "pics/content-audio.png"; break;
-                case 4: thumb = "pics/content-video.png"; break;
-				case 5: thumb = "pics/content-location.png"; transferState = "success"; openButton.text = message; break;
-				case 6: thumb = "pics/user.png"; transferState = "success"; openButton.text = message; break;
+                case 2: thumb = "image://theme/icon-m-content-image"; break;
+                case 3: thumb = "image://theme/icon-m-content-audio"; break;
+                case 4: thumb = "image://theme/icon-m-content-videos"; break;
+				case 5: thumb = "image://theme/icon-m-content-localities"; transferState = "success"; openButton.text = message; break;
+				case 6: thumb = "image://theme/icon-m-content-avatar-placeholder"; transferState = "success"; openButton.text = message; break;
             }
         }
         else if(media.mediatype_id == 2){

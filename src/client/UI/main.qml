@@ -106,6 +106,8 @@ WAStackWindow {
     signal conversationActive(string user_id);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
+    signal loadConversationsThread(string user_id);
+
 
             /******************/
     function onConnected(){setIndicatorState("online")}
@@ -194,7 +196,6 @@ WAStackWindow {
         appWindow.pageStack.push(loadingPage);
         refreshContacts();
     }
-
 
     function onReloadingConversations(){
         waContacts.clearConversations();

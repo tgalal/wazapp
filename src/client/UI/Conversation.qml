@@ -15,11 +15,26 @@ Page {
 	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
 			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
 
+	property bool loaded: false
+
     onStatusChanged: {
         if(status == PageStatus.Deactivating){
             appWindow.setActiveConv("")
         }
         else if(status == PageStatus.Active){
+			if (!loaded) {
+				loaded = true
+				// load entire conversation when the page is active
+				// but the last message is already loaded for chats window
+				// so I need to hide it (removing it causes scrolling problems)
+				if (conv_items.count>1) {
+					// hide the item only if the page has messages
+					conv_items.currentIndex=0
+					conv_items.currentItem.height=0
+					conv_items.currentItem.visible=false
+				}
+				appWindow.loadConversationsThread(user_id);
+			}
             appWindow.conversationActive(user_id);
             appWindow.setActiveConv(user_id)
 			pageIsActive = true
@@ -199,7 +214,7 @@ Page {
         id:top_bar
         //onClicked: {conversation_view.visible=false;conversation_view.parent.parent.state=prev_state;}
         width:parent.width
-		color: "transparent"
+		color: theme.inverted? "#161616" : "transparent"
         height: appWindow.inPortrait ? 73 : (showSendButton ? 0 : 73)
 		clip: true
 		
@@ -268,14 +283,14 @@ Page {
 			width: parent.width
 			x:0; y: 71
 			color: "gray"
-			opacity: 0.6
+			opacity: theme.inverted ? 0.8 : 0.6
 		}
 		Rectangle {
 			height: 1
 			width: parent.width
 			x:0; y: 72
-			color: theme.inverted ? "lightgray" : "white"
-			opacity: 0.8
+			color: theme.inverted ? "darkgray" : "white"
+			opacity: theme.inverted ? 0.0 : 0.8
 		}	
     }
 
@@ -329,18 +344,29 @@ Page {
 	}
 
 	Rectangle {
-		color: "transparent"
+		color: theme.inverted? "transparent" : "#dedfde"
 		anchors.top: parent.top
 		anchors.topMargin: top_bar.height
 		width: parent.width
 		height: parent.height - top_bar.height - input_button_holder.height
 		clip: true
 
+		Label{
+			anchors.centerIn: parent;
+			text: qsTr("Loading conversation...")
+			font.pointSize: 22
+			color: "gray"
+			width: parent.width
+			horizontalAlignment: Text.AlignHCenter
+			visible: !loaded
+		}
+
 		Rectangle {
 			id: topMargin
 			color: "transparent"
 			width: parent.width
 			height: Math.max(0, parent.height-(conv_items.count>3?input_button_holder.height:0)-conv_items.contentHeight)
+			visible: loaded
 		}
 
 		ListView{
@@ -354,6 +380,7 @@ Page {
 			anchors.left: parent.left
 			width: parent.width
 			cacheBuffer: 10000
+			visible: loaded
 		}
 	}
 
@@ -425,7 +452,8 @@ Page {
 	Connections {
 		target: appWindow
 		onGoToEndOfList: {
-			conv_items.positionViewAtEnd()
+			//console.log("GETTING END OF LIST")
+			conv_items.positionViewAtIndex(conv_items.count-1, ListView.Contain)
 		}
 	}
 

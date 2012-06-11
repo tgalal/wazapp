@@ -66,7 +66,7 @@ Rectangle {
         anchors.left: msg_date.left
         anchors.leftMargin: msg_date.paintedWidth + 12
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 14
+        anchors.bottomMargin: 12
 		height: 16; width: 16
 		source: state_status!="" ? "pics/indicators/" + state_status + ".png" : ""
 		smooth: true

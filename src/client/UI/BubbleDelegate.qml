@@ -178,8 +178,8 @@ Item {
 					anchors.fill: parent
 					onClicked: { 
 						showSendButton=true; 
-						goToEndOfList()
 						chat_text.forceActiveFocus()
+						goToEndOfList()
 					}
 				}
 

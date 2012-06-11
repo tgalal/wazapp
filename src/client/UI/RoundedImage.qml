@@ -6,7 +6,7 @@ Item {
 
     property string imgsource
     property int size
-    property bool rounded: true
+    property bool rounded: imgsource.indexOf("image://")!=0
 	property string istate: "Loading..."
     property alias  asynchronous: image1.asynchronous
 
@@ -21,7 +21,6 @@ Item {
         x:0; y:0
         width: size
         height: size
-        visible: rounded
 
         mask: Image {
             width: size
@@ -40,14 +39,7 @@ Item {
             smooth: true
             fillMode: Image.PreserveAspectCrop
 
-            source: imgsource.substr(-4)==".mp3" ? "pics/content-audio.png" :
-					imgsource.substr(-4)==".m4a" ? "pics/content-audio.png" :
-					imgsource.substr(-4)==".wav" ? "pics/content-audio.png" :    
-					imgsource.substr(-4)==".amr" ? "pics/content-audio.png" :    
-					imgsource.substr(-4)==".mp4" ? "pics/content-video.png" : 
-					imgsource.substr(-4)==".3gp" ? "pics/content-video.png" :
-					imgsource.substr(-4)==".avi" ? "pics/content-video.png" :
-					imgsource.substr(-4)==".vcf" ? "pics/user.png" : imgsource
+            source: imgsource
 			onStatusChanged: {
                 if (image1.status==Image.Ready) istate="Loaded!";
 				if (image1.status==Image.Error) istate=imgsource;

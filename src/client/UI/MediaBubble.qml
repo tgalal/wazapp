@@ -36,8 +36,8 @@ SpeechBubble {
                 case 4:thumb = "pics/content-video.png";break;
             }
         }
-        else if(media.mediatype_id == 2){
-            thumb = media.transfer_status == 2?media.preview:("data:image/jpg;base64," + media.preview)
+        else if(media.mediatype_id == 2 || media.mediatype_id == 5){
+            thumb ="data:image/jpg;base64," + media.preview
         }
 
         msg_image = thumb

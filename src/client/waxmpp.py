@@ -35,7 +35,7 @@ from PySide import QtCore
 from PySide.QtCore import QThread, QTimer
 from PySide.QtGui import QApplication
 from waupdater import WAUpdater
-from wamediahandler import WAMediaHandler
+from wamediahandler import WAMediaHandler, WAVCardHandler
 import thread
 
 class WAEventHandler(WAEventBase):
@@ -140,7 +140,6 @@ class WAEventHandler(WAEventBase):
 			self.networkDisconnected()
 			self.networkAvailable();
 			
-		Utilities.debug("CHECK PASSEDDDDDDDDDDDDDDD")
 	
 	def onLoginFailed(self):
 		self.loginFailed.emit()
@@ -151,6 +150,22 @@ class WAEventHandler(WAEventBase):
 		if seconds is not None:
 			self.lastSeenUpdated.emit(jid,int(seconds));
 	
+	
+	def fetchVCard(self,messageId):
+		mediaMessage = WAXMPP.message_store.store.Message.create()
+		message = mediaMessage.findFirst({"media_id":mediaId})
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+		
+		mediaHandler = WAVCardHandler(jid,message.id,contactData)
+		
+		mediaHandler.success.connect(self._mediaTransferSuccess)
+		mediaHandler.error.connect(self._mediaTransferError)
+		mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+		
+		mediaHandler.pull();
+		
+		self.mediaHandlers.append(mediaHandler);
 	
 	def fetchMedia(self,mediaId):
 		
@@ -324,20 +339,20 @@ class WAEventHandler(WAEventBase):
 			except:
 				msg_contact.name= fmsg.getContact().number
 				msg_contact.picture = WAConstants.DEFAULT_GROUP_PICTURE
-
-			contentString = fmsg.content;
-			if contentString[4:]==".vcf" :
-				contentString = contentString.replace("wazappmms:","").replace(".vcf","")
-			if contentString[:10] == "wazappmms:" :
-				contentString = QtCore.QCoreApplication.translate("WAEventHandler", "Multimedia message")
-			if contentString[:15] == "wazapplocation:" :
-				contentString = QtCore.QCoreApplication.translate("WAEventHandler", "My location")
+			
+			
+			if fmsg.Media is not None:
+				fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", fmsg.content)
 				
+				#if fmsg.Media.mediatype_id == WAConstants.MEDIA_TYPE_VCARD:
+				#	self.fetchVCard(fmsg.id)
+			
+
 			if fmsg.Conversation.type == "single":
-				self.notifier.newMessage(msg_contact.jid, msg_contact.name, contentString,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
+				self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
 			else:
 				conversation = fmsg.getConversation();
-				self.notifier.newMessage(conversation.jid, "%s in %s"%(msg_contact.name,conversation.subject), contentString,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
+				self.notifier.newMessage(conversation.jid, "%s in %s"%(msg_contact.name,conversation.subject), fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
 			
 			Utilities.debug("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
 		else:
@@ -655,10 +670,11 @@ class StanzaReader(QThread):
 				
 				elif ProtocolTreeNode.tagEquals(childNode,"media") and msg_id is not None:
 					print "MULTIMEDIA MESSAGE!";
-					url = messageNode.getChild("media").getAttributeValue("url");
-					filename = messageNode.getChild("media").getAttributeValue("file");
+					mediaItem = WAXMPP.message_store.store.Media.create()
+					mediaItem.remote_url = messageNode.getChild("media").getAttributeValue("url");
 					mediaType = messageNode.getChild("media").getAttributeValue("type")
 					msgdata = mediaType
+					preview = None
 					
 					try:
 						index = fromAttribute.index('-')
@@ -669,74 +685,53 @@ class StanzaReader(QThread):
 					except ValueError: #single conv
 						pass
 					
-					if url is not None:
-						
-						preview = None
-						
-						mediaItem = WAXMPP.message_store.store.Media.create()
-						
-						if mediaType == "image":
-							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_IMAGE
-							msgdata = "Image"
-							preview = messageNode.getChild("media").data
-						elif mediaType == "audio":
-							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_AUDIO
-							msgdata = "Audio"
-						elif mediaType == "video":
-							mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
-							msgdata = "Video"
-						else:
-							print "Unknown media type"
-							return
-						
-						mediaItem.setData({
-								"preview":preview,
-								"remote_url":url
-								})
-								
-						fmsg.Media = mediaItem
-							
-						
-					else:
+					if mediaType == "image":
+						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_IMAGE
+						mediaItem.preview = messageNode.getChild("media").data
+					elif mediaType == "audio":
+						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_AUDIO
+					elif mediaType == "video":
+						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
+					elif mediaType == "location":
+						return
 						mlatitude = messageNode.getChild("media").getAttributeValue("latitude")
 						mlongitude = messageNode.getChild("media").getAttributeValue("longitude")
-						if mlatitude is not None and mlongitude is not None:
-							msgdata = "wazapplocation:" + mlatitude + "," + mlongitude
+						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_LOCATION
+						mediaItem.remote_url = None
+						mediaItem.preview = messageNode.getChild("media").data
+						mediaItem.local_path ="%s,%s"%(mlatitude,mlongitude)
+						mediaItem.transfer_status = 2
+						
+					elif mediaType =="vcard":
+						return
+						mediaItem.preview = messageNode.getChild("media").data
+					else:
+						print "Unknown media type"
+						return
+							
+					fmsg.Media = mediaItem
 
-						else:
-							msgdata = messageNode.getChild("media").getChild("vcard").toString()
-							msgname = messageNode.getChild("media").getChild("vcard").getAttributeValue("name")
-							print msgdata;
-							if msgdata is not None:
-								if not os.path.exists("/home/user/.wazapp/media/contacts"):
-									os.makedirs("/home/user/.wazapp/media/contacts")
-								text_file = open("/home/user/.wazapp/media/contacts/" + msgname + ".vcf", "w")
-								n = msgdata.find(">") +1
-								msgdata = msgdata[n:]
-								text_file.write(msgdata.replace("</vcard>",""))
-								text_file.close()
-								msgdata = "wazappmms:" + msgname + ".vcf"
-
-					#if ProtocolTreeNode.tagEquals(childNode,"body"):   This suposses handle MEDIA + TEXT
-					#	msgdata = msgdata + " " + childNode.data;		But it's not supported in whatsapp?
 
 					key = Key(fromAttribute,False,msg_id);
 					ret = WAXMPP.message_store.get(key);
-					
+				
 					if ret is None:
 						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
-						
+					
 						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
 						fmsg.key = key
-						
-						#if self.eventHandler is not None:
-						#self.eventHandler.message_received(fmsg);
 					else:
 						fmsg.key = eval(ret.key)
 						duplicate = True;
 				
 				elif ProtocolTreeNode.tagEquals(childNode,"body") and msg_id is not None:
 					msgdata = childNode.data;
+					
+					#mediaItem = WAXMPP.message_store.store.Media.create()
+					#mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_TEXT
+					#fmsg.Media = mediaItem
+					fmsg.Media = None
+					
 					key = Key(fromAttribute,False,msg_id);
 					ret = WAXMPP.message_store.get(key);
 

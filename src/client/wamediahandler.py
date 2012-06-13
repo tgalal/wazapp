@@ -26,13 +26,13 @@ from PySide.QtCore import QThread
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-
 class WAMediaHandler(QObject):
 	progressUpdated = QtCore.Signal(int,str,int) #%,jid,message.id
 	error = QtCore.Signal(str,int)
 	success = QtCore.Signal(str,int,str)
 	
 	def __init__(self,jid,message_id,url,mediaType_id):
+		
 		
 		path = self.getSavePath(mediaType_id);
 		
@@ -83,10 +83,33 @@ class WAMediaHandler(QObject):
 		if mediatype_id == WAConstants.MEDIA_TYPE_VIDEO:
 			return WAConstants.VIDEO_PATH
 
-		if mediatype_id == WAConstants.MEDIA_TYPE_CONTACT:
-			return WAConstants.CONTACT_PATH
+		if mediatype_id == WAConstants.MEDIA_TYPE_VCARD:
+			return WAConstants.VCARD_PATH
 			
 		return None
+
+class WAVCardHandler(WAMediaHandler):
+	
+	def __init__(self,jid,message_id,data):
+		
+		self.contactName = name
+		self.contactData = data
+		
+		super(WAVCardHandler,self).__init__(jid,message_id,data,WAConstants.MEDIA_TYPE_VCARD)
+	
+	def pull(self):
+		path = self.getSavePath(WAConstants.MEDIA_TYPE_VCARD);
+		savePath = "%s/%i-%s.vcf"%(path,self.message_id,self.contactName)
+		textFile = open(savePath, "w")
+		#n = msgdata.find(">") +1
+		#msgdata = msgdata[n:]
+		#text_file.write(msgdata.replace("</vcard>",""))
+		textFile.write(self.contactData)
+		textFile.close()
+		self.success.emit(self.jid,self.message_id,savePath)
+		
+		
+
 
 class WAHTTPHandler(QThread):
 	

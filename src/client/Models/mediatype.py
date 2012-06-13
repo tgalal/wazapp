@@ -25,6 +25,8 @@ class Mediatype(Model):
 	TYPE_IMAGE	= 2
 	TYPE_AUDIO	= 3
 	TYPE_VIDEO	= 4
+	TYPE_LOCATION	= 5
+	TYPE_VCARD	= 6
 	
 	
 	

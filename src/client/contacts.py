@@ -21,7 +21,10 @@ from PySide.QtGui import *
 from utilities import Utilities
 from warequest import WARequest
 from xml.dom import minidom
-from PySide.QtCore import *
+from PySide.QtCore import QObject
+from PySide.QtCore import QUrl
+from PySide.QtCore import Qt
+from PySide.QtGui import QImage
 from PySide import QtCore;
 from QtMobility.Contacts import *
 from litestore import LiteStore as DataStore

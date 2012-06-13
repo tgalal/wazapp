@@ -31,6 +31,12 @@ WAStackWindow {
 	property int myOrientation: 0
 	property int bubbleColor: 1
 
+	signal goToEndOfList
+	signal setFocusToChatText
+	signal sendCurrentMessage
+	signal addEmojiToChat
+	property string addedEmojiCode
+	property bool showSendButton
 
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
@@ -100,6 +106,8 @@ WAStackWindow {
     signal conversationActive(string user_id);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
+    signal loadConversationsThread(string user_id);
+
 
             /******************/
     function onConnected(){setIndicatorState("online")}
@@ -188,7 +196,6 @@ WAStackWindow {
         appWindow.pageStack.push(loadingPage);
         refreshContacts();
     }
-
 
     function onReloadingConversations(){
         waContacts.clearConversations();

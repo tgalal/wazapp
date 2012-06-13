@@ -2,6 +2,31 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="es_ES">
 <context>
+    <name>BubbleDelegate</name>
+    <message>
+        <location filename="../UI/BubbleDelegate.qml" line="53"/>
+        <location filename="../UI/BubbleDelegate.qml" line="88"/>
+        <source>Today</source>
+        <translation>Hoy</translation>
+    </message>
+    <message>
+        <location filename="../UI/BubbleDelegate.qml" line="53"/>
+        <location filename="../UI/BubbleDelegate.qml" line="88"/>
+        <source>Yesterday</source>
+        <translation>Ayer</translation>
+    </message>
+    <message>
+        <location filename="../UI/BubbleDelegate.qml" line="199"/>
+        <source>Write your message here</source>
+        <translation>Escriba su mensaje aquí</translation>
+    </message>
+    <message>
+        <location filename="../UI/BubbleDelegate.qml" line="219"/>
+        <source>Send</source>
+        <translation>Enviar</translation>
+    </message>
+</context>
+<context>
     <name>ChangeStatus</name>
     <message>
         <location filename="../UI/ChangeStatus.qml" line="49"/>
@@ -14,7 +39,7 @@
         <translation>Ingrese su nuevo estado</translation>
     </message>
     <message>
-        <location filename="../UI/ChangeStatus.qml" line="113"/>
+        <location filename="../UI/ChangeStatus.qml" line="114"/>
         <source>Done</source>
         <translation>Listo</translation>
     </message>
@@ -22,14 +47,12 @@
 <context>
     <name>Chat</name>
     <message>
-        <location filename="../UI/Chat.qml" line="163"/>
         <source>Multimedia message</source>
-        <translation>Mensaje multimedia</translation>
+        <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/Chat.qml" line="163"/>
         <source>My location</source>
-        <translation>Mi ubicación</translation>
+        <translation type="obsolete">Mi ubicación</translation>
     </message>
 </context>
 <context>
@@ -40,9 +63,8 @@
         <translation>Grupo (%1)</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="178"/>
         <source>Multimedia message</source>
-        <translation>Mensaje multimedia</translation>
+        <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
         <location filename="../UI/Chats.qml" line="180"/>
@@ -101,12 +123,12 @@
 <context>
     <name>Contacts</name>
     <message>
-        <location filename="../UI/Contacts.qml" line="374"/>
+        <location filename="../UI/Contacts.qml" line="362"/>
         <source>No contacts yet. Try to resync</source>
         <translation>No hay contactos. Intente sincronizar.</translation>
     </message>
     <message>
-        <location filename="../UI/Contacts.qml" line="303"/>
+        <location filename="../UI/Contacts.qml" line="295"/>
         <source>Quick search</source>
         <translation>Búsqueda rápida</translation>
     </message>
@@ -118,12 +140,12 @@
         <translation type="obsolete">Chats</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="376"/>
+        <location filename="../UI/Conversation.qml" line="356"/>
         <source>Loading conversation...</source>
-        <translation>Cargando conversación</translation>
+        <translation>Cargando conversación...</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="237"/>
+        <location filename="../UI/Conversation.qml" line="257"/>
         <source>Group (%1)</source>
         <translation>Grupo (%1)</translation>
     </message>
@@ -136,17 +158,16 @@
         <translation type="obsolete">Ayer</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="454"/>
         <source>Write your message here</source>
-        <translation>Escriba su mensaje aquí</translation>
+        <translation type="obsolete">Escriba su mensaje aquí</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="553"/>
+        <location filename="../UI/Conversation.qml" line="439"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="585"/>
+        <location filename="../UI/Conversation.qml" line="472"/>
         <source>Copy</source>
         <translation>Copiar</translation>
     </message>
@@ -202,38 +223,38 @@
 <context>
     <name>MediaBubble</name>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="75"/>
+        <location filename="../UI/MediaBubble.qml" line="77"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="75"/>
-        <location filename="../UI/MediaBubble.qml" line="166"/>
+        <location filename="../UI/MediaBubble.qml" line="77"/>
+        <location filename="../UI/MediaBubble.qml" line="179"/>
         <source>Download</source>
         <translation>Descargar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="111"/>
+        <location filename="../UI/MediaBubble.qml" line="113"/>
         <source>Sending</source>
         <translation>Enviando</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="111"/>
+        <location filename="../UI/MediaBubble.qml" line="113"/>
         <source>Downloading</source>
         <translation>Descargando</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="127"/>
+        <location filename="../UI/MediaBubble.qml" line="129"/>
         <source>Retry</source>
         <translation>Reintentar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="150"/>
+        <location filename="../UI/MediaBubble.qml" line="163"/>
         <source>Multimedia message</source>
         <translation>Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="170"/>
+        <location filename="../UI/MediaBubble.qml" line="183"/>
         <source>Initializing</source>
         <translation>Inicializando</translation>
     </message>
@@ -400,24 +421,39 @@
 <context>
     <name>SpeechBubble</name>
     <message>
-        <location filename="../UI/SpeechBubble.cepi.qml" line="162"/>
         <source>Multimedia message</source>
-        <translation>Mensaje multimedia</translation>
+        <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/SpeechBubble.cepi.qml" line="162"/>
         <source>My location</source>
-        <translation>Mi ubicación</translation>
+        <translation type="obsolete">Mi ubicación</translation>
     </message>
     <message>
-        <location filename="../UI/SpeechBubble.qml" line="111"/>
         <source>Today</source>
-        <translation>Hoy</translation>
+        <translation type="obsolete">Hoy</translation>
     </message>
     <message>
-        <location filename="../UI/SpeechBubble.qml" line="111"/>
         <source>Yesterday</source>
-        <translation>Ayer</translation>
+        <translation type="obsolete">Ayer</translation>
+    </message>
+</context>
+<context>
+    <name>StanzaReader</name>
+    <message>
+        <source>Image</source>
+        <translation type="obsolete">Imagen</translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation type="obsolete">Audio</translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation type="obsolete">Video</translation>
+    </message>
+    <message>
+        <source>My location</source>
+        <translation type="obsolete">Mi ubicación</translation>
     </message>
 </context>
 <context>
@@ -446,9 +482,8 @@
 <context>
     <name>TextBubble</name>
     <message>
-        <location filename="../UI/TextBubble.qml" line="25"/>
         <source>My location</source>
-        <translation>Mi ubicación</translation>
+        <translation type="obsolete">Mi ubicación</translation>
     </message>
 </context>
 <context>
@@ -461,7 +496,7 @@
     <message>
         <location filename="../UI/UserStatus.qml" line="103"/>
         <source>Last seen:</source>
-        <translation>Visto el:</translation>
+        <translation>Visto última vez:</translation>
     </message>
     <message>
         <location filename="../UI/UserStatus.qml" line="104"/>
@@ -477,17 +512,6 @@
         <location filename="../UI/UserStatus.qml" line="111"/>
         <source>Typing...</source>
         <translation>Escribiendo...</translation>
-    </message>
-</context>
-<context>
-    <name>WAEventHandler</name>
-    <message>
-        <source>Multimedia message</source>
-        <translation type="obsolete">Mensaje multimedia</translation>
-    </message>
-    <message>
-        <source>My location</source>
-        <translation type="obsolete">Mi ubicación</translation>
     </message>
 </context>
 <context>
@@ -543,62 +567,62 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../UI/main.qml" line="207"/>
+        <location filename="../UI/main.qml" line="214"/>
         <source>Retrieving contacts list...</source>
         <translation>Recuperando lista de contactos...</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="208"/>
+        <location filename="../UI/main.qml" line="215"/>
         <source>Fetching contacts...</source>
         <translation>Buscando contactos...</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="209"/>
+        <location filename="../UI/main.qml" line="216"/>
         <source>Loading contacts...</source>
         <translation>Cargando contactos...</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="376"/>
+        <location filename="../UI/main.qml" line="383"/>
         <source>Chats</source>
         <translation>Chats</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="382"/>
+        <location filename="../UI/main.qml" line="389"/>
         <source>Contacts</source>
         <translation>Contactos</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="420"/>
+        <location filename="../UI/main.qml" line="427"/>
         <source>Confirm Quit</source>
         <translation>Confirmar salida</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="421"/>
+        <location filename="../UI/main.qml" line="428"/>
         <source>Are you sure you want to quit Wazapp?</source>
         <translation>Está seguro que desea salir de Wazapp?</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="422"/>
+        <location filename="../UI/main.qml" line="429"/>
         <source>Yes</source>
         <translation>Si</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="423"/>
+        <location filename="../UI/main.qml" line="430"/>
         <source>No</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="435"/>
+        <location filename="../UI/main.qml" line="442"/>
         <source>Wazapp %1 is now available for update!</source>
         <translation>Wazapp %1 ya está disponible para actualizar!</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="437"/>
+        <location filename="../UI/main.qml" line="444"/>
         <source>Details</source>
         <translation>Detalles</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="438"/>
+        <location filename="../UI/main.qml" line="445"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>

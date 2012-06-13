@@ -140,6 +140,7 @@ class WAEventHandler(WAEventBase):
 			self.networkDisconnected()
 			self.networkAvailable();
 			
+		Utilities.debug("CHECK PASSEDDDDDDDDDDDDDDD")
 	
 	def onLoginFailed(self):
 		self.loginFailed.emit()
@@ -711,6 +712,8 @@ class StanzaReader(QThread):
 							
 					fmsg.Media = mediaItem
 
+					#if ProtocolTreeNode.tagEquals(childNode,"body"):   This suposses handle MEDIA + TEXT
+					#	msgdata = msgdata + " " + childNode.data;		But it's not supported in whatsapp?
 
 					key = Key(fromAttribute,False,msg_id);
 					ret = WAXMPP.message_store.get(key);

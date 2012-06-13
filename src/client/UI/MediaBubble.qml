@@ -31,9 +31,11 @@ SpeechBubble {
 		loaded = true
         if(!media.preview){
             switch(media.mediatype_id){
-                case 2:thumb = "pics/content-image.png"; break;
-                case 3:thumb = "pics/content-audio.png";break;
-                case 4:thumb = "pics/content-video.png";break;
+                case 2: thumb = "image://theme/icon-m-content-image"; break;
+                case 3: thumb = "image://theme/icon-m-content-audio"; break;
+                case 4: thumb = "image://theme/icon-m-content-videos"; break;
+				case 5: thumb = "image://theme/icon-m-content-localities"; transferState = "success"; openButton.text = message; break;
+				case 6: thumb = "image://theme/icon-m-content-avatar-placeholder"; transferState = "success"; openButton.text = message; break;
             }
         }
         else if(media.mediatype_id == 2 || media.mediatype_id == 5){
@@ -51,8 +53,8 @@ SpeechBubble {
     bubbleContent: Rectangle {
 
         id:realContainer
-        width: state=="success" ? openButton.paintedWidth : 180
-        height: state=="success" ? 32 : 60
+        width: (state=="success" ? openButton.paintedWidth : 180) + 66
+        height: state=="success" ? 54 : 80
         color:"transparent"
 		anchors.left: parent.left
 		anchors.leftMargin: (appWindow.inPortrait?480:854) -(openButton.visible?openButton.paintedWidth:180) - 86
@@ -130,6 +132,17 @@ SpeechBubble {
 
         ]
 
+		RoundedImage {
+			id: mmsimage
+			width: istate=="Loaded!" ? 66 : 0 
+			size: istate=="Loaded!" ? 60 : 0
+			height: width
+			x: from_me ? 18 : parent.width - 58
+			y: name==="" ? -1 : - 28
+			visible: msg_image!=""
+			imgsource: msg_image
+		}
+
         Item{
             id:buttonsHolder
 
@@ -137,7 +150,7 @@ SpeechBubble {
             height:openButton.height
             anchors.verticalCenter: msg_image.verticalCenter
             anchors.right: msg_image.left
-            anchors.rightMargin: 10
+            anchors.rightMargin: 8
 
             Label {
                 id: openButton
@@ -187,13 +200,14 @@ SpeechBubble {
             minimumValue: 0
             maximumValue: 100
             value:progress
-            width: parent.width-20
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: buttonsHolder.width
+            anchors.left: buttonsHolder.left
             anchors.top:buttonsHolder.bottom
             anchors.topMargin: 10
 			visible: state!="success"
 
         }
+
 
     }
 

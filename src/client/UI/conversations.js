@@ -33,7 +33,7 @@ function addMessage(message)
     var author = message.contact;
 
 
-    conv_data.insert(conv_data.count,{"msg_id":message.id,
+    conv_data.insert(conv_data.count -1,{"msg_id":message.id,
                                         "message":message.content,
                                         "type":message.type,
                                         "timestamp":message.formattedDate,

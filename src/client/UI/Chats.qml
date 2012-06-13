@@ -175,7 +175,7 @@ Page {
 					qsTr("Group (%1)").arg(getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net")) : contactInfo.name
 			isGroup: contactInfo.name.indexOf("-")>0
 			number:model.jid;
-            lastMsg: model.content=="Multimedia message" ? qsTr("Multimedia message") : Helpers.emojify(Helpers.linkify(model.content))
+            lastMsg: Helpers.emojify(Helpers.linkify(model.content))
             time:model.timestamp
             formattedDate: Helpers.getDateText(model.formattedDate).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
             onClicked: chatsContainer.clicked(model.jid,"chats")

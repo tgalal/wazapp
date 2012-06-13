@@ -137,7 +137,7 @@ Rectangle{
 
         Column{
 			id:last_msg_wrapper
-		    width:parent.width - 100
+		    width:parent.width - 90
 			spacing: 0
 
 		    Label{
@@ -159,9 +159,8 @@ Rectangle{
  				}
                 Label{
                     id:last_msg
-		            text: lastMsg.indexOf("wazappmms:")===0 ? lastMsg.substr(-4)==".vcf" ? lastMsg.replace("wazappmms:","").replace(".vcf","") : 
-							qsTr("Multimedia message") : lastMsg.indexOf("wazapplocation:")===0 ? qsTr("My location") : lastMsg
-                   	//width:parent.width
+		            text: lastMsg
+                   	width:parent.width
                     elide: Text.ElideRight
                     font.pixelSize: 20
                     height: 30
@@ -175,10 +174,7 @@ Rectangle{
                 font.pixelSize: 16
 				color: "gray"
 				height: 30
-                //horizontalAlignment: Text.AlignRight
-                //anchors.right: parent.right
                 width:parent.width
-                //horizontalAlignment: Text.AlignRight
 
             }
 		    

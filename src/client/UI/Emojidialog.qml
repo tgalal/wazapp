@@ -169,10 +169,7 @@ Dialog {
 
 							onClicked: {
 								var codeX = emojiDelegate.codeS;
-								if ( emojiDialogParent=="conversation" )
-									chat_text.text += '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-20/emoji-E'+codeX+'.png" />'
-								else if ( emojiDialogParent=="status" )
-									status_text.text += '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-20/emoji-E'+codeX+'.png" />'
+								addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/pics/emoji-20/emoji-E'+codeX+'.png" />'
 								emojiSelector.reject()
 							}
 						}
@@ -190,14 +187,27 @@ Dialog {
 		}
 	}
 
+	function cleanText(txt) {
+		var repl = "p, li { white-space: pre-wrap; }";
+		var res = txt;
+		res = Helpers.getCode(res);
+		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
+		return res.replace(/^\s+/,"");
+	}	
+
+
 	onRejected: {
 		if ( emojiDialogParent=="conversation" ) {
 			showSendButton=true
-			chat_text.forceActiveFocus()
-			chat_text.positionAt = chat_text.text.lenght
-			flickArea.contentY = flickArea.contentY
+			addEmojiToChat()
+			goToEndOfList()
+			setFocusToChatText()
 		}
 		else if ( emojiDialogParent=="status" ) {
+			var str = cleanText(status_text.text)
+			str = str.substring(0,status_text.lastPosition) + cleanText(addedEmojiCode) + str.slice(status_text.lastPosition)
+			status_text.text = Helpers.emojify2(str)
+			status_text.cursorPosition = status_text.lastPosition + 1
 			status_text.forceActiveFocus()
 		}
 	}

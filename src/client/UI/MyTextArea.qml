@@ -5,10 +5,12 @@ import Qt.labs.components 1.0
 import "/usr/lib/qt4/imports/com/nokia/meego/UIConstants.js" as UI
 import "/usr/lib/qt4/imports/com/nokia/meego/EditBubble.js" as Popup
 import "/usr/lib/qt4/imports/com/nokia/meego/TextAreaHelper.js" as TextAreaHelper
-import "/usr/lib/qt4/imports/com/nokia/meego/Magnifier.js" as MagnifierPopup
 
 FocusScope {
     id: root
+
+	signal enterKeyClicked
+	property int lastPosition:0
 
     // Common public API
     property alias text: textEdit.text
@@ -42,14 +44,6 @@ FocusScope {
     property alias style: root.platformStyle
 
     property alias platformPreedit: inputMethodObserver.preedit
-
-	platformSipAttributes: SipAttributes { 
-		actionKeyEnabled: true
-		actionKeyIcon: "image://theme/icon-m-toolbar-send-chat-white"
-		actionKeyLabel: ""
-	}
-    Keys.onEnterPressed: input_button_holder.send_button.clicked()
-    Keys.onReturnPressed: input_button_holder.send_button.clicked()
 
     onPlatformSipAttributesChanged: {
         platformSipAttributes.registerInputElement(textEdit)
@@ -181,6 +175,10 @@ FocusScope {
         property alias preedit: inputMethodObserver.preedit
         property alias preeditCursorPosition: inputMethodObserver.preeditCursorPosition
 
+		Keys.onEnterPressed: { enterKeyClicked() }
+		Keys.onReturnPressed: { enterKeyClicked() }
+
+
         x: UI.PADDING_XLARGE
         y: (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize) / 2
         width: parent.width - UI.PADDING_XLARGE * 2
@@ -194,22 +192,6 @@ FocusScope {
         wrapMode: TextEdit.Wrap
         persistentSelection: false
         focus: true
-
-        function updateMagnifierPosition() {
-            var magnifier = MagnifierPopup.popup;
-            var mappedPos =  mapToItem(magnifier.parent, positionToRectangle(cursorPosition).x - magnifier.width / 2,
-                                       positionToRectangle(cursorPosition).y - magnifier.height / 2 - 70);
-
-            magnifier.xCenter = positionToRectangle(cursorPosition).x / root.width;
-            magnifier.x = mappedPos.x;
-            if (-root.mapFromItem(magnifier.__rootElement(), 0,0).y - positionToRectangle(cursorPosition).y < (magnifier.height / 1.5)) {
-                magnifier.yAdjustment = Math.max(0,(magnifier.height / 1.5) + root.mapFromItem(magnifier.__rootElement(), 0,0).y - positionToRectangle(cursorPosition).y);
-            } else {
-                magnifier.yAdjustment = 0;
-            }
-            magnifier.yCenter = 1.0 - ((50 + (positionToRectangle(cursorPosition).y)) / root.height);
-            magnifier.y = mappedPos.y + magnifier.yAdjustment;
-        }
 
         Component.onDestruction: {
             Popup.close(textEdit);
@@ -256,9 +238,7 @@ FocusScope {
         }
 
         onCursorPositionChanged: {
-            if (MagnifierPopup.isOpened()) {
-                updateMagnifierPosition();
-            } else if(activeFocus) {
+			if(activeFocus) {
                 TextAreaHelper.repositionFlickable(contentMovingAnimation)
             }
 
@@ -338,25 +318,8 @@ FocusScope {
                 }
             }
 
-            /*onPressAndHold:{
-                // possible pre-edit word have to be commited before showing the magnifier
-                if ((root.text != "" || inputMethodObserver.preedit != "") && root.activeFocus) {
-                    inputContext.reset()
-                    attemptToActivate = false
-                    parent.selectByMouse = false
-                    MagnifierPopup.open(root);
-                    var magnifier = MagnifierPopup.popup;
-                    parent.updateMagnifierPosition()
-                    parent.cursorPosition = textEdit.positionAt(mouse.x, mouse.y)
-                    root.z = Number.MAX_VALUE
-                }
-            }*/
 
             onReleased:{
-                if (MagnifierPopup.isOpened()) {
-                    MagnifierPopup.close();
-                    TextAreaHelper.repositionFlickable(contentMovingAnimation);
-                }
 
                 if (attemptToActivate) {
                     inputContext.reset();
@@ -395,18 +358,9 @@ FocusScope {
             }
             onFinished: {
                 if (root.activeFocus && platformEnableEditBubble)
-                    Popup.open(textEdit);
+                    Popup.open(textEdit, textEdit.cursorPosition);
             }
-            onMousePositionChanged: {
-               //if (MagnifierPopup.isOpened() && !parent.selectByMouse) {
-                    var pos = textEdit.positionAt (mouse.x,mouse.y)
-                    var posNextLine = textEdit.positionAt (mouse.x, mouse.y + 1)
-                    var posPrevLine = textEdit.positionAt (mouse.x, mouse.y - 1)
-                    if (!(Math.abs(posNextLine - pos) > 1 || Math.abs(posPrevLine - pos) > 1)) {
-                        parent.cursorPosition = pos
-                    }
-                //}
-            }
+
             onDoubleClicked: {
                 // possible pre-edit word have to be committed before selection
                 inputContext.reset()

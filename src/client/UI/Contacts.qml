@@ -202,7 +202,8 @@ Page {
         searchInput.enabled = false
         sbutton.enabled = false
         searchInput.text = ""
-        searchInput.platformCloseSoftwareInputPanel()
+        searchInput.focus = false
+		list_view1.forceActiveFocus()
         timer.stop()
     }
 
@@ -217,16 +218,6 @@ Page {
         list_view1.forceActiveFocus()
         timer.start()
     }
-
-	function filterContacts() {
-		for ( var i=0; i<list_view1.count; ++i )
-        {
-			if ( contactsModel.get(i).name.match(new RegExp(searchInput.text,"i")) )
-				contactsModel.get(i).falphabet = contactsModel.get(i).alphabet
-			else
-				contactsModel.get(i).falphabet = ""
-		}
-	}
 
     function replaceText(text,str) {
         var ltext = text.toLowerCase()
@@ -254,7 +245,7 @@ Page {
         Contact{
 			property bool filtered: model.name.match(new RegExp(searchInput.text,"i")) != null
             height: filtered ? 80 : 0
-
+			visible: height!=0
 			jid:model.jid
             number:model.number
             picture:model.picture
@@ -263,9 +254,10 @@ Page {
 			myData: model
 
             onClicked: {
-				//hideSearchBar()
-				if(searchbar.height==71) searchInput.platformCloseSoftwareInputPanel()
 				openChatWindow(model.jid)
+				hideSearchBar()
+				list_view1.positionViewAtBeginning()
+				if(searchbar.height==71) searchInput.platformCloseSoftwareInputPanel()
 			}
         }
     }
@@ -305,10 +297,7 @@ Page {
 			    anchors.left: srect.left
 			    width: parent.width
 			    enabled: false
-			    onTextChanged: {
-			        timer.restart()
-					filterContacts()
-			    }
+			    onTextChanged: timer.restart()
 			}
 
 			Image {
@@ -325,7 +314,6 @@ Page {
 			    MouseArea {
 			        anchors.fill: parent
 			        onClicked: {
-						console.log("MOUSE AREA PRESSED!")
 			            searchInput.text = ""
 			            searchInput.forceActiveFocus()
 			        }
@@ -385,15 +373,16 @@ Page {
             model: contactsModel
             delegate: myDelegate
             spacing: 1
+			cacheBuffer: 10000
 			highlightFollowsCurrentItem: false
-            section.property: "falphabet"
+            section.property: "alphabet"
             section.criteria: ViewSection.FirstCharacter
 
             section.delegate: GroupSeparator {
 				anchors.left: parent.left
 				anchors.leftMargin: 16
 				width: parent.width - 44
-				height: section!="" ? 50 : 0
+				height: searchInput.text==="" ? 50 : 0
 				title: section
 			}
 
@@ -411,6 +400,7 @@ Page {
 		FastScroll {
 			id: fast
 			listView: list_view1
+			enabled: searchInput.text===""
 		}
 
     }

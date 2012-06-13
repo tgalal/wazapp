@@ -76,6 +76,7 @@ Page {
 			    width:parent.width
 				wrapMode: TextEdit.Wrap
 				textFormat: Text.RichText
+				onActiveFocusChanged: { lastPosition = status_text.cursorPosition }
 			}
 
 			Rectangle {

@@ -223,7 +223,7 @@ Page {
 					id: bcArea
 					anchors.fill: parent
 					onClicked: { 
-						chatsTabButton.clicked()
+                        //chatsTabButton.clicked()
 						appWindow.pageStack.pop(1)
 					}
 				}

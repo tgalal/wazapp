@@ -238,8 +238,8 @@ class MessageStore(QObject):
 		if message.Media is not None and message.Media.mediatype_id:
 			#message.Media.setMessageId(message.id)
 			message.Media.save()
-		
-		message.media_id = message.Media.id
+			message.media_id = message.Media.id
+			
 		message.save();
 		
 		

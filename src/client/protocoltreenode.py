@@ -221,7 +221,7 @@ class BinTreeNodeReader():
 		ret = self.nextTreeInternal();
 		Utilities.debug("<<")
 		if ret is not None:
-			'''Utilities.debug(ret.toString());'''
+			Utilities.debug(ret.toString());
 		return ret;
 	
 	def fillBuffer(self,stanzaSize):
@@ -366,7 +366,7 @@ class BinTreeNodeWriter():
 			self.out.write(0);
 		else:
 			Utilities.debug(">>");
-			'''Utilities.debug(node.toString());'''
+			Utilities.debug(node.toString());
 			self.writeInternal(node);
 		
 		self.flushBuffer(needsFlush);

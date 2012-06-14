@@ -158,11 +158,11 @@ class WAUI(QDeclarativeView):
 		#if self.whatsapp is not None:
 		#	self.whatsapp.eventHandler.networkDisconnected()
 
-	def populateAllConversations(self, user_id):
+	def populateAllConversations(self, user_id, first, limit):
 
 		#self.rootObject().onReloadingConversations()
 		
-		self.messageStore.loadAllConversations(user_id)
+		self.messageStore.loadAllConversations(user_id, first, limit)
 
 		
 	def populateConversations(self):

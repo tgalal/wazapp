@@ -162,7 +162,7 @@ SpeechBubble {
 				font.weight: Font.Light
 				font.pixelSize: 23
 				color: from_me? "black" : "white"
-                text: qsTr(message)
+                text: qsTr("Multimedia message") //qsTr(message) I'll fix it later
 				onVisibleChanged: {
 					//if (state!="success") return;
 					//fromMediaDownloaded = true

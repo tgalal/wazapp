@@ -314,7 +314,8 @@ class Model(object):
 		
 		return condsStr;
 	
-	def findAll(self,conditions="",fields = [],order=[],limit=None):
+	def findAll(self, conditions="", fields=[], order=[], first=None, limit=None):
+
 		condsStr = "";
 		if type(conditions) == dict:
 			condsStr = self.buildConds(conditions);
@@ -341,10 +342,15 @@ class Model(object):
 			orderStr = ",".join(order);
 			query = query + orderStr;
 		
-		
+
 		if limit is not None and type(limit) == int:
 			query=query+" LIMIT %i"%limit
+
+
+		if first is not None and type(first) == int:
+			query=query+" OFFSET %i"%first
 		
+
 		results = self.runQuery(query);
 		
 		data = []

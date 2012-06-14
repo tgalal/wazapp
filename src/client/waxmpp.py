@@ -22,7 +22,7 @@ from utilities import Utilities, S40MD5Digest
 from protocoltreenode import BinTreeNodeWriter,BinTreeNodeReader,ProtocolTreeNode
 from connengine import MySocketConnection
 from walogin import WALogin;
-from funstore import FunStore
+#from funstore import FunStore
 from waeventbase import WAEventBase
 #from contacts import WAContacts;
 from messagestore import Key;

@@ -140,12 +140,12 @@
         <translation type="obsolete">Chats</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="356"/>
+        <location filename="../UI/Conversation.qml" line="396"/>
         <source>Loading conversation...</source>
         <translation>Cargando conversación...</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="257"/>
+        <location filename="../UI/Conversation.qml" line="259"/>
         <source>Group (%1)</source>
         <translation>Grupo (%1)</translation>
     </message>
@@ -162,17 +162,22 @@
         <translation type="obsolete">Escriba su mensaje aquí</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="240"/>
+        <location filename="../UI/Conversation.qml" line="242"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="439"/>
+        <location filename="../UI/Conversation.qml" line="359"/>
+        <source>Read more messages</source>
+        <translation>Leer más mensajes</translation>
+    </message>
+    <message>
+        <location filename="../UI/Conversation.qml" line="482"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="472"/>
+        <location filename="../UI/Conversation.qml" line="515"/>
         <source>Copy</source>
         <translation>Copiar</translation>
     </message>
@@ -254,8 +259,9 @@
         <translation>Reintentar</translation>
     </message>
     <message>
+        <location filename="../UI/MediaBubble.qml" line="165"/>
         <source>Multimedia message</source>
-        <translation type="obsolete">Mensaje multimedia</translation>
+        <translation>Mensaje multimedia</translation>
     </message>
     <message>
         <location filename="../UI/MediaBubble.qml" line="185"/>
@@ -425,14 +431,12 @@
 <context>
     <name>SpeechBubble</name>
     <message>
-        <location filename="../UI/SpeechBubble.cepi.qml" line="162"/>
         <source>Multimedia message</source>
-        <translation>Mensaje multimedia</translation>
+        <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/SpeechBubble.cepi.qml" line="162"/>
         <source>My location</source>
-        <translation>Mi ubicación</translation>
+        <translation type="obsolete">Mi ubicación</translation>
     </message>
     <message>
         <source>Today</source>

@@ -17,6 +17,9 @@ Page {
 
 	property bool loaded: false
 
+	property int convLoaded: 0
+	property bool loadConvsReverse: false
+
     onStatusChanged: {
         if(status == PageStatus.Deactivating){
             appWindow.setActiveConv("")
@@ -24,16 +27,15 @@ Page {
         else if(status == PageStatus.Active){
 			if (!loaded) {
 				loaded = true
-				// load entire conversation when the page is active
-				// but the last message is already loaded for chats window
-				// so I need to hide it (removing it causes scrolling problems)
-				if (conv_items.count>1) {
-					// hide the item only if the page has messages
-					conv_items.currentIndex=0
-					conv_items.currentItem.height=0
-					conv_items.currentItem.visible=false
-				}
-				appWindow.loadConversationsThread(user_id);
+				loadConvsReverse = true
+				convLoaded = 0
+				appWindow.loadConversationsThread(user_id, 1, 14);
+				loadConvsReverse = false
+				if (conv_data.count>15) 
+					conv_items.header = readMoreDelegate
+				else
+					conv_items.header = readMoreDelegateEmpty
+				conv_items.positionViewAtEnd()
 			}
             appWindow.conversationActive(user_id);
             appWindow.setActiveConv(user_id)
@@ -343,6 +345,44 @@ Page {
 	    }
 	}
 
+	Component {
+		id: readMoreDelegate
+		Rectangle {
+			width: appWindow.inPortrait ? 480 : 854
+			height: 65
+			color: "transparent"
+			Button {
+				height: 45
+				width: parent.width - 120
+				anchors.horizontalCenter: parent.horizontalCenter
+				anchors.verticalCenter: parent.verticalCenter
+				text: qsTr("Read more messages")
+                font.pixelSize: 20
+				onClicked: {
+					loadConvsReverse = true
+					convLoaded = 0
+					var cInt = conv_data.count+14
+					appWindow.loadConversationsThread(user_id, conv_data.count-1, 15);
+					loadConvsReverse = false
+					if ( cInt > conv_data.count )
+						conv_items.header = readMoreDelegateEmpty
+					else
+						conv_items.header = readMoreDelegate
+				}
+			}
+		}
+	}
+
+	Component {
+		id: readMoreDelegateEmpty
+		Rectangle {
+			color: "transparent"
+			height: 0
+			width: appWindow.inPortrait ? 480 : 854
+		}
+	}
+
+
 	Rectangle {
 		color: theme.inverted? "transparent" : "#dedfde"
 		anchors.top: parent.top
@@ -381,6 +421,9 @@ Page {
 			width: parent.width
 			cacheBuffer: 10000
 			visible: loaded
+			onCountChanged: {
+				if (conv_data.count>1) convLoaded = convLoaded+1
+			}
 		}
 	}
 

@@ -16,12 +16,12 @@
         <translation>Ayer</translation>
     </message>
     <message>
-        <location filename="../UI/BubbleDelegate.qml" line="199"/>
+        <location filename="../UI/BubbleDelegate.qml" line="220"/>
         <source>Write your message here</source>
         <translation>Escriba su mensaje aquí</translation>
     </message>
     <message>
-        <location filename="../UI/BubbleDelegate.qml" line="219"/>
+        <location filename="../UI/BubbleDelegate.qml" line="240"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
@@ -162,6 +162,11 @@
         <translation type="obsolete">Escriba su mensaje aquí</translation>
     </message>
     <message>
+        <location filename="../UI/Conversation.qml" line="240"/>
+        <source>Back</source>
+        <translation>Atrás</translation>
+    </message>
+    <message>
         <location filename="../UI/Conversation.qml" line="439"/>
         <source>Send</source>
         <translation>Enviar</translation>
@@ -223,38 +228,37 @@
 <context>
     <name>MediaBubble</name>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="77"/>
+        <location filename="../UI/MediaBubble.qml" line="79"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="77"/>
-        <location filename="../UI/MediaBubble.qml" line="179"/>
+        <location filename="../UI/MediaBubble.qml" line="79"/>
+        <location filename="../UI/MediaBubble.qml" line="181"/>
         <source>Download</source>
         <translation>Descargar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="113"/>
+        <location filename="../UI/MediaBubble.qml" line="115"/>
         <source>Sending</source>
         <translation>Enviando</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="113"/>
+        <location filename="../UI/MediaBubble.qml" line="115"/>
         <source>Downloading</source>
         <translation>Descargando</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="129"/>
+        <location filename="../UI/MediaBubble.qml" line="131"/>
         <source>Retry</source>
         <translation>Reintentar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="163"/>
         <source>Multimedia message</source>
-        <translation>Mensaje multimedia</translation>
+        <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="183"/>
+        <location filename="../UI/MediaBubble.qml" line="185"/>
         <source>Initializing</source>
         <translation>Inicializando</translation>
     </message>
@@ -421,12 +425,14 @@
 <context>
     <name>SpeechBubble</name>
     <message>
+        <location filename="../UI/SpeechBubble.cepi.qml" line="162"/>
         <source>Multimedia message</source>
-        <translation type="obsolete">Mensaje multimedia</translation>
+        <translation>Mensaje multimedia</translation>
     </message>
     <message>
+        <location filename="../UI/SpeechBubble.cepi.qml" line="162"/>
         <source>My location</source>
-        <translation type="obsolete">Mi ubicación</translation>
+        <translation>Mi ubicación</translation>
     </message>
     <message>
         <source>Today</source>

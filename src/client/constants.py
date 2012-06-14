@@ -28,7 +28,7 @@ class WAConstants():
 	AUDIO_PATH = MEDIA_PATH+'/audio'
 	IMAGE_PATH = MEDIA_PATH+'/images'
 	VIDEO_PATH = MEDIA_PATH+'/videos'
-	CONTACT_PATH = MEDIA_PATH+'/contacts'
+	VCARD_PATH = MEDIA_PATH+'/contacts'
 		
 	CLIENT_INSTALL_PATH = '/opt/waxmppplugin/bin/wazapp'
 	
@@ -45,5 +45,4 @@ class WAConstants():
 	MEDIA_TYPE_AUDIO	= Mediatype.TYPE_AUDIO
 	MEDIA_TYPE_VIDEO	= Mediatype.TYPE_VIDEO
 	MEDIA_TYPE_LOCATION	= Mediatype.TYPE_LOCATION
-	MEDIA_TYPE_CONTACT	= Mediatype.TYPE_CONTACT
-
+	MEDIA_TYPE_VCARD	= Mediatype.TYPE_VCARD

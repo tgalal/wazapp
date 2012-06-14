@@ -237,13 +237,13 @@ Page {
 					anchors.verticalCenter: parent.verticalCenter
 					anchors.horizontalCenter: parent.horizontalCenter
 					font.pixelSize: 22; font.bold: true
-					text: "Chats"
+                    text: qsTr("Back")
 				}
 				MouseArea {
 					id: bcArea
 					anchors.fill: parent
 					onClicked: { 
-						chatsTabButton.clicked()
+                        //chatsTabButton.clicked()
 						appWindow.pageStack.pop(1)
 					}
 				}

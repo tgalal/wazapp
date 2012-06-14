@@ -213,7 +213,7 @@ class LiteStore(DataStore):
 			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (3,'video',0)")
 			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (4,'voice',0)")
 			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (5,'location',0)")
-			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (6,'contact',0)")
+			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (6,'vcf',0)")
 			
 			
 			q = 'CREATE TABLE IF NOT EXISTS "main"."media" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "mediatype_id" INTEGER NOT NULL, "preview" VARCHAR,"remote_url" VARCHAR, "local_path" VARCHAR, transfer_status INTEGER NOT NULL DEFAULT 0)'

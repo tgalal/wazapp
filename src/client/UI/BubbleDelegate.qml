@@ -91,10 +91,29 @@ Item {
            name: delegateContainer.name
            state_status:delegateContainer.state_status
            media: delegateContainer.media//.preview?delegateContainer.media.preview:""
+           message: delegateContainer.message
 
            onOptionsRequested: {
                delegateContainer.optionsRequested()
            }
+
+           onClicked: {
+               if(delegateContainer.media.transfer_status != 2)
+                   return;
+
+               var prefix = "";
+
+               switch(delegateContainer.media.mediatype_id){
+
+                   case 5:prefix = "geo:"; break;
+                   default: prefix = "file:///";break;
+
+               }
+
+               Qt.openUrlExternally(prefix+delegateContainer.media.local_path);
+
+           }
+
            onDownloadClicked: {
 
                if(delegateContainer.isGroup){

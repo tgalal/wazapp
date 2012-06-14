@@ -694,7 +694,6 @@ class StanzaReader(QThread):
 					elif mediaType == "video":
 						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
 					elif mediaType == "location":
-						return
 						mlatitude = messageNode.getChild("media").getAttributeValue("latitude")
 						mlongitude = messageNode.getChild("media").getAttributeValue("longitude")
 						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_LOCATION

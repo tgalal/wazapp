@@ -7,10 +7,11 @@ SpeechBubble {
     id:mediaBubble
 
 
-
+    property string message;
     property string thumb;
     property int progress:0
     property variant media;
+
 
     property string transferState;
 
@@ -27,22 +28,23 @@ SpeechBubble {
 
 
     Component.onCompleted: {
-        var thumb = ""
+
 		loaded = true
-        if(!media.preview){
-            switch(media.mediatype_id){
-                case 2: thumb = "image://theme/icon-m-content-image"; break;
-                case 3: thumb = "image://theme/icon-m-content-audio"; break;
-                case 4: thumb = "image://theme/icon-m-content-videos"; break;
-				case 5: thumb = "image://theme/icon-m-content-localities"; transferState = "success"; openButton.text = message; break;
-				case 6: thumb = "image://theme/icon-m-content-avatar-placeholder"; transferState = "success"; openButton.text = message; break;
-            }
-        }
-        else if(media.mediatype_id == 2 || media.mediatype_id == 5){
-            thumb ="data:image/jpg;base64," + media.preview
+
+
+        switch(media.mediatype_id){
+            case 2: thumb = !media.local_path?"data:image/jpg;base64,"+media.preview:"file://"+media.local_path; break;
+            case 3: thumb = "image://theme/icon-m-content-audio"; break;
+            case 4: thumb = "image://theme/icon-m-content-videos"; break;
+            case 5: thumb = media.preview?"data:image/jpg;base64,"+media.preview:"image://theme/icon-m-content-localities"; transferState = "success"; openButton.text = message; break;
+            case 6: thumb = "image://theme/icon-m-content-avatar-placeholder"; transferState = "success"; openButton.text = message; break;
         }
 
-        msg_image = thumb
+
+
+
+
+        //msg_image = thumb
     }
 
 
@@ -139,8 +141,8 @@ SpeechBubble {
 			height: width
 			x: from_me ? 18 : parent.width - 58
 			y: name==="" ? -1 : - 28
-			visible: msg_image!=""
-			imgsource: msg_image
+            visible: thumb!=""
+            imgsource: thumb
 		}
 
         Item{
@@ -148,8 +150,8 @@ SpeechBubble {
 
             width: openButton.visible? openButton.paintedWidth : 180
             height:openButton.height
-            anchors.verticalCenter: msg_image.verticalCenter
-            anchors.right: msg_image.left
+           // anchors.verticalCenter: msg_image.verticalCenter
+            //anchors.right: msg_image.left
             anchors.rightMargin: 8
 
             Label {
@@ -160,7 +162,7 @@ SpeechBubble {
 				font.weight: Font.Light
 				font.pixelSize: 23
 				color: from_me? "black" : "white"
-                text: qsTr("Multimedia message")
+                text: qsTr(message)
 				onVisibleChanged: {
 					//if (state!="success") return;
 					//fromMediaDownloaded = true

@@ -14,7 +14,6 @@ Rectangle {
     property int msg_id;
     property string state_status;
     property variant media;
-	property string msg_image
 	property int childrenWidth
 
     property alias bubbleContent:bubbleContent.children
@@ -23,6 +22,7 @@ Rectangle {
     state: state_status;
 
 	signal optionsRequested();
+    signal clicked();
 
 	width: appWindow.inPortrait ? 480 : 854
 	height: bubbleContent.children[0].height + (mediatype_id==1?msg_date.height:0) + 
@@ -48,9 +48,7 @@ Rectangle {
 			id: mArea
 			anchors.fill: parent
 			onClicked: {
-				if (mediatype_id!=1 && transferState=="success") {
-				 	Qt.openUrlExternally("file:///"+media.local_path)
-				}
+                bubble.clicked();
 			}
 			onPressAndHold:{
 				console.log("pressed and held!")

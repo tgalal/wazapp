@@ -208,7 +208,7 @@ Page {
 
             Label{
                 anchors.centerIn: parent;
-                text:"No conversations yet"
+                text: qsTr("No conversations yet")
                 font.pointSize: 22
 				color: "gray"
                 width:parent.width

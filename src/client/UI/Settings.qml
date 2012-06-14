@@ -70,7 +70,7 @@ Page {
         id:aboutDialog
         //anchors.fill: parent
 		icon: "pics/wazapp80.png"
-        titleText: "Wazapp"
+        titleText: qsTr("Wazapp")
         message: qsTr("version") + " " + waversion + "\n\n" + 
                  qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
 				 qsTr("You are trying it at your own risk.") + "\n" + 
@@ -117,7 +117,7 @@ Page {
 					width: parent.width
 					anchors.verticalCenter: parent.verticalCenter
 					horizontalAlignment: Text.AlignRight
-					text: "Online"
+					text: qsTr("Online")
 					color: "green"
 				}
             

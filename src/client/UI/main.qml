@@ -200,6 +200,17 @@ WAStackWindow {
 		addToUread = true
 	}
 
+	//prevent double opened, sometimes QContactsManager sends more than 1 signal
+	property bool updateContactsOpenend: false
+
+	function onContactsChanged() {
+		if (updateContactsOpenend==false) {
+		console.log("CONTACTS CHANGED!!!");
+			updateContactsOpenend = true
+			//updateContacts.open()  UI crashes with this, needs more work
+		}
+	}	
+
     function onSyncClicked(){
         tabGroups.currentTab=waContacts;
         //loadingPage.operation="Refreshing Contacts"
@@ -434,6 +445,15 @@ WAStackWindow {
             aboutDialog.open();
         }*/
 
+    }
+
+    QueryDialog {
+        id: updateContacts
+        titleText: qsTr("Update Contacts")
+        message: qsTr("The Phone contacts database has changed. Do you want to sync contacts now?")
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
+        onAccepted: { updateContactsOpenend = false; syncClicked(); }
     }
 
     QueryDialog {

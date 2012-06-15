@@ -20,6 +20,9 @@ Page {
 	property int convLoaded: 0
 	property bool loadConvsReverse: false
 
+	property string contactNumber
+	property bool showContactDetails
+
     onStatusChanged: {
         if(status == PageStatus.Deactivating){
             appWindow.setActiveConv("")
@@ -276,7 +279,7 @@ Page {
 	        Label {
 	            id: username
                 text: user_name.indexOf("-")>0 ? 
-						qsTr("Group (%1)").arg(getAuthor(user_name.split('-')[0]+"@s.whatsapp.net")) : user_name
+						qsTr("Group (%1)").arg(getAuthor(user_name.split('-')[0])) : user_name
 				width: parent.width - 62
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
@@ -322,7 +325,7 @@ Page {
 
     function getAuthor(inputText) {
         var resp;
-        resp = inputText.split('@')[0];
+        resp = inputText;
         for(var i =0; i<contactsModel.count; i++)
         {
             var item = contactsModel.get(i).jid;
@@ -343,7 +346,7 @@ Page {
 			from_me:model.type==1
             progress:model.progress
 			//picture: user_picture
-            name: mediatype_id==10 || from_me || user_name.indexOf("-")==-1 ? "" : getAuthor(model.author.jid)
+            name: mediatype_id==10 || from_me || user_name.indexOf("-")==-1 ? "" : getAuthor(model.author.jid).split('@')[0]
             author:model.author
 			state_status:model.status
             isGroup: conversation_view.isGroup
@@ -351,6 +354,8 @@ Page {
 			onOptionsRequested: {
 				console.log("options requested")
 				copy_facilitator.text = model.message;
+				contactNumber = model.author.jid.split('-')[0].split('@')[0]
+				showContactDetails = model.type==0 && getAuthor(model.author.jid)==model.author.jid
 				bubbleMenu.open();
 			}
         }
@@ -531,14 +536,27 @@ Page {
     Menu {
         id: bubbleMenu
 
-            MenuLayout {
+        MenuLayout {
 
-            MenuItem{
-                text:qsTr("Copy")
+            MyMenuItem{
+				height: 80
+                text:qsTr("Copy content")
+				singleItem: !detailsMenuItem.visible
                 onClicked:{
                     copy_facilitator.selectAll()
                     copy_facilitator.copy();}
             }
+
+            MyMenuItem{
+				id: detailsMenuItem
+				visible: showContactDetails
+				height: visible ? 80 : 0
+                text:qsTr("Add to contacts")
+                onClicked:{
+					Qt.openUrlExternally("tel:"+contactNumber)
+				}
+            }
+
         }
     }
 

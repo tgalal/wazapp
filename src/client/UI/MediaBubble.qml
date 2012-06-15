@@ -162,7 +162,7 @@ SpeechBubble {
 				font.weight: Font.Light
 				font.pixelSize: 23
 				color: from_me? "black" : "white"
-                text: media.mediatype_id==5 ? message : qsTr("Multimedia message") //qsTr(message) I'll fix it later
+                text: message
 				maximumLineCount: 2
 				anchors.right: parent.right
 				wrapMode: "WrapAtWordBoundaryOrAnywhere"

@@ -77,7 +77,8 @@ Rectangle {
 			}
 			onPressAndHold:{
 				console.log("pressed and held!")
-				if (mediatype_id==1) optionsRequested();
+				//if (mediatype_id==1) optionsRequested();
+				optionsRequested();
 			}
 		}
 

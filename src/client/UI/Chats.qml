@@ -41,6 +41,10 @@ Page {
     signal clicked(string number,string prev_state)
     signal deleteConversation(string conv_id);
 
+	property string contactNumber
+	property bool contactNumberGroup
+	property bool showContactDetails
+
     function setContacts(contacts){
         ContactsScript.contacts = contacts;
     }
@@ -148,7 +152,7 @@ Page {
 
 	function getAuthor(inputText) {
 		var resp;
-		resp = inputText.split('@')[0];
+		resp = inputText;
 		for(var i =0; i<contactsModel.count; i++)
 		{
             var item = contactsModel.get(i).jid;
@@ -181,7 +185,7 @@ Page {
             property variant contactInfo:ContactsScript.getContactData(model.jid)
             picture: contactInfo.picture;
             name: contactInfo.name.indexOf("-")>0 ? 
-					qsTr("Group (%1)").arg(getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net")) : contactInfo.name
+					qsTr("Group (%1)").arg(getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net").split('@')[0]) : contactInfo.name
 			isGroup: contactInfo.name.indexOf("-")>0
 			number:model.jid;
             lastMsg: Helpers.emojify(Helpers.linkify(model.content))
@@ -208,6 +212,11 @@ Page {
 
             onOptionsRequested: {
                 chatDelConfirm.cid_confirm = model.jid;
+				contactNumber = model.jid.split('-')[0].split('@')[0]
+				contactNumberGroup = isGroup
+				showContactDetails = isGroup? 
+									getAuthor(model.jid).split('-')[0]==getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net").split('@')[0] : 
+									getAuthor(model.jid)==model.jid
                 chatItemMenu.open()
             }
 
@@ -250,20 +259,25 @@ Page {
         }
     }
 
-    Menu {
-        id: chatItemMenu
+	Menu {
+	id: chatItemMenu
 
-            MenuLayout {
-
-            MenuItem{
-                text:qsTr("Delete Conversation")
-                onClicked:{
-                    chatDelConfirm.open()
-
-                }
-          }
-      }
-    }
+		MenuLayout {
+			MyMenuItem {
+				height: 80
+				singleItem: !detailsMenuItem.visible
+				text: qsTr("Delete Conversation")
+				onClicked: chatDelConfirm.open()
+			}
+			MyMenuItem {
+				id: detailsMenuItem
+				visible: showContactDetails
+				height: visible ? 80 : 0
+				text: contactNumberGroup ? qsTr("Add group owner to contacts") : qsTr("Add to contacs")
+				onClicked: Qt.openUrlExternally("tel:"+contactNumber)
+			}
+		}
+	}
 
     QueryDialog {
         id: chatDelConfirm
@@ -275,8 +289,6 @@ Page {
         onAccepted: {
                 deleteConversation(cid_confirm)
                 removeChatItem(cid_confirm)
-
-
         }
     }
 }

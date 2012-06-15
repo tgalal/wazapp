@@ -58,6 +58,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Add group owner to contacts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add to contacs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Confirm Delete</source>
         <translation type="unfinished"></translation>
     </message>
@@ -123,7 +131,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Copy</source>
+        <source>Copy content</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add to contacts</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -315,17 +327,6 @@
     </message>
 </context>
 <context>
-    <name>SpeechBubble</name>
-    <message>
-        <source>Multimedia message</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>My location</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>StanzaReader</name>
     <message>
         <source>Image</source>
@@ -381,7 +382,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Last seen: %1</source>
+        <source>Last seen:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -482,6 +483,14 @@
     </message>
     <message>
         <source>Contacts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update Contacts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The Phone contacts database has changed. Do you want to sync contacts now?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

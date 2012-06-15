@@ -92,7 +92,7 @@ Rectangle {
 
             PropertyChanges {
                 target: userstatus
-                text: qsTr("")
+                text: ""
             }
         },
 
@@ -100,8 +100,8 @@ Rectangle {
             name:"offline"
             PropertyChanges {
                 target: userstatus
-                text: qsTr("Last seen: %1").arg(Helpers.getDateText(lastSeenOn))
-
+                text: qsTr("Last seen:") + " " + 
+						Helpers.getDateText(lastSeenOn).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
             }
         },
         State{

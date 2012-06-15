@@ -26,7 +26,7 @@ from utilities import Utilities
 from QtMobility.MultimediaKit import QMediaPlayer
 
 class Notifier():
-	def __init__(self,audio=False,vibra=False):
+	def __init__(self,audio=False,vibra=True):
 		self.manager = MNotificationManager('wazappnotify','WazappNotify');
 		self.vibra = vibra
 		

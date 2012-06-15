@@ -55,7 +55,7 @@ Rectangle{
             PropertyChanges {
 
                 target: current_state
-                text:"Online"
+                text: qsTr("Online")
             }
             PropertyChanges{
                 target:status_indicator
@@ -69,7 +69,7 @@ Rectangle{
             name: "connecting"
             PropertyChanges {
                 target: current_state
-                text:"Connecting..."
+                text: qsTr("Connecting...")
 
             }
 
@@ -84,7 +84,7 @@ Rectangle{
             name: "reregister"
             PropertyChanges {
                 target: current_state
-                text:"Login failed. Either account expired or you need to remove your account from accounts manager and re-register"
+                text: qsTr("Login failed. Either account expired or you need to remove your account from accounts manager and re-register")
 
             }
 
@@ -98,7 +98,7 @@ Rectangle{
             name: "offline"
             PropertyChanges {
                 target: current_state
-                text:"Offline"
+                text: qsTr("Offline")
 
             }
 
@@ -113,7 +113,7 @@ Rectangle{
             name: "sleeping"
             PropertyChanges {
                 target: current_state
-                text:""
+                text: qsTr("")
             }
             PropertyChanges{
                 target:status_indicator

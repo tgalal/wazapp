@@ -63,7 +63,7 @@ Page{
 
             TextField{
                 width:container.width-20-cc.width-cc_fields.spacing
-                text:"Egypt"
+                text: qsTr("Egypt")
                 enabled: false
             }
         }
@@ -83,7 +83,7 @@ Page{
         }
 
         Button{
-            text: "Submit"
+            text: qsTr("Submit")
             width:200
             anchors.right: parent.right
             onClicked:{
@@ -110,7 +110,7 @@ Page{
 
             title:Text{
                 color:"white"
-                text:"Please confirm"
+                text: qsTr("Please confirm")
             }
 
             content: Text{
@@ -119,7 +119,7 @@ Page{
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                   font.pixelSize: 22
                     horizontalAlignment: Text.AlignHCenter
-                text:"Whatsapp will send an SMS with your 3 digit activation code to "+regconfirm.phone_number+". Is that phone number correct?"
+                text: qsTr("Whatsapp will send an SMS with your 3 digit activation code to %1. Is that phone number correct?").arg(regconfirm.phone_number)
             }
 
             buttons:ButtonRow {
@@ -128,12 +128,12 @@ Page{
 
 
                 Button{
-                    text:"Yes"
+                    text: qsTr("Yes")
                     onClicked: regconfirm.accept();
                 }
 
                 Button{
-                    text:"No"
+                    text: qsTr("No")
                     onClicked: regconfirm.reject();
                 }
             }

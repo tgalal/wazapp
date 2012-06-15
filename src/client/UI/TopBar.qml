@@ -32,7 +32,7 @@ Rectangle {
     WAButton{
 
         button_color: "white"
-        button_text: "Back"
+        button_text: qsTr("Back")
         text_color: "gray"
         height:25
         anchors.verticalCenter: parent.verticalCenter

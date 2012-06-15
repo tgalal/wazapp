@@ -71,7 +71,7 @@ Page{
                 width:parent.width
 
                 Label{
-                    text: "Latest Version:"
+                    text: qsTr("Latest Version:")
                     font.bold: true
                 }
 
@@ -86,7 +86,7 @@ Page{
                 width:parent.width
 
                 Label{
-                    text: "Urgency:"
+                    text: qsTr("Urgency:")
                     font.bold: true
                 }
 
@@ -99,7 +99,7 @@ Page{
 
             Label{
                 id:summary_label
-                text: "Summary:"
+                text: qsTr("Summary:")
                 font.bold: true
             }
 
@@ -115,7 +115,7 @@ Page{
 
                 Label{
                     id:changes_label
-                    text: "Changes:"
+                    text: qsTr("Changes:")
                     font.bold: true
                 }
 

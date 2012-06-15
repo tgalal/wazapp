@@ -382,7 +382,6 @@ Page {
 		}
 	}
 
-
 	Rectangle {
 		color: theme.inverted? "transparent" : "#dedfde"
 		anchors.top: parent.top
@@ -499,7 +498,6 @@ Page {
 			conv_items.positionViewAtIndex(conv_items.count-1, ListView.Contain)
 		}
 	}
-
 
     TextField{
         id:copy_facilitator

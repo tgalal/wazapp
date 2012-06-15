@@ -31,7 +31,7 @@ Dialog {
 	width: parent.width
 	height: parent.height
 
-	property string titleText: "Select emoticon"
+	property string titleText: qsTr("Select emoticon")
 
 	SelectionDialogStyle {id: selectionDialogStyle}
 

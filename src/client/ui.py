@@ -31,13 +31,15 @@ from messagestore import MessageStore
 from threading import Timer
 from waservice import WAService
 import dbus
-
+from wadebug import UIDebug
 
 class WAUI(QDeclarativeView):
 	quit = QtCore.Signal()
 	
 	def __init__(self):
-	
+		
+		_d = UIDebug();
+		self._d = _d.d;
 	
 		
 		super(WAUI,self).__init__();
@@ -53,7 +55,7 @@ class WAUI(QDeclarativeView):
 		
 	
 	def preQuit(self):
-		print "pre quit"
+		self._d("pre quit")
 		del self.whatsapp
 		del self.c
 		self.quit.emit()
@@ -107,7 +109,7 @@ class WAUI(QDeclarativeView):
 		self.whatsapp.eventHandler.onAvailable();
 	
 	def closeEvent(self,e):
-		print "HIDING"
+		self._d("HIDING")
 		e.ignore();
 		self.whatsapp.eventHandler.onUnfocus();
 		
@@ -118,7 +120,7 @@ class WAUI(QDeclarativeView):
 	
 	def forceRegistration(self):
 		''' '''
-		print "NO VALID ACCOUNT"
+		self._d("NO VALID ACCOUNT")
 		exit();
 		self.rootObject().forceRegistration(Utilities.getCountryCode());
 		
@@ -135,8 +137,6 @@ class WAUI(QDeclarativeView):
 		
 		#reg.start();
 		
-	def blabla(self,tt):
-		print tt
 		
 	def populateContacts(self):
 		#syncer = ContactsSyncer(self.store);
@@ -147,7 +147,7 @@ class WAUI(QDeclarativeView):
 		#self.c.refreshing.connect(syncer.onRefreshing);
 		#syncer.done.connect(c.updateContacts);
 		
-		print "POPULATE";
+		self._d("POPULATE");
 		contacts = self.c.getContacts();
 		
 		#if len(contacts) == 0:
@@ -181,7 +181,7 @@ class WAUI(QDeclarativeView):
 		self.whatsapp.start();
 	
 	def showUI(self,jid):
-		print "SHOULD SHOW"
+		self._d("SHOULD SHOW")
 		self.showFullScreen();
 		self.rootObject().openConversation(jid)
 		
@@ -190,13 +190,13 @@ class WAUI(QDeclarativeView):
 		if not self.focus:
 			return 0
 		
-		print "GETTING ACTIVE CONV"
+		self._d("GETTING ACTIVE CONV")
 		
 		activeConvJId = QDeclarativeProperty(self.rootObject(),"activeConvJId").read();
 		
 		#self.rootContext().contextProperty("activeConvJId");
-		print "DONE"
-		print activeConvJId
+		self._d("DONE")
+		self._d(activeConvJId)
 		
 		return activeConvJId
 		

@@ -25,6 +25,7 @@ from PySide.QtCore import QThread
 
 from PySide.QtCore import *
 from PySide.QtGui import *
+from wadebug import MediaHandlerDebug
 
 class WAMediaHandler(QObject):
 	progressUpdated = QtCore.Signal(int,str,int) #%,jid,message.id
@@ -33,7 +34,8 @@ class WAMediaHandler(QObject):
 	
 	def __init__(self,jid,message_id,url,mediaType_id):
 		
-		
+		_d = WAMediaDebug();
+		self._d = _d.d;
 		path = self.getSavePath(mediaType_id);
 		
 		filename = url.split('/')[-1]

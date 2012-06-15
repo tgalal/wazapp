@@ -23,6 +23,7 @@ from xml.dom import minidom
 import threading
 from PySide import QtCore
 from PySide.QtCore import QThread
+from wadebug import StatusRequestDebug
 
 class WARequestStatus(QThread):
 
@@ -38,7 +39,10 @@ class WARequestStatus(QThread):
 	done = QtCore.Signal(str);
 	fail = QtCore.Signal();
 
-	
+	def __init__(self):
+		_d = StatusRequestDebug();
+		self._d = _d.debug;
+		super(WARequestStatus,self).__init__();
 
 	def onResponse(self, name, value):
 		if name == "status":
@@ -69,7 +73,7 @@ class WARequestStatus(QThread):
 		
 		params = urllib.urlencode(self.params);
 		
-		Utilities.debug("Opening connection to "+self.base_url);
+		self._d("Opening connection to "+self.base_url);
 		self.conn = httplib.HTTPSConnection(self.base_url,443);
 		headers = {"User-Agent":self.getUserAgent(),
 			"Content-Type":"application/x-www-form-urlencoded",
@@ -78,13 +82,13 @@ class WARequestStatus(QThread):
 			"Accept-Encoding":"gzip, deflate"
 			};
 		
-		Utilities.debug(headers);
-		Utilities.debug(params);
+		self._d(headers);
+		self._d(params);
 		
 		self.conn.request("POST",self.req_file,params,headers);
 		resp=self.conn.getresponse()
  		response=resp.read();
- 		Utilities.debug(response);
+ 		self._d(response);
  		doc = minidom.parseString(response);
  		self.done.emit(response);
  		return response;

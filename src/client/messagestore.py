@@ -20,6 +20,8 @@ from PySide import QtCore
 from PySide.QtCore import QObject
 import time
 import datetime
+from wadebug import MessageStoreDebug
+
 
 class MessageStore(QObject):
 
@@ -30,6 +32,9 @@ class MessageStore(QObject):
 	currKeyId = 0
 
 	def __init__(self,dbstore):
+	
+		_d = MessageStoreDebug();
+		self._d = _d.d;
 		super(MessageStore,self).__init__();
 		
 		self.store = dbstore
@@ -59,13 +64,13 @@ class MessageStore(QObject):
 	
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();
-		print "init load convs"
+		self._d("init load convs")
 		for c in conversations:
-			print "loading messages"
+			self._d("loading messages")
 			jid = c.getJid();
 			self.conversations[jid] = c
 			self.loadMessages(jid,0,1)
-			print "loaded messages"
+			self._d("loaded messages")
 		
 	def loadAllConversations(self,user_id):
 		self.loadMessages(user_id)
@@ -165,7 +170,7 @@ class MessageStore(QObject):
 		return localKey;
 	
 	def updateStatus(self,message,status):
-		print "UPDATING STATUS TO "+str(status);
+		self._d("UPDATING STATUS TO "+str(status));
 		message.status = status
 		message.save()
 		conversation = message.getConversation()
@@ -177,13 +182,6 @@ class MessageStore(QObject):
 		if index >= 0:
 			#message is loaded
 			self.conversations[jid].messages[index] = message
-			
-			print "WILL EMIT:"
-			print jid
-			print message.id
-			print status
-			print "END EMIT"
-			
 			self.messageStatusUpdated.emit(jid,message.id,status)
 	
 	def getMessageIndex(self,jid,msg_id):

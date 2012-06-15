@@ -98,11 +98,6 @@ class Utilities():
 			res = res+chr(b);
 		
 		return res;
-		
-	@staticmethod
-	def debug(msg):
-		if(Utilities.debug_mode == 1):
-			print msg;
 
 			
 

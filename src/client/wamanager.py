@@ -26,22 +26,26 @@ from litestore import LiteStore as DataStore
 from accountsmanager import AccountsManager;
 import dbus
 from utilities import Utilities
+from wadebug import ManagerDebug;
 
 class WAManager():
 
 	def __init__(self,app):
 		self.app = app;
-		print "wazapp %s"%Utilities.waversion
+		_d = ManagerDebug();
+		self._d = _d.d;
+		
+		self._d("wazapp %s"%Utilities.waversion)
 		
 		
 		try:
 			bus = dbus.SessionBus()
 			remote_object = bus.get_object("com.tgalal.meego.Wazapp.WAService", "/")
-			print "FOUND OBJ"
+			self._d("Found a running instance. I will show it instead of relaunching.")
 			remote_object.show();
 			sys.exit();
 		except dbus.exceptions.DBusException as e:
-			print "CAUGHT EXCEPT"
+			self._d("No running instance found. Proceeding with relaunch")
 			self.proceed()
 			
 		
@@ -51,35 +55,15 @@ class WAManager():
 		sys.exit()
 		
 	def quit(self):
-		print "QUITINGGGGGG"
+		self._d("Quitting")
 		self.app.exit();
 	def proceed(self):
-		
-		
-		
-		
-		
-		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/WASplash.qml')
-		#gui.setSource(url)
-		
-		#check db_state
-	
-	
-		#gui.initConnection();
-		#pixmap = QPixmap("/opt/waxmppplugin/bin/wazapp/UI/pics/wasplash.png");
-     		#splash = QSplashScreen(pixmap);
-     		#splash.show();
-     		
 		account = AccountsManager.getCurrentAccount();
-		
-		
-		print account;
-		
-		
+		self._d(account)
 	
 	
 		if(account is None):
-			Utilities.debug("Forced reg");
+			self.d("Forced reg");
 			return self.regFallback()
 			#gui.forceRegistration();
 			#self.app.exit();
@@ -91,9 +75,8 @@ class WAManager():
 			#or exit
 			store.reset();
 			
-		print "Prepare group convos"
+		
 		store.prepareGroupConversations();
-		print "Prepare media"
 		store.prepareMedia()
 		store.updateDatabase()
 		

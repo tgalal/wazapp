@@ -20,10 +20,15 @@ import socket;
 from utilities import Utilities;
 import sys 
 from waexceptions import *
+from wadebug import ConnDebug;
+
 
 class MySocketConnection(socket.socket):
 	
 	def __init__(self):
+		_d = ConnDebug();
+		self._d = _d.d;
+		
 		self.readSize = 1;
 		self.buf = [];
 		self.maxBufRead = 0;
@@ -61,7 +66,7 @@ class MySocketConnection(socket.socket):
 			try:
 				self.sendall(chr(data));
 			except:
-				print "socket 1 write crashed, reason: %s" % sys.exc_info()[1]
+				self._d("socket 1 write crashed, reason: %s" % sys.exc_info()[1])
 		else:
 			tmp = "";
 			
@@ -70,7 +75,7 @@ class MySocketConnection(socket.socket):
 			try:
 				self.sendall(tmp);
 			except:
-				print "socket 2 write crashed, reason: %s" % sys.exc_info()[1]
+				self._d("socket 2 write crashed, reason: %s" % sys.exc_info()[1])
 		
 		
 	def setReadSize(self,size):
@@ -82,7 +87,7 @@ class MySocketConnection(socket.socket):
 		try:
 			x = self.recv(self.readSize);
 		except:
-			print "socket read crashed, reason %s " % sys.exc_info()[1]
+			self._d("socket read crashed, reason %s " % sys.exc_info()[1])
 		#x= self.recvX(self.readSize);
 		
 		if len(x) == 1:

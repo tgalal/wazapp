@@ -26,11 +26,15 @@ from Models.conversation import *
 from Models.mediatype import Mediatype
 from Models.media import Media
 
+from wadebug import SqlDebug
+
 
 class LiteStore(DataStore):
 	db_dir = os.path.expanduser('~/.wazapp');
 	
 	def __init__(self,current_id):
+		self._d = SqlDebug();
+		
 		self.status = False;
 		self.currentId = current_id;
 		super(LiteStore,self).__init__(current_id);
@@ -87,9 +91,6 @@ class LiteStore(DataStore):
 		self.Groupmessage = Groupmessage();
 		self.Groupmessage.setStore(self);
 		
-		
-		
-		
 		#self.Groupmedia = Groupmedia()
 		#self.Groupmedia.setStore(self)
 		
@@ -98,12 +99,9 @@ class LiteStore(DataStore):
 
 	
 	def cacheContacts(self,contacts):
-		print "CACHING"
 		self.cachedContacts = contacts;
-		print "CACHED"
 	
 	def getCachedContacts(self):
-		print "GETTING"
 		return self.cachedContacts;
 	
 	def getContacts(self):
@@ -141,10 +139,10 @@ class LiteStore(DataStore):
 		
 		##>0.2.6 check that singleconversations is renamed to conversations
 		
-		print "Checking > 0.2.6 updates"
+		self._d.d("Checking > 0.2.6 updates")
 		
 		if not self.tableExists("conversations"):
-			print "Renaming single conversations to conversations"
+			self._d.d("Renaming single conversations to conversations")
 			
 			q = "ALTER TABLE singleconversations RENAME TO conversations;"
 			c = self.conn.cursor()
@@ -154,7 +152,7 @@ class LiteStore(DataStore):
 			#UPDATE SQLITE_MASTER SET SQL = 'CREATE TABLE BOOKS ( title TEXT NOT NULL, publication_date TEXT)' WHERE NAME = 'BOOKS';
 			#q = "PRAGMA writable_schema = 0";
 		
-		print "Checking addition of media_id to messages"
+		self._d.d("Checking addition of media_id to messages")
 		
 		q = "PRAGMA table_info(messages)"
 		c = self.conn.cursor()
@@ -167,7 +165,7 @@ class LiteStore(DataStore):
 				break
 		
 		if not found:
-			print "Not found, altering table"
+			self._d.d("Not found, altering table")
 			c.execute("Alter TABLE messages add column 'media_id' INTEGER")
 		
 

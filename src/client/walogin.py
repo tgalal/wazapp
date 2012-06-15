@@ -23,6 +23,7 @@ from PySide import QtCore
 from PySide.QtCore import QThread
 import socket
 from waexceptions import *
+from wadebug import LoginDebug;
 
 class WALogin(QThread):
 	
@@ -43,12 +44,15 @@ class WALogin(QThread):
 	def __init__(self,conn,reader,writer,digest):
 		super(WALogin,self).__init__();
 		
+		_d = LoginDebug();
+		self._d = _d.d;
+		
 		self.conn = conn
 		self.out = writer;
 		self.inn = reader;
 		self.digest = digest;
 		
-		Utilities.debug("WALOGIN INIT");
+		self._d("WALOGIN INIT");
 		
 		
 	
@@ -62,20 +66,20 @@ class WALogin(QThread):
 			self.conn.connect((HOST, PORT));
 			
 			self.conn.connected = True
-			Utilities.debug("Starting stream");
+			self._d("Starting stream");
 			self.out.streamStart(self.connection.domain,self.connection.resource);
 	
 			self.sendFeatures();
-			Utilities.debug("Sent Features");
+			self._d("Sent Features");
 			self.sendAuth();
-			Utilities.debug("Sent Auth");
+			self._d("Sent Auth");
 			self.inn.streamStart();
-			Utilities.debug("read stream start");
+			self._d("read stream start");
 			challengeData = self.readFeaturesAndChallenge();
-			Utilities.debug("read features and challenge");
-			#Utilities.debug(challengeData);
+			self._d("read features and challenge");
+			#self._d(challengeData);
 			self.sendResponse(challengeData);
-			Utilities.debug("read stream start");
+			self._d("read stream start");
 		
 			self.readSuccess();
 			#print self.out.out.recv(1638400);
@@ -105,14 +109,14 @@ class WALogin(QThread):
 		
 		while root is not None:
 			if ProtocolTreeNode.tagEquals(root,"stream:features"):
-				#Utilities.debug("GOT FEATURES !!!!");
+				#self._d("GOT FEATURES !!!!");
 				server_supports_receipt_acks = root.getChild("receipt_acks") is not None;
 				root = self.inn.nextTree();
 				
 				continue;
 			
 			if ProtocolTreeNode.tagEquals(root,"challenge"):
-				#Utilities.debug("GOT CHALLENGE !!!!");
+				#self._d("GOT CHALLENGE !!!!");
 				self.connection.supports_receipt_acks = self.connection.supports_receipt_acks and server_supports_receipt_acks;
 				#String data = new String(Base64.decode(root.data.getBytes()));
 				data = base64.b64decode(root.data);
@@ -209,7 +213,7 @@ class WALogin(QThread):
 	
 	def readSuccess(self):
 		node = self.inn.nextTree();
-		Utilities.debug("Login Status: %s"%(node.tag));
+		self._d("Login Status: %s"%(node.tag));
 		
 		
 		
@@ -223,12 +227,12 @@ class WALogin(QThread):
 		
 		
 		if expiration is not None:
-			Utilities.debug("Expires: "+str(expiration));
+			self._d("Expires: "+str(expiration));
 			self.connection.expire_date = expiration;
 			
 	
 		kind = node.getAttributeValue("kind");
-		Utilities.debug("Account type: %s"%(kind))
+		self._d("Account type: %s"%(kind))
 		
 		if kind == "paid":
 			self.connection.account_kind = 1;
@@ -238,7 +242,7 @@ class WALogin(QThread):
 			self.connection.account_kind = -1;
 			
 		status = node.getAttributeValue("status");
-		Utilities.debug("Account status: %s"%(status));
+		self._d("Account status: %s"%(status));
 		
 		if status == "expired":
 			self.loginFailed.emit()

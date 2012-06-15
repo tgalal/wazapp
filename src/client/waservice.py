@@ -69,7 +69,6 @@ class WAService(dbus.service.Object):
 		self.userId = os.geteuid();
 		
 		self.local_name = '.'.join([self.DEFAULT_NAME, source_name])
-		print  self.local_name
 		bus_name = dbus.service.BusName(self.local_name, bus=session_bus)
 
 		dbus.service.Object.__init__(self,object_path=self.DEFAULT_PATH,bus_name=bus_name)
@@ -83,11 +82,9 @@ class WAService(dbus.service.Object):
 	
 	@dbus.service.method(DEFAULT_INTF)
 	def launch(self):
-		print "GOTCHAAA"
 		self.ui.showFullScreen();
 	
 	@dbus.service.method(DEFAULT_INTF)
 	def show(self):
-		print "GOTCHAAA"
 		self.ui.showFullScreen();
 		

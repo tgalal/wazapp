@@ -17,10 +17,14 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from utilities import Utilities,S40MD5Digest,ByteArray;
+from wadebug import ConnDebug
 from waexceptions import *
 class ProtocolTreeNode():
 	
 	def __init__(self,tag,attributes,children=None,data=None):
+		d = ConnDebug()
+		self._d = d.d;
+		
 		self.tag = tag;
 		self.attributes = attributes;
 		self.children = children;
@@ -38,7 +42,6 @@ class ProtocolTreeNode():
 		if self.children is not None:
 			for c in self.children:
 				out+=c.toString();
-		#print sel
 		out+= "</"+self.tag+">\n"
 		return out;
 		
@@ -99,7 +102,10 @@ class ProtocolTreeNode():
 	
 class BinTreeNodeReader():
 	def __init__(self,inputstream,dictionary):
-		Utilities.debug('Reader init');
+		d = ConnDebug()
+		self._d = d.d;
+		
+		self._d('Reader init');
 		self.tokenMap = dictionary;
 		self.rawIn = inputstream;
 		self.inn = ByteArray();
@@ -115,7 +121,6 @@ class BinTreeNodeReader():
 		size = self.readListSize(tag);
 		tag = self.inn.read();
 		if tag != 1:
-			Utilities.debug(tag);
 			raise Exception("expecting STREAM_START in streamStart");
 		attribCount = (size - 2 + size % 2) / 2;
 		attributes = self.readAttributes(attribCount);
@@ -189,7 +194,6 @@ class BinTreeNodeReader():
 			buf8 = bytearray(size8);
 			
 			self.fillArray(buf8,len(buf8),self.inn);
-			#print self.inn.buf;
 			return str(buf8);
 			#return size8;
 			
@@ -219,9 +223,9 @@ class BinTreeNodeReader():
 		self.inn.buf = [];
 		self.fillBuffer(stanzaSize);
 		ret = self.nextTreeInternal();
-		Utilities.debug("<<")
+		self._d("Incoming")
 		if ret is not None:
-			Utilities.debug(ret.toString());
+			self._d("\n%s"%ret.toString());
 		return ret;
 	
 	def fillBuffer(self,stanzaSize):
@@ -235,7 +239,6 @@ class BinTreeNodeReader():
 		
 		#this.in = new ByteArrayInputStream(this.buf, 0, stanzaSize);
 		#self.inn.setReadSize(stanzaSize);
-		#Utilities.debug(str(len(self.buf))+":::"+str(stanzaSize));
 	
 	def fillArray(self, buf,length,inputstream):
 		count = 0;
@@ -310,6 +313,9 @@ class BinTreeNodeWriter():
 	tokenMap={}
 	
 	def __init__(self,o,dictionary):
+		d = ConnDebug()
+		self._d = d.d;
+		
 		self.realOut = o;
 		#self.out = o;
 		self.tokenMap = {}
@@ -365,8 +371,8 @@ class BinTreeNodeWriter():
 		if node is None:
 			self.out.write(0);
 		else:
-			Utilities.debug(">>");
-			Utilities.debug(node.toString());
+			self._d("Outgoing");
+			self._d("\n%s"%node.toString());
 			self.writeInternal(node);
 		
 		self.flushBuffer(needsFlush);
@@ -453,7 +459,6 @@ class BinTreeNodeWriter():
 	
 
 	def writeListStart(self,i):
-		#Utilities.debug("list start "+str(i));
 		if i == 0:
 			self.out.write(0)
 		elif i < 256:
@@ -484,11 +489,10 @@ class BinTreeNodeWriter():
 				else:
 					server = tag[atIndex+1:];
 					user = tag[0:atIndex];
-					#Utilities.debug("GOT "+user+"@"+server);
 					self.writeJid(user, server);
 					
 			except ValueError:
-				Utilities.debug("INEX");
+				self._d("INEX");
 				self.writeBytes(Utilities.encodeString(tag));
    
 	

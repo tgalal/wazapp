@@ -71,7 +71,7 @@ Rectangle {
 
         id:curr_operation
         anchors.centerIn: parent;
-        text: qsTr("Connecting")
+        text:"Connecting"
         font.pointSize: 12
 
     }

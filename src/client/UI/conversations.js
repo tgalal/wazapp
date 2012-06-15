@@ -47,7 +47,7 @@ function addMessage(message)
     //conv_data.append({"msg_id":id,"message":message,"type":type, "timestamp":timestamp,"status":msg_status});
 	if (!loadConvsReverse) conv_items.positionViewAtEnd()
     // conversation_view.conversationUpdated(id,type,conversation_view.user_id,message,timestamp,formattedDate);
-     conversation_view.conversationUpdated(message);
+    if (!loadConvsReverse) conversation_view.conversationUpdated(message);
 }
 
 function onTyping(user_id){

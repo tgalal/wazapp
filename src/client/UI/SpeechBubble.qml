@@ -29,6 +29,30 @@ Rectangle {
 			(sender_name.text!=""?sender_name.height:0) + (from_me?28:30) ;
 	color: "transparent"
 
+
+	function getBubbleColor(user) {
+		var color = -1
+
+		if (groupMembers.count==0) {
+			groupMembers.insert(groupMembers.count, {"name":user})
+			color = 1
+		} else {
+			for(var i =0; i<groupMembers.count; i++)
+			{
+				if(user == groupMembers.get(i).name) {
+				    color = i+1;
+					break;
+				}
+			}
+			if (color==-1) {
+				groupMembers.insert(groupMembers.count, {"name":user})
+				color = groupMembers.count
+			}
+		}
+		return parseInt(color);
+	}
+
+
 	BorderImage {
 		anchors.top: parent.top
 		anchors.topMargin: from_me ? 8 : 0
@@ -37,8 +61,9 @@ Rectangle {
 		width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0), sender_name.paintedWidth) +26
 		height: parent.height + (from_me ? 2 : 0)
 
-		source: from_me ? "image://theme/meegotouch-messaging-conversation-bubble-outgoing1-" + (mArea.pressed? "pressed" : "normal") :
-				"image://theme/meegotouch-messaging-conversation-bubble-incoming" + parseInt(bubbleColor) + "-" + (mArea.pressed? "pressed" : "normal")
+		source: from_me ? "pics/bubbles/outgoing1-" + (mArea.pressed? "pressed" : "normal") + ".png" : name=="" ?
+				"pics/bubbles/incoming" + parseInt(bubbleColor) + "-" + (mArea.pressed? "pressed" : "normal") + ".png" :
+				"pics/bubbles/incoming" + getBubbleColor(name) + "-" + (mArea.pressed? "pressed" : "normal") + ".png"
 
 		border { left: 22; right: 22; bottom: 22; top: 22; }
 

@@ -70,7 +70,7 @@ Page {
         id:aboutDialog
         //anchors.fill: parent
 		icon: "pics/wazapp80.png"
-        titleText: qsTr("Wazapp")
+        titleText: "Wazapp" //This should not be translated!
         message: qsTr("version") + " " + waversion + "\n\n" + 
                  qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
 				 qsTr("You are trying it at your own risk.") + "\n" + 

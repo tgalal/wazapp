@@ -36,10 +36,6 @@ Page {
 	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
 			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
 
-    //width: parent.width
-    //anchors.fill: parent
-    //color: "#e6e6e6"
-
     state:"no_data"
 
     signal clicked(string number,string prev_state)
@@ -162,9 +158,22 @@ Page {
 		return resp;
 	}
 
+	function getUnreadMessages(uname) {
+		var res = "0"
+		for(var i =0; i<unreadModel.count; i++)
+		{
+			if (unreadModel.get(i).name==uname) {
+				res = parseInt(unreadModel.get(i).val)
+				break;
+	 		}
+		}
+		return res;
+	}
+
     ListModel{
         id:chatsModel
     }
+
     Component{
         id:myDelegate;
 
@@ -178,7 +187,20 @@ Page {
             lastMsg: Helpers.emojify(Helpers.linkify(model.content))
             time:model.timestamp
             formattedDate: Helpers.getDateText(model.formattedDate).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
-            onClicked: chatsContainer.clicked(model.jid,"chats")
+			unread_messages: getUnreadMessages(model.jid)
+            onClicked: {
+				chatsContainer.clicked(model.jid,"chats")
+
+				for(var i=0; i<unreadModel.count; i++)
+				{
+					if (unreadModel.get(i).name==model.jid) {
+						unreadModel.get(i).val = 0
+						break;
+				 	}
+				}
+				updateUnreadCount()
+
+			}
             width:chatsContainer.width
             msgId: model.id
             msgType:model.type

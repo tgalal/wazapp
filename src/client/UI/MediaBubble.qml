@@ -56,7 +56,7 @@ SpeechBubble {
 
         id:realContainer
         width: (state=="success" ? openButton.paintedWidth : 180) + 66
-        height: state=="success" ? 54 : 80
+        height: state=="success" ? 54 + (openButton.lineCount==2? 32:0) : 80
         color:"transparent"
 		anchors.left: parent.left
 		anchors.leftMargin: (appWindow.inPortrait?480:854) -(openButton.visible?openButton.paintedWidth:180) - 86
@@ -151,24 +151,23 @@ SpeechBubble {
             width: openButton.visible? openButton.paintedWidth : 180
             height:openButton.height
            // anchors.verticalCenter: msg_image.verticalCenter
-            //anchors.right: msg_image.left
-            anchors.rightMargin: 8
+            anchors.right: parent.right
+            anchors.rightMargin: 66
 
-            Label {
+            Text {
                 id: openButton
                 visible: state=="success"
-                width: appWindow.inPortrait ? 480 : 854
+                width: (appWindow.inPortrait ? 300 : 674)
 				font.family: "Nokia Pure Light"
 				font.weight: Font.Light
 				font.pixelSize: 23
 				color: from_me? "black" : "white"
-                text: qsTr("Multimedia message") //qsTr(message) I'll fix it later
-				onVisibleChanged: {
-					//if (state!="success") return;
-					//fromMediaDownloaded = true
-					//listSizeNum = listSizeNum-28
-					//fromMediaDownloaded = false
-				}
+                text: media.mediatype_id==5 ? message : qsTr("Multimedia message") //qsTr(message) I'll fix it later
+				maximumLineCount: 2
+				anchors.right: parent.right
+				wrapMode: "WrapAtWordBoundaryOrAnywhere"
+				elide: Text.ElideRight
+				horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
             }
 
             Button {

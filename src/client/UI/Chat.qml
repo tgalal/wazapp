@@ -37,12 +37,12 @@ Rectangle{
     property int msgType;
     property string state_status
 	property bool isGroup
+	property string unread_messages
 
     Component.onCompleted: {
         if(msgType ==0){
             state="received";
         }
-
     }
 
     state:state_status == 0?"sending":(state_status ==1?"pending":"delivered")
@@ -110,6 +110,11 @@ Rectangle{
 		visible: mouseArea.pressed
 	}
 
+	Connections {
+		target: appWindow
+		onUpdateUnreadCount: getUnreadMessages(number)
+	}
+
     Row
     {
         anchors.fill: parent
@@ -135,18 +140,47 @@ Rectangle{
 			//onPressAndHold: mouseArea.pressAndHold()
         }
 
+
         Column{
 			id:last_msg_wrapper
 		    width:parent.width - 90
 			spacing: 0
 
-		    Label{
+		    /*Label{
 		        id: contact_name
 		        text:name
 				font.bold: true
 				font.pointSize: 18
 				height: 30
-		    }
+		    }*/
+			Row{
+                spacing:5
+                width:parent.width -6
+
+                Label{
+                    id: contact_name
+		            text: name
+                   	width:parent.width - 30
+                    elide: Text.ElideRight
+                    font.bold: true
+					font.pointSize: 18
+                    verticalAlignment: Text.AlignVCenter
+                }
+				Rectangle {
+					color: "gray"
+					radius: 10
+					smooth: true
+					width: 30
+					height: 26
+					visible: unread_messages!="0"
+					Label {
+						color: "white"
+						font.pixelSize: 14
+						anchors.centerIn: parent
+						text: unread_messages
+					}
+				}
+            }
             Row{
                 spacing:5
                 width:parent.width

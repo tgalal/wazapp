@@ -37,7 +37,9 @@ WAStackWindow {
 	signal addEmojiToChat
 	property string addedEmojiCode
 	property bool showSendButton
-
+	signal updateUnreadCount
+	property string activeWindow
+	property bool addToUread: false
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     
@@ -190,6 +192,14 @@ WAStackWindow {
         osd_notify.show();
     }
 
+	function updatingConversationsOn() {
+		addToUread = false
+	}
+
+	function updatingConversationsOff() {
+		addToUread = true
+	}
+
     function onSyncClicked(){
         tabGroups.currentTab=waContacts;
         //loadingPage.operation="Refreshing Contacts"
@@ -306,6 +316,10 @@ WAStackWindow {
     }
 
     /*****************************************/
+
+	ListModel {
+		id: unreadModel
+	}
 
 
     ListModel{

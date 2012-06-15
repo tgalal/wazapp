@@ -25,6 +25,8 @@ Page {
             appWindow.setActiveConv("")
         }
         else if(status == PageStatus.Active){
+			activeWindow=user_id
+			conv_items.positionViewAtEnd()
 			if (!loaded) {
 				loaded = true
 				loadConvsReverse = true
@@ -124,6 +126,7 @@ Page {
     }
 
 
+	ListModel { id: groupMembers }
 
 
     function getBubble(msg_id){
@@ -203,6 +206,22 @@ Page {
     function newMessage(message){
         //ConvScript.addMessage(message.id,message.content,message.type,message.formattedDate,message.timestamp,message.status);
         ConvScript.addMessage(message);
+
+		if (activeWindow!=user_id && addToUread && message.type==0) {
+			var added =0 
+			for(var i =0; i<unreadModel.count; i++)
+			{
+				if (unreadModel.get(i).name==user_id) {
+					unreadModel.get(i).val = unreadModel.get(i).val +1
+					added = 1;
+					break;
+			 	}
+			}
+			if (added==0) {
+				unreadModel.insert(unreadModel.count, {"name":user_id, "val":1})
+			}
+			updateUnreadCount()
+		}
     }
 
     function getNameForBubble(uname)
@@ -245,6 +264,7 @@ Page {
 					id: bcArea
 					anchors.fill: parent
 					onClicked: { 
+						activeWindow="main"
                         //chatsTabButton.clicked()
 						appWindow.pageStack.pop(1)
 					}
@@ -327,6 +347,7 @@ Page {
             author:model.author
 			state_status:model.status
             isGroup: conversation_view.isGroup
+
 			onOptionsRequested: {
 				console.log("options requested")
 				copy_facilitator.text = model.message;
@@ -368,6 +389,7 @@ Page {
 						conv_items.header = readMoreDelegateEmpty
 					else
 						conv_items.header = readMoreDelegate
+					conv_items.positionViewAtIndex(convLoaded, ListView.Beginning)
 				}
 			}
 		}
@@ -381,6 +403,7 @@ Page {
 			width: appWindow.inPortrait ? 480 : 854
 		}
 	}
+
 
 	Rectangle {
 		color: theme.inverted? "transparent" : "#dedfde"
@@ -498,6 +521,7 @@ Page {
 			conv_items.positionViewAtIndex(conv_items.count-1, ListView.Contain)
 		}
 	}
+
 
     TextField{
         id:copy_facilitator

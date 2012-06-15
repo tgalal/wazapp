@@ -342,8 +342,8 @@ class WAEventHandler(WAEventBase):
 				msg_contact.picture = WAConstants.DEFAULT_GROUP_PICTURE
 			
 			
-			if fmsg.Media is not None:
-				fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", fmsg.content)
+			#if fmsg.Media is not None:
+			#	fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", fmsg.content)
 				
 				#if fmsg.Media.mediatype_id == WAConstants.MEDIA_TYPE_VCARD:
 				#	self.fetchVCard(fmsg.id)
@@ -597,6 +597,7 @@ class StanzaReader(QThread):
 
 	def parseMessage(self,messageNode):
 	
+		print messageNode.toString()
 		
 		#if messageNode.getChild("media") is not None:
 		#	return
@@ -689,13 +690,20 @@ class StanzaReader(QThread):
 					if mediaType == "image":
 						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_IMAGE
 						mediaItem.preview = messageNode.getChild("media").data
+						msgdata = QtCore.QCoreApplication.translate("StanzaReader", "Image")
 					elif mediaType == "audio":
 						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_AUDIO
+						msgdata = QtCore.QCoreApplication.translate("StanzaReader", "Audio")
 					elif mediaType == "video":
 						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
+						msgdata = QtCore.QCoreApplication.translate("StanzaReader", "Video")
 					elif mediaType == "location":
 						mlatitude = messageNode.getChild("media").getAttributeValue("latitude")
 						mlongitude = messageNode.getChild("media").getAttributeValue("longitude")
+						if messageNode.getChild("media").getAttributeValue("name") is None:
+							msgdata = QtCore.QCoreApplication.translate("StanzaReader", "Location")
+						else:
+							msgdata = messageNode.getChild("media").getAttributeValue("name")
 						mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_LOCATION
 						mediaItem.remote_url = None
 						mediaItem.preview = messageNode.getChild("media").data

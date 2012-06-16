@@ -129,6 +129,7 @@ Page {
     }
 
 
+	ListModel { id: groupMembers }
 
 
     function getBubble(msg_id){

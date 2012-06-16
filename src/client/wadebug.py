@@ -82,5 +82,7 @@ class AccountsDebug(WADebug):
 class LoginDebug(WADebug):
 	pass
 	
+class WARequestDebug(WADebug):
+	pass
 	
 		

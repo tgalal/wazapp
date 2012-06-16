@@ -37,7 +37,9 @@ WAStackWindow {
 	signal addEmojiToChat
 	property string addedEmojiCode
 	property bool showSendButton
-
+	signal updateUnreadCount
+	property string activeWindow
+	property bool addToUread: false
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     
@@ -106,7 +108,7 @@ WAStackWindow {
     signal conversationActive(string user_id);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
-    signal loadConversationsThread(string user_id);
+    signal loadConversationsThread(string user_id, int first, int limit);
 
 
             /******************/
@@ -189,6 +191,25 @@ WAStackWindow {
         osd_notify.text=text
         osd_notify.show();
     }
+
+	function updatingConversationsOn() {
+		addToUread = false
+	}
+
+	function updatingConversationsOff() {
+		addToUread = true
+	}
+
+	//prevent double opened, sometimes QContactsManager sends more than 1 signal
+	property bool updateContactsOpenend: false
+
+	function onContactsChanged() {
+		if (updateContactsOpenend==false) {
+		console.log("CONTACTS CHANGED!!!");
+			updateContactsOpenend = true
+			//updateContacts.open()  UI crashes with this, needs more work
+		}
+	}	
 
     function onSyncClicked(){
         tabGroups.currentTab=waContacts;
@@ -307,6 +328,10 @@ WAStackWindow {
 
     /*****************************************/
 
+	ListModel {
+		id: unreadModel
+	}
+
 
     ListModel{
         id:contactsModel
@@ -420,6 +445,15 @@ WAStackWindow {
             aboutDialog.open();
         }*/
 
+    }
+
+    QueryDialog {
+        id: updateContacts
+        titleText: qsTr("Update Contacts")
+        message: qsTr("The Phone contacts database has changed. Do you want to sync contacts now?")
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
+        onAccepted: { updateContactsOpenend = false; syncClicked(); }
     }
 
     QueryDialog {

@@ -22,7 +22,7 @@ from utilities import Utilities, S40MD5Digest
 from protocoltreenode import BinTreeNodeWriter,BinTreeNodeReader,ProtocolTreeNode
 from connengine import MySocketConnection
 from walogin import WALogin;
-from funstore import FunStore
+#from funstore import FunStore
 from waeventbase import WAEventBase
 #from contacts import WAContacts;
 from messagestore import Key;
@@ -345,13 +345,14 @@ class WAEventHandler(WAEventBase):
 				msg_contact.picture = WAConstants.DEFAULT_GROUP_PICTURE
 			
 			
-			if fmsg.Media is not None:
-				fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", fmsg.content)
+			#if fmsg.Media is not None:
+			#	fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", fmsg.content)
 				
 				#if fmsg.Media.mediatype_id == WAConstants.MEDIA_TYPE_VCARD:
 				#	self.fetchVCard(fmsg.id)
 			
 
+				
 			if fmsg.Conversation.type == "single":
 				self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
 			else:
@@ -728,6 +729,9 @@ class StanzaReader(QThread):
 					
 						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
 						fmsg.key = key
+						
+						#if self.eventHandler is not None:
+						#self.eventHandler.message_received(fmsg);
 					else:
 						fmsg.key = eval(ret.key)
 						duplicate = True;
@@ -864,7 +868,13 @@ class WAXMPP():
 		self.contactsManager = contactsManager
 		
 	def setReceiptAckCapable(self,can):
+		#print "Switching to True"
 		self.supports_receipt_acks = True;
+		#print self.supports_receipt_acks
+
+		
+	
+	
 	
 	def onLoginSuccess(self):
 		self.changeState(4)

@@ -42,6 +42,7 @@ class ProtocolTreeNode():
 		if self.children is not None:
 			for c in self.children:
 				out+=c.toString();
+		#print sel
 		out+= "</"+self.tag+">\n"
 		return out;
 		
@@ -194,6 +195,7 @@ class BinTreeNodeReader():
 			buf8 = bytearray(size8);
 			
 			self.fillArray(buf8,len(buf8),self.inn);
+			#print self.inn.buf;
 			return str(buf8);
 			#return size8;
 			
@@ -239,6 +241,7 @@ class BinTreeNodeReader():
 		
 		#this.in = new ByteArrayInputStream(this.buf, 0, stanzaSize);
 		#self.inn.setReadSize(stanzaSize);
+		#Utilities.debug(str(len(self.buf))+":::"+str(stanzaSize));
 	
 	def fillArray(self, buf,length,inputstream):
 		count = 0;
@@ -459,6 +462,7 @@ class BinTreeNodeWriter():
 	
 
 	def writeListStart(self,i):
+		#Utilities.debug("list start "+str(i));
 		if i == 0:
 			self.out.write(0)
 		elif i < 256:
@@ -489,6 +493,7 @@ class BinTreeNodeWriter():
 				else:
 					server = tag[atIndex+1:];
 					user = tag[0:atIndex];
+					#Utilities.debug("GOT "+user+"@"+server);
 					self.writeJid(user, server);
 					
 			except ValueError:

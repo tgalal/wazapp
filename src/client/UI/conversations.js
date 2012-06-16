@@ -32,21 +32,22 @@ function addMessage(message)
 
     var author = message.contact;
 
-
-    conv_data.insert(conv_data.count -1,{"msg_id":message.id,
-                                        "message":message.content,
-                                        "type":message.type,
-                                        "timestamp":message.formattedDate,
-                                        "status":msg_status,
-                                        "author":author,
-                                        "mediatype_id":message.media_id?message.media.mediatype_id:1,
-                                        "media":message.media,
-                                        "progress":0})
+	var place = loadConvsReverse? convLoaded : conv_data.count -1
+	//console.log("ADDING ITEM IN PLACE: "+parseInt(place))
+    conv_data.insert(place, {"msg_id":message.id,
+                            "message":message.content,
+                            "type":message.type,
+                            "timestamp":message.formattedDate,
+                            "status":msg_status,
+                            "author":author,
+                            "mediatype_id":message.media_id?message.media.mediatype_id:1,
+                            "media":message.media,
+                            "progress":0})
 
     //conv_data.append({"msg_id":id,"message":message,"type":type, "timestamp":timestamp,"status":msg_status});
-     conv_items.positionViewAtEnd()
+	if (!loadConvsReverse) conv_items.positionViewAtEnd()
     // conversation_view.conversationUpdated(id,type,conversation_view.user_id,message,timestamp,formattedDate);
-     conversation_view.conversationUpdated(message);
+    if (!loadConvsReverse) conversation_view.conversationUpdated(message);
 }
 
 function onTyping(user_id){

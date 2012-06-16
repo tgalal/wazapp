@@ -33,6 +33,7 @@ from Models.contact import Contact
 from constants import WAConstants
 import thread
 from wadebug import ContactsDebug;
+import sys
 
 class ContactsSyncer(WARequest):
 	'''

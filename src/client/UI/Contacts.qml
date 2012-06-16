@@ -32,28 +32,32 @@ Page {
     //anchors.fill: parent
 
 	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
-			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+					myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
 
-      Component.onCompleted: {
-                ContactsManager.populateContacts();
+	Component.onCompleted: {
+		ContactsManager.populateContacts();
            // contactsContainer.newMessage({data:"Hi","user_id":"201006960035"})
-     }
+	}
 
-      state:"no_data"
+	state:"no_data"
 
-      property alias indicator_state:wa_notifier.state
+	property alias indicator_state:wa_notifier.state
 
-      states: [
-          State {
-              name: "no_data"
-              PropertyChanges {
-                  target: no_data
-                  visible:true
-              }
-          }
-      ]
+	states: [
+		State {
+			name: "no_data"
+			PropertyChanges {
+				target: no_data
+				visible:true
+			}
+		}
+	]
 
-
+    onStatusChanged: {
+        if(status == PageStatus.Activating){
+			list_view1.positionViewAtBeginning()
+		}
+	}
 
     // signal conversationUpdated(int msgId, int msgType, string user_id,string lastMsg,string time,string formattedDate);
      signal conversationUpdated(variant message);
@@ -256,7 +260,6 @@ Page {
             onClicked: {
 				openChatWindow(model.jid)
 				hideSearchBar()
-				list_view1.positionViewAtBeginning()
 				if(searchbar.height==71) searchInput.platformCloseSoftwareInputPanel()
 			}
         }

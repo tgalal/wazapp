@@ -17,23 +17,30 @@ Page {
 
 	property bool loaded: false
 
+	property int convLoaded: 0
+	property bool loadConvsReverse: false
+
+	property string contactNumber
+	property bool showContactDetails
+
     onStatusChanged: {
         if(status == PageStatus.Deactivating){
             appWindow.setActiveConv("")
         }
         else if(status == PageStatus.Active){
+			activeWindow=user_id
+			conv_items.positionViewAtEnd()
 			if (!loaded) {
 				loaded = true
-				// load entire conversation when the page is active
-				// but the last message is already loaded for chats window
-				// so I need to hide it (removing it causes scrolling problems)
-				if (conv_items.count>1) {
-					// hide the item only if the page has messages
-					conv_items.currentIndex=0
-					conv_items.currentItem.height=0
-					conv_items.currentItem.visible=false
-				}
-				appWindow.loadConversationsThread(user_id);
+				loadConvsReverse = true
+				convLoaded = 0
+				appWindow.loadConversationsThread(user_id, 1, 14);
+				loadConvsReverse = false
+				if (conv_data.count>15) 
+					conv_items.header = readMoreDelegate
+				else
+					conv_items.header = readMoreDelegateEmpty
+				conv_items.positionViewAtEnd()
 			}
             appWindow.conversationActive(user_id);
             appWindow.setActiveConv(user_id)
@@ -201,6 +208,22 @@ Page {
     function newMessage(message){
         //ConvScript.addMessage(message.id,message.content,message.type,message.formattedDate,message.timestamp,message.status);
         ConvScript.addMessage(message);
+
+		if (activeWindow!=user_id && addToUread && message.type==0) {
+			var added =0 
+			for(var i =0; i<unreadModel.count; i++)
+			{
+				if (unreadModel.get(i).name==user_id) {
+					unreadModel.get(i).val = unreadModel.get(i).val +1
+					added = 1;
+					break;
+			 	}
+			}
+			if (added==0) {
+				unreadModel.insert(unreadModel.count, {"name":user_id, "val":1})
+			}
+			updateUnreadCount()
+		}
     }
 
     function getNameForBubble(uname)
@@ -243,6 +266,7 @@ Page {
 					id: bcArea
 					anchors.fill: parent
 					onClicked: { 
+						activeWindow="main"
                         //chatsTabButton.clicked()
 						appWindow.pageStack.pop(1)
 					}
@@ -254,7 +278,7 @@ Page {
 	        Label {
 	            id: username
                 text: user_name.indexOf("-")>0 ? 
-						qsTr("Group (%1)").arg(getAuthor(user_name.split('-')[0]+"@s.whatsapp.net")) : user_name
+						qsTr("Group (%1)").arg(getAuthor(user_name.split('-')[0])) : user_name
 				width: parent.width - 62
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
@@ -300,7 +324,7 @@ Page {
 
     function getAuthor(inputText) {
         var resp;
-        resp = inputText.split('@')[0];
+        resp = inputText;
         for(var i =0; i<contactsModel.count; i++)
         {
             var item = contactsModel.get(i).jid;
@@ -321,13 +345,16 @@ Page {
 			from_me:model.type==1
             progress:model.progress
 			//picture: user_picture
-            name: mediatype_id==10 || from_me || user_name.indexOf("-")==-1 ? "" : getAuthor(model.author.jid)
+            name: mediatype_id==10 || from_me || user_name.indexOf("-")==-1 ? "" : getAuthor(model.author.jid).split('@')[0]
             author:model.author
 			state_status:model.status
             isGroup: conversation_view.isGroup
+
 			onOptionsRequested: {
 				console.log("options requested")
 				copy_facilitator.text = model.message;
+				contactNumber = model.author.jid.split('-')[0].split('@')[0]
+				showContactDetails = model.type==0 && getAuthor(model.author.jid)==model.author.jid
 				bubbleMenu.open();
 			}
         }
@@ -342,6 +369,45 @@ Page {
 		    paused(user_id);
 	    }
 	}
+
+	Component {
+		id: readMoreDelegate
+		Rectangle {
+			width: appWindow.inPortrait ? 480 : 854
+			height: 65
+			color: "transparent"
+			Button {
+				height: 45
+				width: parent.width - 120
+				anchors.horizontalCenter: parent.horizontalCenter
+				anchors.verticalCenter: parent.verticalCenter
+				text: qsTr("Read more messages")
+                font.pixelSize: 20
+				onClicked: {
+					loadConvsReverse = true
+					convLoaded = 0
+					var cInt = conv_data.count+14
+					appWindow.loadConversationsThread(user_id, conv_data.count-1, 15);
+					loadConvsReverse = false
+					if ( cInt > conv_data.count )
+						conv_items.header = readMoreDelegateEmpty
+					else
+						conv_items.header = readMoreDelegate
+					conv_items.positionViewAtIndex(convLoaded, ListView.Beginning)
+				}
+			}
+		}
+	}
+
+	Component {
+		id: readMoreDelegateEmpty
+		Rectangle {
+			color: "transparent"
+			height: 0
+			width: appWindow.inPortrait ? 480 : 854
+		}
+	}
+
 
 	Rectangle {
 		color: theme.inverted? "transparent" : "#dedfde"
@@ -381,6 +447,9 @@ Page {
 			width: parent.width
 			cacheBuffer: 10000
 			visible: loaded
+			onCountChanged: {
+				if (conv_data.count>1) convLoaded = convLoaded+1
+			}
 		}
 	}
 
@@ -466,14 +535,27 @@ Page {
     Menu {
         id: bubbleMenu
 
-            MenuLayout {
+        MenuLayout {
 
-            MenuItem{
-                text:qsTr("Copy")
+            MyMenuItem{
+				height: 80
+                text:qsTr("Copy content")
+				singleItem: !detailsMenuItem.visible
                 onClicked:{
                     copy_facilitator.selectAll()
                     copy_facilitator.copy();}
             }
+
+            MyMenuItem{
+				id: detailsMenuItem
+				visible: showContactDetails
+				height: visible ? 80 : 0
+                text:qsTr("Add to contacts")
+                onClicked:{
+					Qt.openUrlExternally("tel:"+contactNumber)
+				}
+            }
+
         }
     }
 

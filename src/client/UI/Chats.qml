@@ -36,14 +36,14 @@ Page {
 	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
 			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
 
-    //width: parent.width
-    //anchors.fill: parent
-    //color: "#e6e6e6"
-
     state:"no_data"
 
     signal clicked(string number,string prev_state)
     signal deleteConversation(string conv_id);
+
+	property string contactNumber
+	property bool contactNumberGroup
+	property bool showContactDetails
 
     function setContacts(contacts){
         ContactsScript.contacts = contacts;
@@ -152,7 +152,7 @@ Page {
 
 	function getAuthor(inputText) {
 		var resp;
-		resp = inputText.split('@')[0];
+		resp = inputText;
 		for(var i =0; i<contactsModel.count; i++)
 		{
             var item = contactsModel.get(i).jid;
@@ -162,9 +162,22 @@ Page {
 		return resp;
 	}
 
+	function getUnreadMessages(uname) {
+		var res = "0"
+		for(var i =0; i<unreadModel.count; i++)
+		{
+			if (unreadModel.get(i).name==uname) {
+				res = parseInt(unreadModel.get(i).val)
+				break;
+	 		}
+		}
+		return res;
+	}
+
     ListModel{
         id:chatsModel
     }
+
     Component{
         id:myDelegate;
 
@@ -172,13 +185,26 @@ Page {
             property variant contactInfo:ContactsScript.getContactData(model.jid)
             picture: contactInfo.picture;
             name: contactInfo.name.indexOf("-")>0 ? 
-					qsTr("Group (%1)").arg(getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net")) : contactInfo.name
+					qsTr("Group (%1)").arg(getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net").split('@')[0]) : contactInfo.name
 			isGroup: contactInfo.name.indexOf("-")>0
 			number:model.jid;
             lastMsg: Helpers.emojify(Helpers.linkify(model.content))
             time:model.timestamp
             formattedDate: Helpers.getDateText(model.formattedDate).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
-            onClicked: chatsContainer.clicked(model.jid,"chats")
+			unread_messages: getUnreadMessages(model.jid)
+            onClicked: {
+				chatsContainer.clicked(model.jid,"chats")
+
+				for(var i=0; i<unreadModel.count; i++)
+				{
+					if (unreadModel.get(i).name==model.jid) {
+						unreadModel.get(i).val = 0
+						break;
+				 	}
+				}
+				updateUnreadCount()
+
+			}
             width:chatsContainer.width
             msgId: model.id
             msgType:model.type
@@ -186,6 +212,11 @@ Page {
 
             onOptionsRequested: {
                 chatDelConfirm.cid_confirm = model.jid;
+				contactNumber = model.jid.split('-')[0].split('@')[0]
+				contactNumberGroup = isGroup
+				showContactDetails = isGroup? 
+									getAuthor(model.jid).split('-')[0]==getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net").split('@')[0] : 
+									getAuthor(model.jid)==model.jid
                 chatItemMenu.open()
             }
 
@@ -208,7 +239,7 @@ Page {
 
             Label{
                 anchors.centerIn: parent;
-                text:"No conversations yet"
+                text: qsTr("No conversations yet")
                 font.pointSize: 22
 				color: "gray"
                 width:parent.width
@@ -228,20 +259,25 @@ Page {
         }
     }
 
-    Menu {
-        id: chatItemMenu
+	Menu {
+	id: chatItemMenu
 
-            MenuLayout {
-
-            MenuItem{
-                text:qsTr("Delete Conversation")
-                onClicked:{
-                    chatDelConfirm.open()
-
-                }
-          }
-      }
-    }
+		MenuLayout {
+			MyMenuItem {
+				height: 80
+				singleItem: !detailsMenuItem.visible
+				text: qsTr("Delete Conversation")
+				onClicked: chatDelConfirm.open()
+			}
+			MyMenuItem {
+				id: detailsMenuItem
+				visible: showContactDetails
+				height: visible ? 80 : 0
+				text: contactNumberGroup ? qsTr("Add group owner to contacts") : qsTr("Add to contacs")
+				onClicked: Qt.openUrlExternally("tel:"+contactNumber)
+			}
+		}
+	}
 
     QueryDialog {
         id: chatDelConfirm
@@ -253,8 +289,6 @@ Page {
         onAccepted: {
                 deleteConversation(cid_confirm)
                 removeChatItem(cid_confirm)
-
-
         }
     }
 }

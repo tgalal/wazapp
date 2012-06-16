@@ -69,15 +69,15 @@ class MessageStore(QObject):
 			self._d("loading messages")
 			jid = c.getJid();
 			self.conversations[jid] = c
-			self.loadMessages(jid,0,1)
-			self._d("loaded messages")
+			self.loadMessages(jid, 0, 0, 1)
+			print "loaded messages"
 		
-	def loadAllConversations(self,user_id):
-		self.loadMessages(user_id)
+	def loadAllConversations(self,user_id, first, limit):
+		self.loadMessages(user_id, 0, first, limit)
 
-	def loadMessages(self,jid,offset=0,limit=50):
+	def loadMessages(self,jid,offset=0, first=0, limit=50):
 		
-		messages = self.conversations[jid].loadMessages(offset,limit);
+		messages = self.conversations[jid].loadMessages(offset, first, limit);
 		
 		self.sendMessagesReady(jid,messages);
 		return messages

@@ -44,7 +44,7 @@ class Conversation(Model):
 		return contact.jid
 		
 	def getLastMessage(self):
-		messages = self.store.Message.findAll(conditions = {"conversation_id":self.id}, order=["timestamp DESC"], limit = 1)
+		messages = self.store.Message.findAll(conditions = {"conversation_id":self.id}, order=["timestamp DESC"], first=0, limit=1)
 		if len(messages):
 			self.lastMessage = messages[0];
 			return self.lastMessage;
@@ -54,14 +54,14 @@ class Conversation(Model):
 		return None;
 		
 		
-	def loadMessages(self,offset = 0,limit=50):
+	def loadMessages(self,offset = 0,first=0,limit=50):
 		print "find some messages"
 		conditions = {"conversation_id":self.id}
 		
 		if offset:
 			conditions["id<",offset];
 		
-		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit)
+		messages = self.store.Message.findAll(conditions,order=["id DESC"],first=first,limit=limit)
 		
 		messages.reverse();
 		
@@ -86,7 +86,7 @@ class Groupconversation(Model):
 		
 		
 	def getLastMessage(self):
-		messages = self.store.Groupmessage.findAll(conditions = {"groupconversation_id":self.id}, order=["timestamp DESC"], limit = 1)
+		messages = self.store.Groupmessage.findAll(conditions = {"groupconversation_id":self.id}, order=["timestamp DESC"], first=0, limit=1)
 		if len(messages):
 			self.lastMessage = messages[0];
 			return self.lastMessage;
@@ -95,14 +95,14 @@ class Groupconversation(Model):
 		self.lastMessage.timestamp = 0
 		return None;
 		
-	def loadMessages(self,offset = 0,limit=50):
+	def loadMessages(self,offset = 0,first=0,limit=50):
 		print "group: find some messages"
 		conditions = {"groupconversation_id":self.id}
 		
 		if offset:
 			conditions["id<",offset];
 		
-		messages = self.store.Groupmessage.findAll(conditions,order=["id DESC"],limit=limit)
+		messages = self.store.Groupmessage.findAll(conditions,order=["id DESC"],first=first,limit=limit)
 		
 		messages.reverse();
 		

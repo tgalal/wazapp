@@ -25,14 +25,15 @@ from wadebug import SqlDebug
 class Model(object):
 
 	def setConnection(self,connection):
-		self._d = SqlDebug();
+		_d = SqlDebug();
+		self._d = _d.d;
 		
 		self.table = self.getTableName();
 		self.conn = connection
 		try:
 			self.cursor  = connection.cursor()
 		except sqlite3.ProgrammingError as e:
-			self._d.d(e)
+			self._d(e)
 			self.store.connect()
 			self.conn = self.store.conn
 			self.cursor = self.conn.cursor()
@@ -146,7 +147,7 @@ class Model(object):
 		elif self.id:
 			q+="WHERE id=%d"%self.id
 		else:
-			self._d.d("USE deleteAll to delete all, cancelled!")
+			self._d("USE deleteAll to delete all, cancelled!")
 			
 		c = self.conn.cursor();
 		c.execute(q)
@@ -177,8 +178,8 @@ class Model(object):
 		
 		q = "INSERT INTO %s %s VALUES %s" %(self.table,fields,wq);
 		c = self.conn.cursor();
-		self._d.d(q)
-		self._d.d(values)
+		self._d(q)
+		self._d(values)
 		c.execute(q,values);
 		self.conn.commit();
 		
@@ -366,7 +367,7 @@ class Model(object):
 		return self.__class__.__name__
 	
 	def runQuery(self,query,whereValues = []):
-		self._d.d(query);
+		self._d(query);
 		c = self.conn.cursor();
 		
 		if len(whereValues):

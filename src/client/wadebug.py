@@ -8,12 +8,17 @@ class WADebug():
 		
 		cname = self.__class__.__name__
 		self.type= cname[:cname.index("Debug")]
-		
+	
+	@staticmethod
+	def attach(instance):
+		d = WADebug();
+		d.type = instance.__class__.__name__;
+		instance._d = d.d
 	
 	@staticmethod
 	def stdDebug(message,messageType="General"):
-		enabledTypes = ["general","sql","conn"];
-		allowAll = True
+		enabledTypes = ["general","stanzareader","sql","conn","waxmpp","wamanager","walogin","waupdater","messagestore"];
+		allowAll = False
 		if allowAll or messageType.lower() in enabledTypes:
 			print message;
 	

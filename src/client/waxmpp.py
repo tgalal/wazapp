@@ -36,8 +36,9 @@ from PySide.QtCore import QThread, QTimer
 from PySide.QtGui import QApplication
 from waupdater import WAUpdater
 from wamediahandler import WAMediaHandler, WAVCardHandler
-from wadebug import EventHandlerDebug,WaxmppDebug
+from wadebug import WADebug
 import thread
+from watime import WATime
 
 class WAEventHandler(WAEventBase):
 	
@@ -73,8 +74,8 @@ class WAEventHandler(WAEventBase):
 	
 
 	def __init__(self,conn):
-		_d = EventHandlerDebug();
-		self._d = _d.debug;
+		
+		WADebug.attach(self);
 		self.conn = conn;
 		super(WAEventHandler,self).__init__();
 		
@@ -410,8 +411,7 @@ class WAEventHandler(WAEventBase):
 
 class StanzaReader(QThread):
 	def __init__(self,connection):
-		_d = WaxmppDebug()
-		self._d = _d.debug;
+		WADebug.attach(self);
 		
 		self.connection = connection
 		self.inn = connection.inn;
@@ -602,6 +602,21 @@ class StanzaReader(QThread):
 		
 		return categories
 
+	def parseOfflineMessageStamp(self,stamp):
+		self._d("Parsing offline stamp");
+		
+		watime = WATime();
+		parsed = watime.parseIso(stamp)
+		local = watime.utcToLocal(parsed)
+		
+		self._d("LOCAL");
+		self._d(local);
+		
+		stamp = watime.datetimeToTimestamp(local)
+		
+		self._d(stamp);
+		return stamp
+	
 	def parseMessage(self,messageNode):
 	
 		
@@ -722,19 +737,8 @@ class StanzaReader(QThread):
 					#	msgdata = msgdata + " " + childNode.data;		But it's not supported in whatsapp?
 
 					key = Key(fromAttribute,False,msg_id);
-					ret = WAXMPP.message_store.get(key);
-				
-					if ret is None:
-						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
 					
-						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
-						fmsg.key = key
-						
-						#if self.eventHandler is not None:
-						#self.eventHandler.message_received(fmsg);
-					else:
-						fmsg.key = eval(ret.key)
-						duplicate = True;
+					fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
 				
 				elif ProtocolTreeNode.tagEquals(childNode,"body") and msg_id is not None:
 					msgdata = childNode.data;
@@ -745,36 +749,28 @@ class StanzaReader(QThread):
 					fmsg.Media = None
 					
 					key = Key(fromAttribute,False,msg_id);
-					ret = WAXMPP.message_store.get(key);
-
 					
-					if ret is None:
-						
-						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
-						
-						try:
-							index = fromAttribute.index('-')
-							#group conv
-							contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
-							fmsg.contact_id = contact.id
-							fmsg.contact = contact
-						except ValueError: #single conv
-							pass
-						
-						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
-						fmsg.key = key
-						
-						#if self.eventHandler is not None:
-						#self.eventHandler.message_received(fmsg);
-					else:
-						fmsg.key = eval(ret.key)
-						duplicate = True;
+					
+					fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
+					
+				
 				elif not (ProtocolTreeNode.tagEquals(childNode,"active")):
 					if ProtocolTreeNode.tagEquals(childNode,"request"):
 						fmsg.wantsReceipt = True;
 					
 					elif ProtocolTreeNode.tagEquals(childNode,"notify"):
 						fmsg.notify_name = childNode.getAttributeValue("name");
+						
+						
+					elif ProtocolTreeNode.tagEquals(childNode,"delay"):
+						xmlns = childNode.getAttributeValue("xmlns");
+						if "urn:xmpp:delay" == xmlns:
+							stamp_str = childNode.getAttributeValue("stamp");
+							if stamp_str is not None:
+								stamp = stamp_str	
+								fmsg.timestamp = self.parseOfflineMessageStamp(stamp)*1000;
+								fmsg.offline = True;
+					
 					elif ProtocolTreeNode.tagEquals(childNode,"x"):
 						xmlns = childNode.getAttributeValue("xmlns");
 						if "jabber:x:event" == xmlns and msg_id is not None:
@@ -817,7 +813,28 @@ class StanzaReader(QThread):
 				fmsg.timestamp = time.time()*1000;
 				fmsg.offline = False;
 			
+			print fmsg.getModelData();
+			
 			if self.eventHandler is not None:
+			
+				if fmsg.content:
+					ret = WAXMPP.message_store.get(key);
+					if ret is None:
+						try:
+							index = fromAttribute.index('-')
+							#group conv
+							contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+							fmsg.contact_id = contact.id
+							fmsg.contact = contact
+						except ValueError: #single conv
+							pass
+						
+						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
+						fmsg.key = key
+					else:
+						fmsg.key = eval(ret.key)
+						duplicate = True;
+			
 				self.eventHandler.message_received(fmsg,duplicate);
 			
 
@@ -827,8 +844,8 @@ class WAXMPP():
 	message_store = None
 	def __init__(self,domain,resource,user,push_name,password):
 		
-		_d = WaxmppDebug();
-		self._d = _d.debug;
+		WADebug.attach(self);
+		
 		self.domain = domain;
 		self.resource = resource;
 		self.user=user;

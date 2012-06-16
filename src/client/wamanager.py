@@ -26,14 +26,13 @@ from litestore import LiteStore as DataStore
 from accountsmanager import AccountsManager;
 import dbus
 from utilities import Utilities
-from wadebug import ManagerDebug;
+from wadebug import WADebug
 
 class WAManager():
 
 	def __init__(self,app):
 		self.app = app;
-		_d = ManagerDebug();
-		self._d = _d.d;
+		WADebug.attach(self)
 		
 		self._d("wazapp %s"%Utilities.waversion)
 		

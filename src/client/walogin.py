@@ -23,7 +23,7 @@ from PySide import QtCore
 from PySide.QtCore import QThread
 import socket
 from waexceptions import *
-from wadebug import LoginDebug;
+from wadebug import WADebug
 
 class WALogin(QThread):
 	
@@ -44,8 +44,7 @@ class WALogin(QThread):
 	def __init__(self,conn,reader,writer,digest):
 		super(WALogin,self).__init__();
 		
-		_d = LoginDebug();
-		self._d = _d.d;
+		WADebug.attach(self);
 		
 		self.conn = conn
 		self.out = writer;

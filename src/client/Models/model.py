@@ -138,7 +138,6 @@ class Model(object):
 	
 	def delete(self,conds = None):
 		
-		
 		q = "DELETE FROM %s "%self.table
 			
 		if conds is not None:
@@ -152,7 +151,7 @@ class Model(object):
 		c.execute(q)
 		self.conn.commit()
 		
-				
+
 	
 	def insert(self):
 		data = self._getColumnsWithValues();

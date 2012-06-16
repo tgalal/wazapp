@@ -32,10 +32,16 @@ Item {
     BorderImage {
        id: backgroundImage
        // ToDo: remove hardcoded values
-       source:  singleItem ? (pressed ? "image://theme/meegotouch-list-background-pressed" : "image://theme/meegotouch-list-background")
-              : root.parent.children[0] == root ? (pressed ? "image://theme/meegotouch-list-background-pressed-vertical-top" : "image://theme/meegotouch-list-background-vertical-top")
-              : root.parent.children[root.parent.children.length-1] == root ? (pressed ? "image://theme/meegotouch-list-background-pressed-vertical-bottom" : "image://theme/meegotouch-list-background-vertical-bottom")
-              : (pressed ? "image://theme/meegotouch-list-background-pressed-vertical-center" : "image://theme/meegotouch-list-background-vertical-center")
+       source:  singleItem ? (pressed ? "image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background-pressed" : 
+				"image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background")
+              : root.parent.children[0] == root ? 
+				(pressed ? "image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background-pressed-vertical-top" : 
+				"image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background-vertical-top")
+              : root.parent.children[root.parent.children.length-1] == root ? 
+				(pressed ? "image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background-pressed-vertical-bottom" : 
+				"image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background-vertical-bottom")
+              : (pressed ? "image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background-pressed-vertical-center" : 
+				"image://theme/meegotouch-list-"+(theme.inverted?"inverted-":"")+"background-vertical-center")
        anchors.fill : root
        border { left: 22; top: 22;
                 right: 22; bottom: 22 }

@@ -58,7 +58,7 @@
 <context>
     <name>Chats</name>
     <message>
-        <location filename="../UI/Chats.qml" line="175"/>
+        <location filename="../UI/Chats.qml" line="167"/>
         <source>Group (%1)</source>
         <translation>Grupo (%1)</translation>
     </message>
@@ -67,37 +67,60 @@
         <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="180"/>
+        <location filename="../UI/Chats.qml" line="172"/>
         <source>Today</source>
         <translation>Hoy</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="180"/>
+        <location filename="../UI/Chats.qml" line="172"/>
         <source>Yesterday</source>
         <translation>Ayer</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="237"/>
+        <location filename="../UI/Chats.qml" line="221"/>
+        <source>No conversations yet</source>
+        <translation>No hay conversaciones</translation>
+    </message>
+    <message>
+        <location filename="../UI/Chats.qml" line="248"/>
         <source>Delete Conversation</source>
         <translation>Eliminar conversación</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="249"/>
+        <location filename="../UI/Chats.qml" line="255"/>
+        <source>Add group owner to contacts</source>
+        <translation>Agregar creador del grupo a contactos</translation>
+    </message>
+    <message>
+        <location filename="../UI/Chats.qml" line="255"/>
+        <source>Add to contacs</source>
+        <translation>Agregar a contactos</translation>
+    </message>
+    <message>
+        <source>View contact details</source>
+        <translation type="obsolete">Ver detalles del contacto</translation>
+    </message>
+    <message>
+        <source>View group owner details</source>
+        <translation type="obsolete">Ver detalles del creador del grupo</translation>
+    </message>
+    <message>
+        <location filename="../UI/Chats.qml" line="264"/>
         <source>Confirm Delete</source>
         <translation>Confirmar eliminado</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="250"/>
+        <location filename="../UI/Chats.qml" line="265"/>
         <source>Are you sure you want to delete this conversation and all its messages?</source>
         <translation>¿Está seguro que desea borrar la conversación y todo su contenido?</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="251"/>
+        <location filename="../UI/Chats.qml" line="266"/>
         <source>Yes</source>
         <translation>Si</translation>
     </message>
     <message>
-        <location filename="../UI/Chats.qml" line="252"/>
+        <location filename="../UI/Chats.qml" line="267"/>
         <source>No</source>
         <translation>No</translation>
     </message>
@@ -123,12 +146,12 @@
 <context>
     <name>Contacts</name>
     <message>
-        <location filename="../UI/Contacts.qml" line="362"/>
+        <location filename="../UI/Contacts.qml" line="365"/>
         <source>No contacts yet. Try to resync</source>
-        <translation>No hay contactos. Intente sincronizar.</translation>
+        <translation>No hay contactos. Intente sincronizar</translation>
     </message>
     <message>
-        <location filename="../UI/Contacts.qml" line="295"/>
+        <location filename="../UI/Contacts.qml" line="298"/>
         <source>Quick search</source>
         <translation>Búsqueda rápida</translation>
     </message>
@@ -140,12 +163,12 @@
         <translation type="obsolete">Chats</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="396"/>
+        <location filename="../UI/Conversation.qml" line="433"/>
         <source>Loading conversation...</source>
         <translation>Cargando conversación...</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="259"/>
+        <location filename="../UI/Conversation.qml" line="285"/>
         <source>Group (%1)</source>
         <translation>Grupo (%1)</translation>
     </message>
@@ -162,24 +185,42 @@
         <translation type="obsolete">Escriba su mensaje aquí</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="242"/>
+        <location filename="../UI/Conversation.qml" line="267"/>
         <source>Back</source>
         <translation>Atrás</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="359"/>
+        <location filename="../UI/Conversation.qml" line="391"/>
         <source>Read more messages</source>
         <translation>Leer más mensajes</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="482"/>
+        <location filename="../UI/Conversation.qml" line="519"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
     <message>
-        <location filename="../UI/Conversation.qml" line="515"/>
+        <location filename="../UI/Conversation.qml" line="553"/>
+        <source>Copy content</source>
+        <translation>Copiar contenido</translation>
+    </message>
+    <message>
+        <location filename="../UI/Conversation.qml" line="565"/>
+        <source>Add to contacts</source>
+        <translation>Agregar a contactos</translation>
+    </message>
+    <message>
+        <location filename="../UI/Conversation.qml" line="573"/>
+        <source>Remove message</source>
+        <translation>Eliminar mensaje</translation>
+    </message>
+    <message>
+        <source>View contact details</source>
+        <translation type="obsolete">Ver detalles del contacto</translation>
+    </message>
+    <message>
         <source>Copy</source>
-        <translation>Copiar</translation>
+        <translation type="obsolete">Copiar</translation>
     </message>
 </context>
 <context>
@@ -239,7 +280,7 @@
     </message>
     <message>
         <location filename="../UI/MediaBubble.qml" line="79"/>
-        <location filename="../UI/MediaBubble.qml" line="181"/>
+        <location filename="../UI/MediaBubble.qml" line="180"/>
         <source>Download</source>
         <translation>Descargar</translation>
     </message>
@@ -259,12 +300,11 @@
         <translation>Reintentar</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="165"/>
         <source>Multimedia message</source>
-        <translation>Mensaje multimedia</translation>
+        <translation type="obsolete">Mensaje multimedia</translation>
     </message>
     <message>
-        <location filename="../UI/MediaBubble.qml" line="185"/>
+        <location filename="../UI/MediaBubble.qml" line="184"/>
         <source>Initializing</source>
         <translation>Inicializando</translation>
     </message>
@@ -300,9 +340,39 @@
         <translation>Confirme su código de País e ingrese su número de teléfono</translation>
     </message>
     <message>
+        <location filename="../UI/Registration.qml" line="66"/>
+        <source>Egypt</source>
+        <translation>Egipto</translation>
+    </message>
+    <message>
         <location filename="../UI/Registration.qml" line="74"/>
         <source>Your number without the country code:</source>
         <translation>Su número sin el código de País</translation>
+    </message>
+    <message>
+        <location filename="../UI/Registration.qml" line="86"/>
+        <source>Submit</source>
+        <translation>Enviar</translation>
+    </message>
+    <message>
+        <location filename="../UI/Registration.qml" line="113"/>
+        <source>Please confirm</source>
+        <translation>Por favor confirme</translation>
+    </message>
+    <message>
+        <location filename="../UI/Registration.qml" line="122"/>
+        <source>Whatsapp will send an SMS with your 3 digit activation code to %1. Is that phone number correct?</source>
+        <translation>Whatsapp le enviará un SMS con los 3 dígitos del código de activación a %1. Es correcto este número?</translation>
+    </message>
+    <message>
+        <location filename="../UI/Registration.qml" line="131"/>
+        <source>Yes</source>
+        <translation>Si</translation>
+    </message>
+    <message>
+        <location filename="../UI/Registration.qml" line="136"/>
+        <source>No</source>
+        <translation>No</translation>
     </message>
 </context>
 <context>
@@ -346,6 +416,11 @@
         <location filename="../UI/Settings.qml" line="114"/>
         <source>Server status:</source>
         <translation>Estado del servidor:</translation>
+    </message>
+    <message>
+        <location filename="../UI/Settings.qml" line="120"/>
+        <source>Online</source>
+        <translation>En línea</translation>
     </message>
     <message>
         <location filename="../UI/Settings.qml" line="127"/>
@@ -462,6 +537,10 @@
         <translation type="obsolete">Video</translation>
     </message>
     <message>
+        <source>Location</source>
+        <translation type="obsolete">Ubicación</translation>
+    </message>
+    <message>
         <source>My location</source>
         <translation type="obsolete">Mi ubicación</translation>
     </message>
@@ -497,11 +576,27 @@
     </message>
 </context>
 <context>
+    <name>TopBar</name>
+    <message>
+        <source>Back</source>
+        <translation type="obsolete">Atrás</translation>
+    </message>
+</context>
+<context>
     <name>UserStatus</name>
     <message>
         <location filename="../UI/UserStatus.qml" line="86"/>
         <source>Online</source>
         <translation>En línea</translation>
+    </message>
+    <message>
+        <location filename="../UI/UserStatus.qml" line="95"/>
+        <source></source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Last seen: %1</source>
+        <translation type="obsolete">Visto última vez: %1</translation>
     </message>
     <message>
         <location filename="../UI/UserStatus.qml" line="103"/>
@@ -532,9 +627,17 @@
         <translation>Cambiar mi estado</translation>
     </message>
     <message>
+        <source>Update Wazapp</source>
+        <translation type="obsolete">Actualizar Wazapp</translation>
+    </message>
+    <message>
         <location filename="../UI/WAMenu.qml" line="53"/>
         <source>Sync Contacts</source>
         <translation>Sincronizar contactos</translation>
+    </message>
+    <message>
+        <source>Invert Colors</source>
+        <translation type="obsolete">Invertir colores</translation>
     </message>
     <message>
         <location filename="../UI/WAMenu.qml" line="69"/>
@@ -565,9 +668,30 @@
         <source>Offline</source>
         <translation type="obsolete">Fuera de línea</translation>
     </message>
+    <message>
+        <location filename="../UI/WANotify.qml" line="116"/>
+        <source></source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>WAUpdate</name>
+    <message>
+        <source>Latest Version:</source>
+        <translation type="obsolete">Ultima versión:</translation>
+    </message>
+    <message>
+        <source>Urgency:</source>
+        <translation type="obsolete">Urgencia:</translation>
+    </message>
+    <message>
+        <source>Summary:</source>
+        <translation type="obsolete">Sumario:</translation>
+    </message>
+    <message>
+        <source>Changes:</source>
+        <translation type="obsolete">Cambios:</translation>
+    </message>
     <message>
         <location filename="../UI/WAUpdate.qml" line="142"/>
         <source>Update</source>
@@ -577,62 +701,74 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../UI/main.qml" line="214"/>
+        <location filename="../UI/main.qml" line="236"/>
         <source>Retrieving contacts list...</source>
         <translation>Recuperando lista de contactos...</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="215"/>
+        <location filename="../UI/main.qml" line="237"/>
         <source>Fetching contacts...</source>
         <translation>Buscando contactos...</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="216"/>
+        <location filename="../UI/main.qml" line="238"/>
         <source>Loading contacts...</source>
         <translation>Cargando contactos...</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="383"/>
+        <location filename="../UI/main.qml" line="431"/>
         <source>Chats</source>
         <translation>Chats</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="389"/>
+        <location filename="../UI/main.qml" line="437"/>
         <source>Contacts</source>
         <translation>Contactos</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="427"/>
+        <location filename="../UI/main.qml" line="475"/>
+        <source>Update Contacts</source>
+        <translation>Actualizar contactos</translation>
+    </message>
+    <message>
+        <location filename="../UI/main.qml" line="476"/>
+        <source>The Phone contacts database has changed. Do you want to sync contacts now?</source>
+        <translation>La base de datos de contactos del teléfono ha sido actualizada. ¿Desea sincronizar los contactos ahora?</translation>
+    </message>
+    <message>
+        <location filename="../UI/main.qml" line="484"/>
         <source>Confirm Quit</source>
         <translation>Confirmar salida</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="428"/>
+        <location filename="../UI/main.qml" line="485"/>
         <source>Are you sure you want to quit Wazapp?</source>
         <translation>Está seguro que desea salir de Wazapp?</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="429"/>
+        <location filename="../UI/main.qml" line="477"/>
+        <location filename="../UI/main.qml" line="486"/>
         <source>Yes</source>
         <translation>Si</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="430"/>
+        <location filename="../UI/main.qml" line="478"/>
+        <location filename="../UI/main.qml" line="487"/>
         <source>No</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="442"/>
+        <location filename="../UI/main.qml" line="499"/>
         <source>Wazapp %1 is now available for update!</source>
         <translation>Wazapp %1 ya está disponible para actualizar!</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="444"/>
+        <location filename="../UI/main.qml" line="501"/>
         <source>Details</source>
         <translation>Detalles</translation>
     </message>
     <message>
-        <location filename="../UI/main.qml" line="445"/>
+        <location filename="../UI/main.qml" line="502"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>

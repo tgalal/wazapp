@@ -45,7 +45,7 @@ Rectangle{
         }
     }
 
-    state:state_status == 0?"sending":(state_status ==1?"pending":"delivered")
+    state:state_status == 0? "sending" : state_status ==1? "pending" : state_status ==2 ? "delivered" : "received"
 
     signal clicked(string number);
     signal optionsRequested()

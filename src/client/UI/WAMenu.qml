@@ -44,7 +44,7 @@ Menu {
 
          MenuItem{
                 visible:updateVisible
-                text: qsTr("Update Wazapp")
+                text:"Update Wazapp"
                 onClicked:{appWindow.pageStack.push(updatePage)}
          }
 
@@ -60,7 +60,7 @@ Menu {
         }*/
 
         MenuItem{
-            text: qsTr("Invert Colors")
+            text:"Invert Colors"
             onClicked:{appWindow.normalMode();theme.inverted = !theme.inverted}
         }
 

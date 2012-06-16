@@ -71,7 +71,13 @@ class WAUI(QDeclarativeView):
 		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
 		self.rootObject().refreshContacts.connect(self.c.resync)
 		self.rootObject().loadConversationsThread.connect(self.populateAllConversations)
-		
+				
+		#Changed by Tarek: connected directly to QContactManager living inside contacts manager
+		self.c.manager.manager.contactsChanged.connect(self.rootObject().onContactsChanged);
+		self.c.manager.manager.contactsAdded.connect(self.rootObject().onContactsChanged);
+		self.c.manager.manager.contactsRemoved.connect(self.rootObject().onContactsChanged);
+
+
 		
 		#self.rootObject().quit.connect(self.quit)
 		
@@ -81,6 +87,7 @@ class WAUI(QDeclarativeView):
 		
 		
 		self.rootObject().deleteConversation.connect(self.messageStore.deleteConversation)
+		self.rootObject().deleteSingleMessage.connect(self.messageStore.deleteSingleMessage)
 		
 		self.dbusService = WAService(self);
 		

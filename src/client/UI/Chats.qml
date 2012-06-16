@@ -67,23 +67,6 @@ Page {
     }
 
 
-    function removeChatItem(cid){
-        for (var i=0; i<chatsModel.count;i++)
-        {
-            console.log("deleting")
-            var chatItem = chatsModel.get(i);
-            console.log(chatItem.jid);
-            if(chatItem.jid == cid)
-            {
-                chatsModel.remove(i)
-                if(chatsModel.count == 0){
-                    chatsContainer.state="no_data";
-                }
-
-                return;
-            }
-        }
-    }
 
     function clearChats(){
         chatsModel.clear();
@@ -117,7 +100,7 @@ Page {
     function updateConversation(msg)
     {
 
-        var lastMsg = msg.content
+        /*var lastMsg = msg.content
 
         var tmp = lastMsg.split('\n');
 
@@ -130,7 +113,7 @@ Page {
         }else if(lastMsg.length > maxLength){
             lastMsg = lastMsg.substring(0,maxLength).trim()+"...";
         }
-        msg.content = lastMsg
+        msg.content = lastMsg*/
 
 
 
@@ -174,10 +157,6 @@ Page {
 		return res;
 	}
 
-    ListModel{
-        id:chatsModel
-    }
-
     Component{
         id:myDelegate;
 
@@ -211,6 +190,7 @@ Page {
             state_status:model.status
 
             onOptionsRequested: {
+				console.log("OPTIONS! TYPE: " + model.type + " - STATUS: " + model.status) 
                 chatDelConfirm.cid_confirm = model.jid;
 				contactNumber = model.jid.split('-')[0].split('@')[0]
 				contactNumberGroup = isGroup
@@ -287,8 +267,8 @@ Page {
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
         onAccepted: {
-                deleteConversation(cid_confirm)
-                removeChatItem(cid_confirm)
+            deleteConversation(cid_confirm)
+            removeChatItem(cid_confirm)
         }
     }
 }

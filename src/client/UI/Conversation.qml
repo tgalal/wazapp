@@ -20,6 +20,9 @@ Page {
 	property int convLoaded: 0
 	property bool loadConvsReverse: false
 
+	property int selectedMessageId
+	property int selectedMessageIndex
+	property string selectedMessageContent
 	property string contactNumber
 	property bool showContactDetails
 
@@ -29,17 +32,9 @@ Page {
         }
         else if(status == PageStatus.Active){
 			activeWindow=user_id
-			conv_items.positionViewAtEnd()
 			if (!loaded) {
 				loaded = true
-				loadConvsReverse = true
-				convLoaded = 0
-				appWindow.loadConversationsThread(user_id, 1, 14);
-				loadConvsReverse = false
-				if (conv_data.count>15) 
-					conv_items.header = readMoreDelegate
-				else
-					conv_items.header = readMoreDelegateEmpty
+				readConversations(user_id, 1, 14);
 				conv_items.positionViewAtEnd()
 			}
             appWindow.conversationActive(user_id);
@@ -270,6 +265,14 @@ Page {
 						activeWindow="main"
                         //chatsTabButton.clicked()
 						appWindow.pageStack.pop(1)
+						conv_items.positionViewAtEnd()
+						/*if (conv_data.count>16) {
+							// This will reset messages to 15 when the chat is closed
+							// To keep chat window faster
+							// I'll enable this after more testing
+							while (conv_data.count>16) conv_data.remove(0)
+							conv_items.header = readMoreDelegate
+						}*/
 					}
 				}
 
@@ -299,6 +302,11 @@ Page {
                 imgsource: user_name.indexOf("-")>0 ? "pics/group.png" : user_picture
                 anchors.verticalCenter: parent.verticalCenter
 				anchors.right: parent.right
+				MouseArea {
+					anchors.fill: parent
+					// User Profile window. Not finished yet
+					//onClicked: { pageStack.push (Qt.resolvedUrl("ContactProfile.qml")) }
+				}
             }
 
         }
@@ -355,6 +363,9 @@ Page {
 				console.log("options requested")
 				copy_facilitator.text = model.message;
 				contactNumber = model.author.jid.split('-')[0].split('@')[0]
+				selectedMessageId = model.msg_id
+				selectedMessageIndex = index
+				selectedMessageContent = model.message
 				showContactDetails = model.type==0 && getAuthor(model.author.jid)==model.author.jid
 				bubbleMenu.open();
 			}
@@ -385,19 +396,23 @@ Page {
 				text: qsTr("Read more messages")
                 font.pixelSize: 20
 				onClicked: {
-					loadConvsReverse = true
-					convLoaded = 0
-					var cInt = conv_data.count+14
-					appWindow.loadConversationsThread(user_id, conv_data.count-1, 15);
-					loadConvsReverse = false
-					if ( cInt > conv_data.count )
-						conv_items.header = readMoreDelegateEmpty
-					else
-						conv_items.header = readMoreDelegate
+					readConversations(user_id, conv_data.count-1, 15)
 					conv_items.positionViewAtIndex(convLoaded, ListView.Beginning)
 				}
 			}
 		}
+	}
+
+	function readConversations( user, fist, limit) {
+		loadConvsReverse = true
+		convLoaded = 0
+		var cInt = conv_data.count+limit-1
+		appWindow.loadConversationsThread(user_id, conv_data.count-1, limit);
+		loadConvsReverse = false
+		if ( cInt > conv_data.count )
+			conv_items.header = readMoreDelegateEmpty
+		else
+			conv_items.header = readMoreDelegate
 	}
 
 	Component {
@@ -540,20 +555,62 @@ Page {
 
             MyMenuItem{
 				height: 80
-                text:qsTr("Copy content")
-				singleItem: !detailsMenuItem.visible
+                text: qsTr("Copy content")
+				//singleItem: !detailsMenuItem.visible
                 onClicked:{
                     copy_facilitator.selectAll()
-                    copy_facilitator.copy();}
+                    copy_facilitator.copy()
+				}
             }
 
             MyMenuItem{
 				id: detailsMenuItem
 				visible: showContactDetails
 				height: visible ? 80 : 0
-                text:qsTr("Add to contacts")
+                text: qsTr("Add to contacts")
                 onClicked:{
 					Qt.openUrlExternally("tel:"+contactNumber)
+				}
+            }
+
+            MyMenuItem{
+				height: 80
+                text: qsTr("Remove message")
+                onClicked:{
+					deleteSingleMessage(user_id, selectedMessageId)
+					var cur = selectedMessageIndex
+
+					conv_data.remove(selectedMessageIndex)
+
+					var total = conv_data.count
+					if (conv_items.header==readMoreDelegate) {
+						readConversations(user_id, conv_data.count-1, 1)
+						if (total == conv_data.count) {
+							conv_items.header = readMoreDelegateEmpty
+							cur = cur-1
+						}
+					}
+					else
+						cur = cur-1
+
+					if (conv_data.count==1) {
+			            deleteConversation(user_id)
+			            removeChatItem(user_id)
+						pageStack.pop(1)
+					} else {
+						if (cur == conv_data.count -2) {
+							for (var i=0; i<chatsModel.count;i++)
+							{
+								if (chatsModel.get(i).jid==user_id && chatsModel.get(i).content==selectedMessageContent) {
+									chatsModel.get(i).content = conv_data.get(cur).message
+									chatsModel.get(i).type = conv_data.get(cur).type
+									var st = conv_data.get(cur).status=="sending"? 0 : conv_data.get(cur).status=="pending"? 1 : 2
+									chatsModel.get(i).status = conv_data.get(cur).type==0 ? 4 : st
+									break;
+								}
+							}
+						}
+					}
 				}
             }
 

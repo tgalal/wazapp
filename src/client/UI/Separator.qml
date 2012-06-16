@@ -24,32 +24,26 @@ import QtQuick 1.1
 
 Rectangle {
     width: parent.width
-    height:top_margin.height+bottom_margin.height+1;
+    height: 2
     color:"transparent"
-    property alias top_margin:top_margin.height
-    property alias bottom_margin:bottom_margin.height
 
-    Column
-    {
-        anchors.fill: parent;
-        Rectangle{
-            id:top_margin
-            width:parent.width
-            color:"transparent"
-        }
-
-
-        Rectangle{
-            width:parent.width
-            height:1
-            color:"white"
-			opacity: 0.7
-        }
-
-        Rectangle{
-            id:bottom_margin
-            width:parent.width
-            color:"transparent"
-        }
+    Rectangle {
+        id: sortingDivisionLine
+        y:0
+		x:0
+		width: parent.width
+        height: 1
+        color: "gray"
+        opacity: 0.3
     }
+
+	Rectangle {
+        y:1
+		x:0
+		width: parent.width
+        height: 1
+        color: theme.inverted? "darkgray" : "white"
+        opacity: theme.inverted? 0.3 : 0.5
+    }
+
 }

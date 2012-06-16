@@ -58,9 +58,25 @@ class MessageStore(QObject):
 		if conv.type == "single":
 			self.store.Message.delete({"conversation_id":conv.id})
 		else:
-			self.store.GroupMessage.delete({"groupconversation_id":conv.id})
+			self.store.Groupmessage.delete({"groupconversation_id":conv.id})
 		conv.delete();
 		del self.conversations[jid]
+
+
+
+	def deleteSingleMessage(self,jid,msgid):
+
+		if not self.conversations.has_key(jid):
+			return
+		
+		conv = self.conversations[jid]
+		
+		if conv.type == "single":
+			self.store.Message.delete({"conversation_id":conv.id, "id":msgid})
+		else:
+			self.store.Groupmessage.delete({"groupconversation_id":conv.id, "id":msgid})
+
+
 	
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();
@@ -98,6 +114,7 @@ class MessageStore(QObject):
 			msg['contact'] = m.getContact().getModelData()
 			media = m.getMedia()
 			msg['media']= media.getModelData() if media is not None else None
+			msg['msg_id'] = msg['id']
 			tmp["data"].append(msg)
 			
 			

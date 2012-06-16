@@ -105,6 +105,7 @@ WAStackWindow {
     signal normalMode()
     signal quit()
     signal deleteConversation(string cid);
+	signal deleteSingleMessage(string user_id, int msg_id);
     signal conversationActive(string user_id);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
@@ -332,6 +333,9 @@ WAStackWindow {
 		id: unreadModel
 	}
 
+    ListModel{
+        id:chatsModel
+    }
 
     ListModel{
         id:contactsModel
@@ -343,6 +347,25 @@ WAStackWindow {
 
     LoadingPage{
         id:loadingPage
+    }
+
+
+    function removeChatItem(cid){
+        for (var i=0; i<chatsModel.count;i++)
+        {
+            console.log("deleting")
+            var chatItem = chatsModel.get(i);
+            console.log(chatItem.jid);
+            if(chatItem.jid == cid)
+            {
+                chatsModel.remove(i)
+                if(chatsModel.count == 0){
+                    chatsContainer.state="no_data";
+                }
+
+                return;
+            }
+        }
     }
 
 

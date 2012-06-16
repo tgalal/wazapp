@@ -122,6 +122,7 @@ class WAContacts(QObject):
 		self.store = store;
 		self.contacts = [];
 		self.raw_contacts = None;
+		self.manager = ContactsManager();
 		
 		
 	
@@ -146,7 +147,7 @@ class WAContacts(QObject):
 			#self.resync();
 			return contacts;		
 		#O(n2) matching, need to change that
-		cm = ContactsManager();
+		cm = self.manager
 		phoneContacts = cm.getContacts();
 		tmp = []
 		self.contacts = {};

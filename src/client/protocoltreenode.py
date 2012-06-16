@@ -55,7 +55,7 @@ class ProtocolTreeNode():
 	@staticmethod
 	def require(node,string):
 		if not ProtocolTreeNode.tagEquals(node,string):
-			raise Exception("failed require. node: "+node+" string: "+string);
+			raise Exception("failed require. node: "+ node +" string: "+string);
 	
 	
 	def getChild(self,identifier):

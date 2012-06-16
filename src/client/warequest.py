@@ -23,7 +23,7 @@ import threading
 from PySide import QtCore
 from PySide.QtCore import QThread
 
-from wadebug import WARequestDebug
+from wadebug import WADebug
 
 class WARequest(QThread):
 
@@ -40,8 +40,7 @@ class WARequest(QThread):
 	fail = QtCore.Signal();
 	
 	def __init__(self):
-		_d = WARequestDebug();
-		self._d = _d.d;
+		WADebug.attach(self);
 		super(WARequest,self).__init__();
 	
 	def onResponse(self, name, value):

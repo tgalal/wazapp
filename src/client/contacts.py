@@ -32,7 +32,7 @@ from xml.dom import minidom
 from Models.contact import Contact
 from constants import WAConstants
 import thread
-from wadebug import ContactsDebug;
+from wadebug import WADebug;
 import sys
 
 class ContactsSyncer(WARequest):
@@ -44,8 +44,7 @@ class ContactsSyncer(WARequest):
 	contactsSyncStatus = QtCore.Signal(str);
 
 	def __init__(self,store):
-		_d = ContactsDebug();
-		self._d = _d.d;
+		WADebug.attach(self);
 		self.store = store;
 		self.base_url = "sro.whatsapp.net";
 		self.req_file = "/client/iphone/bbq.php";

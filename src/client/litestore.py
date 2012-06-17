@@ -53,7 +53,7 @@ class LiteStore(DataStore):
 			self.conn = sqlite3.connect(self.db_path,check_same_thread = False,isolation_level=None)
 			self.status = True;
 			self.c = self.conn.cursor();
-			self.initModels();
+			#self.initModels();
 	
 	
 	def connect(self):
@@ -122,7 +122,7 @@ class LiteStore(DataStore):
 		self.prepareGroupConversations();
 		
 		self.status = True;
-		self.initModels();
+		#self.initModels();
 		
 	
 	
@@ -152,28 +152,36 @@ class LiteStore(DataStore):
 			#UPDATE SQLITE_MASTER SET SQL = 'CREATE TABLE BOOKS ( title TEXT NOT NULL, publication_date TEXT)' WHERE NAME = 'BOOKS';
 			#q = "PRAGMA writable_schema = 0";
 		
-		self._d.d("Checking addition of media_id to messages")
+		self._d.d("Checking addition of media_id and created columns in messages")
 		
 		q = "PRAGMA table_info(messages)"
 		c = self.conn.cursor()
 		c.execute(q)
 		
-		found = False
+		media_id = created = False
 		for item in c.fetchall():
 			if item[1] == "media_id":
-				found = True
-				break
+				media_id = True
+			if item[1] == "created":
+				created = True
 		
-		if not found:
-			self._d.d("Not found, altering table")
+		if not media_id:
+			self._d.d("media_id Not found, altering table")
 			c.execute("Alter TABLE messages add column 'media_id' INTEGER")
+		
+		if not created:
+			self._d.d("created Not found, altering table")
+			c.execute("Alter TABLE messages add column 'created' INTEGER")
+			
+			self._d.d("Copying data from timestamp to created col")
+			c.execute("update messages set created = timestamp")
 		
 
 	def prepareBase(self):
 		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR)'
 		
 		
-		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0,"media_id" INTEGER)'
+		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0,"media_id" INTEGER,"created" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
 		conversations_q = 'CREATE TABLE "main"."conversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"contact_id" INTEGER NOT NULL, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
@@ -184,7 +192,7 @@ class LiteStore(DataStore):
 
 	def prepareGroupConversations(self):
 		
-		groupmessages_q = 'CREATE TABLE IF NOT EXISTS "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL, "groupconversation_id" INTEGER NOT NULL,"timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"media_id" INTEGER, "type" INTEGER NOT NULL DEFAULT 0)'
+		groupmessages_q = 'CREATE TABLE IF NOT EXISTS "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL, "groupconversation_id" INTEGER NOT NULL,"timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"media_id" INTEGER, "type" INTEGER NOT NULL DEFAULT 0,"created" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
 		groupconversations_q = 'CREATE TABLE IF NOT EXISTS "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,groupconversations_contacts_id INTEGER,"picture" VARCHAR,"subject" VARCHAR, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		

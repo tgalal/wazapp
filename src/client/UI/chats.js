@@ -55,7 +55,7 @@ function updateChats(message){
     {
         var  compItem = chatsModel.get(i);
 
-        if(message.timestamp > compItem.timestamp){
+        if(message.created > compItem.created){
              targetIndex = i;
              break
         }

@@ -78,7 +78,7 @@ class WAManager():
 		store.prepareGroupConversations();
 		store.prepareMedia()
 		store.updateDatabase()
-		
+		store.initModels()
 		
 		gui = WAUI();
 		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')

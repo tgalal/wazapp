@@ -238,6 +238,7 @@ class WAEventHandler(WAEventBase):
 		message = message.findFirst({'id':messageId});
 		
 		if(message.id):
+			media = message.getMedia()
 			media.transfer_status = 1
 			media.save()
 			self.mediaTransferError.emit(jid,messageId, media.getModelData())
@@ -355,10 +356,10 @@ class WAEventHandler(WAEventBase):
 
 				
 			if fmsg.Conversation.type == "single":
-				self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
+				self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else msg_contact.picture.encode('utf-8'),callback = self.notificationClicked);
 			else:
 				conversation = fmsg.getConversation();
-				self.notifier.newMessage(conversation.jid, "%s in %s"%(msg_contact.name,conversation.subject), fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture),callback = self.notificationClicked);
+				self.notifier.newMessage(conversation.jid, "%s in %s"%(msg_contact.name,conversation.subject), fmsg.content,None if type(msg_contact.picture) == str else msg_contact.picture.encode('utf-8'),callback = self.notificationClicked);
 			
 			self._d("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
 		else:

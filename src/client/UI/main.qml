@@ -283,6 +283,12 @@ WAStackWindow {
         waContacts.addMessage(messages.user_id, messages.data)
     }
 
+    function conversationReady(conv){
+        console.log("TODO, main.qml conversationReady, added for unread count")
+        //var chatWindow = waContacts.openChatWindow(conv.jid);
+       // waContacts.addMessage(conv.user_id,conv.lastMessage)
+    }
+
     function onLastSeenUpdated(user_id,seconds){
         waContacts.onUnavailable(user_id,seconds);
     }

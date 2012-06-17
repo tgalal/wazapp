@@ -28,6 +28,7 @@ class MessageStore(QObject):
 
 	messageStatusUpdated = QtCore.Signal(str,int,int);
 	messagesReady = QtCore.Signal(dict);
+	conversationReady = QtCore.Signal(dict);
 	
 	currKeyId = 0
 
@@ -88,8 +89,17 @@ class MessageStore(QObject):
 		conversations = self.store.ConversationManager.findAll();
 		self._d("init load convs")
 		for c in conversations:
-			self._d("loading messages")
 			jid = c.getJid();
+			
+			conv = c.getModelData();
+			conv["lastMessage"] = c.lastMessage.getModelData() if c.lastMessage is not None else {}
+			conv["jid"]= jid;
+			
+			self._d(conv);
+			self.conversationReady.emit(conv);
+			
+			self._d("loading messages")
+			
 			self.conversations[jid] = c
 			self.loadMessages(jid, 0, 0, 1)
 			print "loaded messages"

@@ -131,7 +131,17 @@ class LiteStore(DataStore):
 		q = "SELECT name FROM sqlite_master WHERE type='table' AND name='%s'" % tableName;
 		c.execute(q);
 		return len(c.fetchall())
+	
+	def columnExists(self,tableName,columnName):
+		q = "PRAGMA table_info(%s)"%tableName
+		c = self.conn.cursor()
+		c.execute(q)
 		
+		for item in c.fetchall():
+			if item[1] == columnName:
+				return True
+		
+		return False
 		
 	def updateDatabase(self):
 		
@@ -158,12 +168,8 @@ class LiteStore(DataStore):
 		c = self.conn.cursor()
 		c.execute(q)
 		
-		media_id = created = False
-		for item in c.fetchall():
-			if item[1] == "media_id":
-				media_id = True
-			if item[1] == "created":
-				created = True
+		media_id = self.columnExists("messages","media_id");
+		created = self.columnExists("messages","created");
 		
 		if not media_id:
 			self._d.d("media_id Not found, altering table")
@@ -175,6 +181,16 @@ class LiteStore(DataStore):
 			
 			self._d.d("Copying data from timestamp to created col")
 			c.execute("update messages set created = timestamp")
+			
+			
+		self._d.d("Checking addition of 'new' column to conversation")
+		
+		newCol = self.columnExists("conversations","new");
+		
+		if not newCol:
+			self._d.d("'new' not found in conversations. Creating")
+			c.execute("ALTER TABLE conversations add column 'new' INTEGER NOT NULL DEFAULT 0")
+			
 		
 
 	def prepareBase(self):
@@ -194,7 +210,7 @@ class LiteStore(DataStore):
 		
 		groupmessages_q = 'CREATE TABLE IF NOT EXISTS "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL, "groupconversation_id" INTEGER NOT NULL,"timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"media_id" INTEGER, "type" INTEGER NOT NULL DEFAULT 0,"created" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
-		groupconversations_q = 'CREATE TABLE IF NOT EXISTS "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,groupconversations_contacts_id INTEGER,"picture" VARCHAR,"subject" VARCHAR, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)'
+		groupconversations_q = 'CREATE TABLE IF NOT EXISTS "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,groupconversations_contacts_id INTEGER,"picture" VARCHAR,"subject" VARCHAR, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "new" INTEGER NOT NULL DEFAULT 0)'
 		
 		groupconversations_contacts_q = 'CREATE TABLE IF NOT EXISTS "main".groupconversations_contacts ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"groupconversation_id" INTEGER NOT NULL,"contact_id" INTEGER NOT NULL)'
 		

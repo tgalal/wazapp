@@ -110,6 +110,7 @@ WAStackWindow {
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
     signal loadConversationsThread(string user_id, int first, int limit);
+    signal conversationOpened(string jid);
 
 
             /******************/

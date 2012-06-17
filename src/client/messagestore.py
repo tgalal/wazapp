@@ -45,8 +45,13 @@ class MessageStore(QObject):
 		#	self.loadMessages(m.getContact());
 		#load messages for jids of those ids
 		
-		
-		
+	
+	def onConversationOpened(self,jid):
+		if not self.conversations.has_key(jid):
+			return
+			
+		conv = self.conversations[jid]
+		conv.clearNew();
 	
 	def deleteConversation(self,jid):
 	
@@ -62,7 +67,7 @@ class MessageStore(QObject):
 		conv.delete();
 		del self.conversations[jid]
 
-
+	
 
 	def deleteSingleMessage(self,jid,msgid):
 
@@ -76,7 +81,8 @@ class MessageStore(QObject):
 		else:
 			self.store.Groupmessage.delete({"groupconversation_id":conv.id, "id":msgid})
 
-
+	
+	
 	
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();

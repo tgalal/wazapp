@@ -173,6 +173,7 @@ Page {
 			unread_messages: getUnreadMessages(model.jid)
             onClicked: {
 				chatsContainer.clicked(model.jid,"chats")
+                appWindow.conversationOpened(model.jid);
 
 				for(var i=0; i<unreadModel.count; i++)
 				{

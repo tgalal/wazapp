@@ -42,6 +42,14 @@ class Conversation(Model):
 			contact = self.getContact()
 			
 		return contact.jid
+	
+	def clearNew(self):
+		self.new = 0;
+		self.save();
+		
+	def incrementNew(self):
+		self.new = self.new+1;
+		self.save();
 		
 	def getLastMessage(self):
 		messages = self.store.Message.findAll(conditions = {"conversation_id":self.id}, order=["timestamp DESC"], first=0, limit=1)
@@ -80,7 +88,14 @@ class Groupconversation(Model):
 		self.type="group"
 		self.messages = []
 	
-		
+	def clearNew(self):
+		self.new = 0;
+		self.save();
+	
+	def incrementNew(self):
+		self.new = self.new+1;
+		self.save();
+	
 	def getJid(self):
 		return self.jid;
 		

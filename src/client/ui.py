@@ -88,6 +88,7 @@ class WAUI(QDeclarativeView):
 		
 		self.rootObject().deleteConversation.connect(self.messageStore.deleteConversation)
 		self.rootObject().deleteSingleMessage.connect(self.messageStore.deleteSingleMessage)
+		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
 		
 		self.dbusService = WAService(self);
 		

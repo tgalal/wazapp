@@ -204,6 +204,9 @@ class Model(object):
 		
 		c = self.conn.cursor();
 		
+		self._d(q);
+		self._d(updateValues);
+		
 		try:
 			c.execute(q,updateValues);
 			self.conn.commit();

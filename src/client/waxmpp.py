@@ -829,6 +829,7 @@ class StanzaReader(QThread):
 						except ValueError: #single conv
 							pass
 						
+						conversation.incrementNew();
 						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
 						fmsg.key = key
 					else:

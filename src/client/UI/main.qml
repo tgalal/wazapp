@@ -37,9 +37,7 @@ WAStackWindow {
 	signal addEmojiToChat
 	property string addedEmojiCode
 	property bool showSendButton
-	signal updateUnreadCount
 	property string activeWindow
-	property bool addToUread: false
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     
@@ -194,14 +192,6 @@ WAStackWindow {
         osd_notify.show();
     }
 
-	function updatingConversationsOn() {
-		addToUread = false
-	}
-
-	function updatingConversationsOff() {
-		addToUread = true
-	}
-
 	//prevent double opened, sometimes QContactsManager sends more than 1 signal
 	property bool updateContactsOpenend: false
 
@@ -284,7 +274,6 @@ WAStackWindow {
     }
 
     function conversationReady(conv){
-        console.log("TODO, main.qml conversationReady, added for unread count")
         //var chatWindow = waContacts.openChatWindow(conv.jid);
        // waContacts.addMessage(conv.user_id,conv.lastMessage)
     }
@@ -336,9 +325,6 @@ WAStackWindow {
 
     /*****************************************/
 
-	ListModel {
-		id: unreadModel
-	}
 
     ListModel{
         id:chatsModel

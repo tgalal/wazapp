@@ -121,7 +121,6 @@ class MessageStore(QObject):
 		tmp["user_id"] = jid
 		tmp["data"] = []
 		
-		
 		for m in messages:
 			msg = m.getModelData()
 			msg['formattedDate'] = datetime.datetime.fromtimestamp(int(msg['timestamp'])/1000).strftime('%d-%m-%Y %H:%M')
@@ -131,8 +130,9 @@ class MessageStore(QObject):
 			media = m.getMedia()
 			msg['media']= media.getModelData() if media is not None else None
 			msg['msg_id'] = msg['id']
+			msg['conversation']=self.conversations[jid].getModelData();
+			msg['conversation']['unread']=msg['conversation']['new']
 			tmp["data"].append(msg)
-			
 			
 			
 		self.messagesReady.emit(tmp);
@@ -257,7 +257,7 @@ class MessageStore(QObject):
 		return msg
 		
 
-	def pushMessage(self,jid,message):
+	def pushMessage(self,jid,message,signal=True):
 		
 		conversation = self.getOrCreateConversationByJid(jid);
 		message.setConversation(conversation)
@@ -276,13 +276,13 @@ class MessageStore(QObject):
 		
 		
 		
-		if self.conversations.has_key(jid):
-			self.conversations[jid].messages.append(message)
-		else:
-			self.conversations[jid] = conversation
-			self.conversations[jid].messages.append(message)
-			
-		self.sendMessagesReady(jid,[message]);
+		self.conversations[jid] = conversation #to rebind new unread counts
+		self.conversations[jid].messages.append(message)
+		
+		
+		
+		if signal:	
+			self.sendMessagesReady(jid,[message]);
 		
 class Key():
 	def __init__(self,remote_jid, from_me,idd):

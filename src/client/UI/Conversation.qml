@@ -57,6 +57,7 @@ Page {
 	property bool showSendButton
     property string user_id;
     property bool isGroup:user_id.split('-').length > 1
+    property string subject;
     property string user_name;
     property string user_picture;
     property string prev_state:"chats"
@@ -205,21 +206,23 @@ Page {
         //ConvScript.addMessage(message.id,message.content,message.type,message.formattedDate,message.timestamp,message.status);
         ConvScript.addMessage(message);
 
-		if (activeWindow!=user_id && addToUread && message.type==0) {
-			var added =0 
-			for(var i =0; i<unreadModel.count; i++)
-			{
-				if (unreadModel.get(i).name==user_id) {
-					unreadModel.get(i).val = unreadModel.get(i).val +1
-					added = 1;
-					break;
-			 	}
-			}
-			if (added==0) {
-				unreadModel.insert(unreadModel.count, {"name":user_id, "val":1})
-			}
-			updateUnreadCount()
-		}
+        /*why so complex?
+        if (activeWindow!=user_id && addToUread && message.type==0) {
+            var added =0
+            for(var i =0; i<unreadModel.count; i++)
+            {
+                if (unreadModel.get(i).name==user_id) {
+                    unreadModel.get(i).val = unreadModel.get(i).val +1
+                    added = 1;
+                    break;
+                }
+            }
+            if (added==0) {
+                unreadModel.insert(unreadModel.count, {"name":user_id, "val":1})
+            }
+            updateUnreadCount()
+        }
+        */
     }
 
     function getNameForBubble(uname)
@@ -281,13 +284,13 @@ Page {
 
 	        Label {
 	            id: username
-                text: user_name.indexOf("-")>0 ? 
-						qsTr("Group (%1)").arg(getAuthor(user_name.split('-')[0])) : user_name
+                text: isGroup?(subject==""?qsTr("Fetching group subject")+"...":subject): user_name
 				width: parent.width - 62
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
 				anchors.top: parent.top
 	            font.bold: true
+                font.italic: isGroup && subject==""
 				height: 28
 	        }
 			UserStatus {

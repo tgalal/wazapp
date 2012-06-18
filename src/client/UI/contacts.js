@@ -96,6 +96,7 @@ function createChatWindow(user_id,user_name,user_picture)
        // dynamicObject.anchors.fill = contactsContainer
 
         //dynamicObject.z=1
+       // dynamicObject.subject = user_id.index('-')>-1?user_name:""
         dynamicObject.user_name = user_name
         dynamicObject.user_id = user_id
         dynamicObject.user_picture = user_picture

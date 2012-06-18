@@ -396,7 +396,6 @@ class WAEventHandler(WAEventBase):
 		self._d("{Friend} has stopped typing ".format(Friend = fromm))
 		self.paused.emit(fromm);
 
-	
 
 	def message_error(self,fmsg,errorCode):
 		self._d("Message Error {0}\n Error Code: {1}".format(fmsg,str(errorCode)));
@@ -408,6 +407,33 @@ class WAEventHandler(WAEventBase):
 			self.messageSent.emit(fmsg.id,fmsg.getConversation().getJid());
 		elif fmsg.status == WAXMPP.message_store.store.Message.STATUS_DELIVERED:
 			self.messageDelivered.emit(fmsg.id,fmsg.getConversation().getJid()); 
+	
+	
+	def onGroupInfo(self,jid,ownerJid,subject,subjectOwnerJid,subjectT,creation):
+		self._d("Got group info")
+		#self._d("%s,%s,%s,%s,%s,%s"%(jid,owner,subject,subjectOwner,subjectT,creation))
+		
+		conversation = WAXMPP.message_store.getOrCreateConversationByJid(jid);
+		
+		owner = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(ownerJid)
+		subjectOwner = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(subjectOwnerJid)
+		
+		conversation.contact_id = owner.id
+		conversation.subject = subject
+		conversation.subject_owner = subjectOwner.id
+		conversation.subject_timestamp = subjectT
+		conversation.created = creation
+		
+		conversation.save()
+		
+		if conversation.new > 0:
+			lastMessage = conversation.getLastMessage()
+			lastMessage.wantsReceipt = True
+			lastMessage.key = eval(lastMessage.key)
+			#TODO singla conversationUpdated which updates chats and conversations
+			self.message_received(lastMessage,False)
+		
+		
 		
 
 class StanzaReader(QThread):
@@ -590,7 +616,16 @@ class StanzaReader(QThread):
 		except:
 			self._d("Ignored exception in handleLastOnline "+ sys.exc_info()[1])
 			
-			
+	def handleGroupInfo(self,node,jid):
+		groupNode = node.getChild(0)
+		ProtocolTreeNode.require(groupNode,"group")
+		gid = groupNode.getAttributeValue("id")
+		owner = groupNode.getAttributeValue("owner")
+		subject = groupNode.getAttributeValue("subject")
+		subjectT = groupNode.getAttributeValue("s_t")
+		subjectOwner = groupNode.getAttributeValue("s_o")
+		creation = groupNode.getAttributeValue("creation")
+		self.eventHandler.onGroupInfo(jid,owner,subject,subjectOwner,int(subjectT),int(creation))
 
 	def parseCategories(self,dirtyNode):
 		categories = {}
@@ -604,18 +639,12 @@ class StanzaReader(QThread):
 		return categories
 
 	def parseOfflineMessageStamp(self,stamp):
-		self._d("Parsing offline stamp");
 		
 		watime = WATime();
 		parsed = watime.parseIso(stamp)
 		local = watime.utcToLocal(parsed)
-		
-		self._d("LOCAL");
-		self._d(local);
-		
 		stamp = watime.datetimeToTimestamp(local)
 		
-		self._d(stamp);
 		return stamp
 	
 	def parseMessage(self,messageNode):
@@ -817,27 +846,36 @@ class StanzaReader(QThread):
 			print fmsg.getModelData();
 			
 			if self.eventHandler is not None:
-			
+				signal = True
 				if fmsg.content:
-					ret = WAXMPP.message_store.get(key);
-					if ret is None:
-						try:
-							index = fromAttribute.index('-')
-							#group conv
-							contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
-							fmsg.contact_id = contact.id
-							fmsg.contact = contact
-						except ValueError: #single conv
-							pass
+					
+					try:
+						index = fromAttribute.index('-')
+						#group conv
+						contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+						fmsg.contact_id = contact.id
+						fmsg.contact = contact
+					except ValueError: #single conv
+						pass
 						
-						conversation.incrementNew();
+					if conversation.type == "group":
+						if conversation.subject is None:
+							signal = False
+							self._d("GETTING GROUP INFO")
+							self.connection.sendGetGroupInfo(fromAttribute)
+							
+					ret = WAXMPP.message_store.get(key);
+					
+					if ret is None:
+						conversation.incrementNew();		
 						WAXMPP.message_store.pushMessage(fromAttribute,fmsg)
 						fmsg.key = key
 					else:
 						fmsg.key = eval(ret.key)
 						duplicate = True;
-			
-				self.eventHandler.message_received(fmsg,duplicate);
+				
+				if signal:
+					self.eventHandler.message_received(fmsg,duplicate);
 			
 
 
@@ -1193,6 +1231,17 @@ class WAXMPP():
 		
 		self.out.write(iqNode);
 		
+	
+	
+	def sendGetGroupInfo(self,jid):
+		idx = self.makeId("get_g_info_")
+		self.stanzaReader.requests[idx] = self.stanzaReader.handleGroupInfo;
+		
+		queryNode = ProtocolTreeNode("query",{"xmlns":"w:g"})
+		iqNode = ProtocolTreeNode("iq",{"id":idx,"type":"get","to":jid},[queryNode])
+		
+		self.out.write(iqNode)
+
 	
 	def getMessageNode(self,fmsg,child):
 			requestNode = None;

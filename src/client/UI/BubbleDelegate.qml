@@ -224,15 +224,23 @@ Item {
 
 					property bool alreadyFocused: false
 			
-					onTextChanged: {
-						if(!iamtyping)
-						{
-						    console.log("TYPING");
-						    typing(user_id);
-						}
-						iamtyping = true;
-						typing_timer.restart();
-					}
+                    onTextChanged: {
+                        if(!typingEnabled)
+                        {
+                            //to prevent initial set of placeHolderText from firing textChanged signal
+                             //SERIOUSLY HOW MANY TIMES DO I HAVE TO ADD THIS DAMN CHECK AND IT GETS REMOVED?!!
+                            typingEnabled = true
+                            return
+                        }
+
+                        if(!iamtyping)
+                        {
+                            console.log("TYPING");
+                            typing(user_id);
+                        }
+                        iamtyping = true;
+                        typing_timer.restart();
+                    }
 
 					platformSipAttributes: SipAttributes { 
 						actionKeyEnabled: true

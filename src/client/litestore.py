@@ -210,7 +210,7 @@ class LiteStore(DataStore):
 		
 		groupmessages_q = 'CREATE TABLE IF NOT EXISTS "main"."groupmessages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "contact_id" INTEGER NOT NULL, "groupconversation_id" INTEGER NOT NULL,"timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"media_id" INTEGER, "type" INTEGER NOT NULL DEFAULT 0,"created" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)'
 		
-		groupconversations_q = 'CREATE TABLE IF NOT EXISTS "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,groupconversations_contacts_id INTEGER,"picture" VARCHAR,"subject" VARCHAR, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "new" INTEGER NOT NULL DEFAULT 0)'
+		groupconversations_q = 'CREATE TABLE IF NOT EXISTS "main"."groupconversations" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"jid" VARCHAR NOT NULL,contact_id INTEGER,"picture" VARCHAR,"subject" VARCHAR, "subject_owner" INTEGER,"subject_timestamp" INTEGER, "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"new" INTEGER NOT NULL DEFAULT 0)'
 		
 		groupconversations_contacts_q = 'CREATE TABLE IF NOT EXISTS "main".groupconversations_contacts ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"groupconversation_id" INTEGER NOT NULL,"contact_id" INTEGER NOT NULL)'
 		

@@ -83,13 +83,12 @@ class WAUI(QDeclarativeView):
 		
 		self.messageStore = MessageStore(self.store);
 		self.messageStore.messagesReady.connect(self.rootObject().messagesReady)
-		self.messageStore.conversationReady.connect(self.rootObject().conversationReady);
+		self.messageStore.conversationReady.connect(self.rootObject().conversationReady)
 		
 		
 		self.rootObject().deleteConversation.connect(self.messageStore.deleteConversation)
 		self.rootObject().deleteSingleMessage.connect(self.messageStore.deleteSingleMessage)
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
-		
 		self.dbusService = WAService(self);
 		
 	
@@ -169,17 +168,13 @@ class WAUI(QDeclarativeView):
 	def populateAllConversations(self, user_id, first, limit):
 
 		#self.rootObject().onReloadingConversations()
-		self.rootObject().updatingConversationsOn()
 		self.messageStore.loadAllConversations(user_id, first, limit)
-		self.rootObject().updatingConversationsOff()
 
 		
 	def populateConversations(self):
 
 		self.rootObject().onReloadingConversations()
-		self.rootObject().updatingConversationsOn()
 		self.messageStore.loadConversations()
-		self.rootObject().updatingConversationsOff()
 		
 		#if self.whatsapp is not None and self.whatsapp.eventHandler.connMonitor.isOnline():
 			#self.whatsapp.eventHandler.networkAvailable()

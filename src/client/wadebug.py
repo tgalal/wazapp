@@ -18,7 +18,7 @@ class WADebug():
 	@staticmethod
 	def stdDebug(message,messageType="General"):
 		#enabledTypes = ["general","stanzareader","sql","conn","waxmpp","wamanager","walogin","waupdater","messagestore"];
-		disabledTypes = []
+		disabledTypes = ["sql"]
 		if messageType.lower() not in disabledTypes:
 			print message;
 	

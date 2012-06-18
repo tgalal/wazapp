@@ -145,45 +145,23 @@ Page {
 		return resp;
 	}
 
-	function getUnreadMessages(uname) {
-		var res = "0"
-		for(var i =0; i<unreadModel.count; i++)
-		{
-			if (unreadModel.get(i).name==uname) {
-				res = parseInt(unreadModel.get(i).val)
-				break;
-	 		}
-		}
-		return res;
-	}
-
     Component{
         id:myDelegate;
 
         Chat{
             property variant contactInfo:ContactsScript.getContactData(model.jid)
             picture: contactInfo.picture;
-            name: contactInfo.name.indexOf("-")>0 ? 
-					qsTr("Group (%1)").arg(getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net").split('@')[0]) : contactInfo.name
+            name: isGroup?model.conversation.subject:contactInfo.name;
 			isGroup: contactInfo.name.indexOf("-")>0
 			number:model.jid;
             lastMsg: Helpers.emojify(Helpers.linkify(model.content))
             time:model.timestamp
             formattedDate: Helpers.getDateText(model.formattedDate).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
-			unread_messages: getUnreadMessages(model.jid)
+            unread_messages: model.conversation.unread
             onClicked: {
 				chatsContainer.clicked(model.jid,"chats")
                 appWindow.conversationOpened(model.jid);
-
-				for(var i=0; i<unreadModel.count; i++)
-				{
-					if (unreadModel.get(i).name==model.jid) {
-						unreadModel.get(i).val = 0
-						break;
-				 	}
-				}
-				updateUnreadCount()
-
+                unread_messages=0
 			}
             width:chatsContainer.width
             msgId: model.id

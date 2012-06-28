@@ -70,7 +70,10 @@ Rectangle {
 		anchors.topMargin: from_me ? 8 : 0
 		anchors.left: parent.left
 		anchors.leftMargin: from_me ? 10 : parent.width-width-10
-		width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0), sender_name.paintedWidth) +26
+        //width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0), sender_name.paintedWidth) +26
+        width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0)+(mediatype_id!=1?66:0),
+                        sender_name.paintedWidth+(mediatype_id!=1?66:0)) +26
+
 		height: parent.height + (from_me ? 2 : 0)
 
         source: getBubbleBorderImageSource();

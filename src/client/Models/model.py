@@ -320,6 +320,27 @@ class Model(object):
 		condsStr = " AND ".join(q);
 		
 		return condsStr;
+		
+	def findCount(self,conditions=""):
+		condsStr = "";
+		if type(conditions) == dict:
+			condsStr = self.buildConds(conditions);
+			
+		elif type(conditions) == str:
+			condsStr = conditions
+		else:
+			raise "UNKNOWN COND TYPE "+ type(conditions)
+			
+		
+		query = "SELECT COUNT(*) FROM %s " % (self.table)
+		
+		if len (condsStr):
+			query = query +"WHERE %s" % condsStr;
+		
+		results = self.runQuery(query);
+		
+		return results[0][0];
+		
 	
 	def findAll(self, conditions="", fields=[], order=[], first=None, limit=None):
 

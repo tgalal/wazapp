@@ -51,25 +51,15 @@ class Conversation(Model):
 		self.new = self.new+1;
 		self.save();
 		
-	def getLastMessage(self):
-		messages = self.store.Message.findAll(conditions = {"conversation_id":self.id}, order=["timestamp DESC"], first=0, limit=1)
-		if len(messages):
-			self.lastMessage = messages[0];
-			return self.lastMessage;
 		
-		self.lastMessage = self.store.Message.create();
-		self.lastMessage.timestamp = 0
-		return None;
-		
-		
-	def loadMessages(self,offset = 0,first=0,limit=50):
+	def loadMessages(self,offset = 0,limit=10):
 		print "find some messages"
 		conditions = {"conversation_id":self.id}
 		
 		if offset:
-			conditions["id<",offset];
+			conditions["id<"] = offset;
 		
-		messages = self.store.Message.findAll(conditions,order=["id DESC"],first=first,limit=limit)
+		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit)
 		
 		messages.reverse();
 		
@@ -80,6 +70,9 @@ class Conversation(Model):
 		self.messages = messages
 		
 		return cpy
+		
+	def isGroup(self):
+		return False;
 
 class Groupconversation(Model):
 	
@@ -87,6 +80,9 @@ class Groupconversation(Model):
 		print "init a group convo"
 		self.type="group"
 		self.messages = []
+		
+	def isGroup(self):
+		return True;
 	
 	def clearNew(self):
 		self.new = 0;
@@ -99,25 +95,18 @@ class Groupconversation(Model):
 	def getJid(self):
 		return self.jid;
 		
+	
+	def getContacts(self):
+		return []
 		
-	def getLastMessage(self):
-		messages = self.store.Groupmessage.findAll(conditions = {"groupconversation_id":self.id}, order=["timestamp DESC"], first=0, limit=1)
-		if len(messages):
-			self.lastMessage = messages[0];
-			return self.lastMessage;
-		
-		self.lastMessage = self.store.Groupmessage.create();
-		self.lastMessage.timestamp = 0
-		return None;
-		
-	def loadMessages(self,offset = 0,first=0,limit=50):
+	def loadMessages(self,offset = 0,limit=10):
 		print "group: find some messages"
 		conditions = {"groupconversation_id":self.id}
 		
 		if offset:
-			conditions["id<",offset];
+			conditions["id<"] = offset;
 		
-		messages = self.store.Groupmessage.findAll(conditions,order=["id DESC"],first=first,limit=limit)
+		messages = self.store.Groupmessage.findAll(conditions,order=["id DESC"],limit=limit)
 		
 		messages.reverse();
 		
@@ -143,11 +132,11 @@ class ConversationManager():
 		
 		convs.extend(gconvs);
 		
-		for c in convs:
-			c.getLastMessage();
+		#for c in convs:
+		#	c.getLastMessage();
 		
 		
-		convs.sort(key=lambda k: k.lastMessage.timestamp,reverse = True);
+		#convs.sort(key=lambda k: k.lastMessage.timestamp,reverse = True);
 		
 		return convs;
 		

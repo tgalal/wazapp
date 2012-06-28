@@ -157,9 +157,9 @@ class WAContacts(QObject):
 		for wc in contacts:
 			for c in phoneContacts:
 				if wc.number == c['number']:
-
+					#@@TODO cache to enhance startup
 					user_img = QImage(QUrl(c['picture']).toString().replace("file://",""))
-					mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/pics/usermask.png")
+					mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
 					preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
 					PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
 					Mask = QPixmap.fromImage(mask_img);

@@ -89,37 +89,56 @@ class MessageStore(QObject):
 		conversations = self.store.ConversationManager.findAll();
 		self._d("init load convs")
 		for c in conversations:
-			jid = c.getJid();
-			
-			conv = c.getModelData();
-			conv["lastMessage"] = c.lastMessage.getModelData() if c.lastMessage is not None else {}
-			conv["jid"]= jid;
-			
-			self._d(conv);
-			self.conversationReady.emit(conv);
-			
 			self._d("loading messages")
-			
+			jid = c.getJid();
+			c.loadMessages();
 			self.conversations[jid] = c
-			self.loadMessages(jid, 0, 0, 1)
+			
 			print "loaded messages"
+			
+			self.sendConversationReady(jid);
+			self.sendMessagesReady(jid,c.messages);
 		
-	def loadAllConversations(self,user_id, first, limit):
-		self.loadMessages(user_id, 0, first, limit)
 
-	def loadMessages(self,jid,offset=0, first=0, limit=50):
+	def loadMessages(self,jid,offset=0, limit=10):
+	
+		self._d("Load more messages requested");
 		
-		messages = self.conversations[jid].loadMessages(offset, first, limit);
+		messages = self.conversations[jid].loadMessages(offset,limit);
 		
 		self.sendMessagesReady(jid,messages);
 		return messages
 	
 	
+	def sendConversationReady(self,jid):
+		tmp = {}
+		'''
+			jid,subject,id,contacts..etc
+			messages
+		'''
+		c = self.conversations[jid];
+		tmp = c.getModelData();
+		tmp["isGroup"] = c.isGroup()
+		tmp["jid"]=c.getJid();
+		
+		if c.isGroup():
+			tmp["contacts"]=c.getContacts();
+			
+		self.conversationReady.emit(tmp);
+	
 	def sendMessagesReady(self,jid,messages):
+		if not len(messages):
+			return
+			
 		tmp = {}
 		tmp["conversation_id"] = self.conversations[jid].id
-		tmp["user_id"] = jid
+		tmp["jid"] = jid
 		tmp["data"] = []
+		tmp['conversation'] = self.conversations[jid].getModelData();
+		tmp['conversation']['unreadCount'] = tmp['conversation']['new']
+		
+		foreignKeyField = "conversation_id" if self.conversations[jid].type=="single" else "groupconversation_id";
+		tmp['conversation']['remainingMessagesCount'] = messages[0].findCount({"id<":self.conversations[jid].messages[0].id,foreignKeyField:self.conversations[jid].id})
 		
 		for m in messages:
 			msg = m.getModelData()
@@ -130,10 +149,7 @@ class MessageStore(QObject):
 			media = m.getMedia()
 			msg['media']= media.getModelData() if media is not None else None
 			msg['msg_id'] = msg['id']
-			msg['conversation']=self.conversations[jid].getModelData();
-			msg['conversation']['unread']=msg['conversation']['new']
 			tmp["data"].append(msg)
-			
 			
 		self.messagesReady.emit(tmp);
 			
@@ -259,6 +275,8 @@ class MessageStore(QObject):
 
 	def pushMessage(self,jid,message,signal=True):
 		
+		conversationLoaded = self.conversations.has_key(jid);
+		
 		conversation = self.getOrCreateConversationByJid(jid);
 		message.setConversation(conversation)
 		
@@ -281,7 +299,11 @@ class MessageStore(QObject):
 		
 		
 		
-		if signal:	
+		
+		if signal:
+			if not conversationLoaded:
+				self.sendConversationReady(jid)
+			
 			self.sendMessagesReady(jid,[message]);
 		
 class Key():

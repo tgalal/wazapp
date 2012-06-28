@@ -315,9 +315,9 @@ class WAEventHandler(WAEventBase):
 		self.conn.sendAvailable();
 		
 	
-	def send_message(self,to_id,msg_text):
-		
-		fmsg = WAXMPP.message_store.createMessage(to_id);
+	def sendMessage(self,jid,msg_text):
+		self._d("sending message now")
+		fmsg = WAXMPP.message_store.createMessage(jid);
 		
 		
 		if fmsg.Conversation.type == "group":
@@ -326,7 +326,7 @@ class WAEventHandler(WAEventBase):
 		
 		
 		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
-		WAXMPP.message_store.pushMessage(to_id,fmsg)
+		WAXMPP.message_store.pushMessage(jid,fmsg)
 		
 		self.conn.sendMessageWithBody(fmsg);
 	

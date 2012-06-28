@@ -70,7 +70,7 @@ class WAUI(QDeclarativeView):
 		self.c.contactsRefreshFailed.connect(self.rootObject().onRefreshFail);
 		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
 		self.rootObject().refreshContacts.connect(self.c.resync)
-		self.rootObject().loadConversationsThread.connect(self.populateAllConversations)
+		
 				
 		#Changed by Tarek: connected directly to QContactManager living inside contacts manager
 		self.c.manager.manager.contactsChanged.connect(self.rootObject().onContactsChanged);
@@ -84,6 +84,7 @@ class WAUI(QDeclarativeView):
 		self.messageStore = MessageStore(self.store);
 		self.messageStore.messagesReady.connect(self.rootObject().messagesReady)
 		self.messageStore.conversationReady.connect(self.rootObject().conversationReady)
+		self.rootObject().loadMessages.connect(self.messageStore.loadMessages);
 		
 		
 		self.rootObject().deleteConversation.connect(self.messageStore.deleteConversation)
@@ -165,22 +166,10 @@ class WAUI(QDeclarativeView):
 		#if self.whatsapp is not None:
 		#	self.whatsapp.eventHandler.networkDisconnected()
 
-	def populateAllConversations(self, user_id, first, limit):
-
-		#self.rootObject().onReloadingConversations()
-		self.messageStore.loadAllConversations(user_id, first, limit)
-
 		
 	def populateConversations(self):
-
-		self.rootObject().onReloadingConversations()
 		self.messageStore.loadConversations()
 		
-		#if self.whatsapp is not None and self.whatsapp.eventHandler.connMonitor.isOnline():
-			#self.whatsapp.eventHandler.networkAvailable()
-
-		
-		#self.rootContext().setContextProperty("ContactsManager", c);
 	
 	def login(self):
 		self.whatsapp.start();
@@ -248,7 +237,7 @@ class WAUI(QDeclarativeView):
 		
 		
 		#whatsapp.eventHandler.new_message.connect(self.rootObject().newMessage)
-		self.rootObject().sendMessage.connect(whatsapp.eventHandler.send_message)
+		self.rootObject().sendMessage.connect(whatsapp.eventHandler.sendMessage)
 		self.rootObject().sendTyping.connect(whatsapp.eventHandler.sendTyping)
 		self.rootObject().sendPaused.connect(whatsapp.eventHandler.sendPaused);
 		self.rootObject().conversationActive.connect(whatsapp.eventHandler.getLastOnline);

@@ -21,95 +21,47 @@
 ****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
+
+import "Chats"
+import "common"
+import "Contacts"
+import "Menu"
+import "Updater"
+import "Settings"
+
 //import com.nokia.extras 1.0
 
 WAStackWindow {
     id: appWindow
-    initialPage: mainPage
-    
-	//Temporary variables for settings testing
-	property int myOrientation: 0
-	property int bubbleColor: 1
-
-	signal goToEndOfList
-	signal setFocusToChatText
-	signal sendCurrentMessage
-	signal addEmojiToChat
-	property string addedEmojiCode
-	property bool showSendButton
-	property string activeWindow
-
-    property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
-    
+    initialPage: mainPage  
     showStatusBar: !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
+
     toolBarPlatformStyle:ToolBarStyle{
-        inverted: stealth || theme.inverted
+        inverted: theme.inverted
     }
+
+    Component.onCompleted: {theme.inverted = true;}
+    property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     property string activeConvJId:""
-    property bool stealth:false
-	property string emojiDialogParent
-
-    Component.onCompleted: {
-        //theme.inverted = true
-    }
-
-    platformStyle: defaultStyle
-
-    onStealthMode: {
-        console.log("Stealth Mode!")
-        theme.inverted = false
-        stealth = true;
-       // theme.inverted = true
-        platformStyle = stealthStyle
-    }
-    onNormalMode: {
-        console.log("Normal Mode!")
-        stealth = false
-         //theme.inverted = false
-        platformStyle=defaultStyle
-    }
-
-
-
-    function isStealth(){
-        return stealth;
-    }
-
-    PageStackWindowStyle { id: defaultStyle }
-    PageStackWindowStyle {
-           id: stealthStyle;
-         //  backgroundColor: "black"
-       }
-
-
-
-    /*InfoBanner {
-        id:osd_notify
-       // iconSource: "system_banner_thumbnail.png"
-    }*/
-
-
 
     /****** Signal and Slot definitions *******/
 
     signal changeStatus(string new_status)
-    signal sendMessage(string user_id, string msg);
-    signal sendRegRequest(string number, string cc);
-    signal requestPresence(string user_id);
+    signal sendMessage(string jid, string msg);
+    signal requestPresence(string jid);
     signal refreshContacts();
-    signal sendTyping(string user_id);
-    signal sendPaused(string user_id);
-    signal stealthMode()
-    signal normalMode()
+    signal sendTyping(string jid);
+    signal sendPaused(string jid);
     signal quit()
     signal deleteConversation(string cid);
-	signal deleteSingleMessage(string user_id, int msg_id);
-    signal conversationActive(string user_id);
+    signal deleteSingleMessage(string jid, int msg_id);
+    signal conversationActive(string jid);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
-    signal loadConversationsThread(string user_id, int first, int limit);
+    signal loadMessages(string jid, int offsetId, int limit);
     signal conversationOpened(string jid);
-
+    //prevent double opened, sometimes QContactsManager sends more than 1 signal
+    property bool updateContactsOpenend: false
 
             /******************/
     function onConnected(){setIndicatorState("online")}
@@ -118,34 +70,11 @@ WAStackWindow {
     function onSleeping(){setIndicatorState("offline")}
     function onLoginFailed(){setIndicatorState("reregister")}
 
-            /**** Media ****/
-    function onMediaTransferSuccess(jid,message_id,mediaObject){
-        console.log("Caught media transfer success in main")
-        waContacts.onMediaTransferSuccess(jid,message_id,mediaObject);
-    }
-
-    function onMediaTransferError(jid,message_id,mediaObject){
-        console.log("ERROR!! "+jid)
-        waContacts.onMediaTransferError(jid,message_id,mediaObject);
-    }
-
-    function onMediaTransferProgressUpdated(progress,jid,message_id){
-        console.log("UPDATED PROGRESS "+progress)
-
-         waContacts.onMediaTransferProgressUpdated(progress,jid,message_id);
-    }
-
-
-
-
     function appFocusChanged(focus){
-
         var user_id = getActiveConversation()
         if (user_id){
-
             conversationActive(user_id);
         }
-
     }
 
     function setActiveConv(activeJid){
@@ -167,9 +96,7 @@ WAStackWindow {
         var changes = ""
         for(var i =0; i<updateData.c.length; i++){
             changes += "* "+updateData.c[i]+"\n";
-
         }
-
         updatePage.changes = changes
 
         updateDialog.open()
@@ -181,21 +108,11 @@ WAStackWindow {
         quitConfirm.open();
     }
 
-    function showNotification(text,fixed) {
-
-        if(fixed)
-            osd_notify.timerEnabled=false
-
-        osd_notify.topMargin=100
-
-        osd_notify.text=text
-        osd_notify.show();
-    }
-
-	//prevent double opened, sometimes QContactsManager sends more than 1 signal
-	property bool updateContactsOpenend: false
 
 	function onContactsChanged() {
+
+        /*@@TODO: invalid way and should be removed. When a contact changes, only that changed contact should be synced silently
+                and UI gets updated silently as well.**/
 		if (updateContactsOpenend==false) {
 		console.log("CONTACTS CHANGED!!!");
 			updateContactsOpenend = true
@@ -210,11 +127,6 @@ WAStackWindow {
         refreshContacts();
     }
 
-    function onReloadingConversations(){
-        waContacts.clearConversations();
-        waChat.clearChats();
-    }
-
     function onRefreshSuccess(){
         appWindow.pageStack.pop();
     }
@@ -223,210 +135,227 @@ WAStackWindow {
         appWindow.pageStack.pop();
     }
 
-	function onContactsSyncStatusChanged(state) {
-		if (state=="GETTING") loadingPage.operation = qsTr("Retrieving contacts list...")
-		else if (state=="SENDING") loadingPage.operation = qsTr("Fetching contacts...")
-		else if (state=="LOADING") loadingPage.operation = qsTr("Loading contacts...")
-		else loadingPage.operation = ""
-	}
-
     function setIndicatorState(indicatorState){
-
-        var showPoints = [waChat, waContacts]
-
-       // waChat.indicator_state=indicatorState
-
+        var showPoints = [waChats, waContacts]
         for(var p in showPoints){
             showPoints[p].indicator_state= indicatorState
         }
-
     }
 
     function getActiveConversation(){
-        console.log(appWindow.pageStack.currentPage)
+
         if(appWindow.pageStack.currentPage.pageIdentifier && appWindow.pageStack.currentPage.pageIdentifier == "conversation_page")
         {
-            return appWindow.pageStack.currentPage.user_id;
-
+            return appWindow.pageStack.currentPage.jid;
         }
 
         return 0;
     }
 
-    function openConversation(jid){
-        console.log("should open chat window with "+jid)
-
-        if(getActiveConversation() != jid)
-            waContacts.openChatWindow(jid)
-    }
-
     function pushContacts(contacts){
-        waChat.setContacts(contacts);
         waContacts.pushContacts(contacts)
     }
-    function newMessage(msg_data){waContacts.newMessage(msg_data)}
-    function forceRegistration(cc_val){regPage.cc_val=cc_val ;appWindow.pageStack.push(regPage)}
-    function updateMessageStatus(msgKey,status){waContacts.updateMessageStatus(msgKey,status)}
 
-    function messagesReady(messages)
-    {
-        waContacts.addMessage(messages.user_id, messages.data)
+    function onContactsSyncStatusChanged(state) {
+        /*UNCOMMENTME: SETTING TO STATE OF MAIN?! WTF?!!!!!!!!!!!!! */
+        if (state=="GETTING") loadingPage.operation = qsTr("Retrieving contacts list...")
+        else if (state=="SENDING") loadingPage.operation = qsTr("Fetching contacts...")
+        else if (state=="LOADING") loadingPage.operation = qsTr("Loading contacts...")
+        else loadingPage.operation = ""
     }
+
+    function openConversation(jid){
+          console.log("should open chat window with "+jid)
+
+          var conversation = waChats.getOrCreateConversation(jid);
+          conversation.open();
+     }
+
+
+    /****Conversation related slots****/
 
     function conversationReady(conv){
-        //var chatWindow = waContacts.openChatWindow(conv.jid);
-       // waContacts.addMessage(conv.user_id,conv.lastMessage)
+        //This should be called if and only if conversation start point is backend
+        console.log("Got a conv in conversationReady slot");
+        var conversation = waChats.getOrCreateConversation(conv.jid);
+        console.log("Finding appropriate contact");
+        var contact = waContacts.getOrCreateContact({jid:conv.jid});
+
+        console.log("Adding to conversation");
+        conversation.addContact(contact);
+
+        console.log("Binding conversation to contact");
+        contact.setConversation(conversation);
+
+
     }
 
-    function onLastSeenUpdated(user_id,seconds){
-        waContacts.onUnavailable(user_id,seconds);
+    function messagesReady(messages){
+        console.log("GOT MESSAGES SIGNAL");
+        var conversation = waChats.getConversation(messages.jid);
+        console.log("proceed to check validity of conv")
+        if(!conversation){
+            console.log("FATAL UI ERROR, HOW COME CONV IS NOT HERE?!!");
+            appWindow.quitInit();
+        }
+
+        conversation.unreadCount=messages.conversation.unreadCount;
+        conversation.remainingMessagesCount = messages.conversation.remainingMessagesCount;
+
+        console.log("Adding messages to conv")
+        for (var i =0; i< messages.data.length; i++)
+        {
+            console.log("adding a message");
+            conversation.addMessage(messages.data[i]);
+        }
+
+        if(appWindow.getActiveConversation()==messages.jid){
+            //to reset unreadCount in frontend and inform backend about
+            conversation.open();
+        }
     }
 
-    function onAvailable(user_id){
-        waContacts.onAvailable(user_id);
+    function onLastSeenUpdated(jid,seconds){
+
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation){
+            if(seconds)
+                conversation.setOffline(seconds);
+            else
+                conversation.setOffline();
+        }
     }
 
-    function onUnavailable(user_id){
-        waContacts.onUnavailable(user_id);
+    function onAvailable(jid){
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation){
+            conversation.setOnline();
+        }
     }
 
-    function onTyping(user_id){
-        waContacts.onTyping(user_id);
+    function onUnavailable(jid){
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation){
+            conversation.setOffline();
+        }
+    }
+
+    function onTyping(jid){
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation){
+            conversation.setTyping();
+        }
+    }
+
+    function onPaused(jid){
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation){
+            conversation.setPaused();
+        }
     }
 
     function onMessageSent(message_id,jid){
-        waContacts.onMessageSent(message_id,jid);
-        waChat.onMessageSent(message_id)
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation){
+            conversation.messageSent(message_id);
+        }
     }
 
     function onMessageDelivered(message_id,jid){
-        waContacts.onMessageDelivered(message_id,jid);
-        waChat.onMessageDelivered(message_id)
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation){
+            conversation.messageDelivered(message_id);
+        }
     }
 
-    function onPaused(user_id){
-        waContacts.onPaused(user_id);
+        /**** Media ****/
+    function onMediaTransferSuccess(jid,message_id,mediaObject){
+        console.log("Caught media transfer success in main")
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation)
+            conversation.mediaTransferSuccess(message_id,mediaObject);
     }
 
-    function onRefreshing(){
-        osd_notify.text="Refreshing";
-        osd_notify.show();
+    function onMediaTransferError(jid,message_id,mediaObject){
+        console.log("ERROR!! "+jid)
+        var conversation = waChats.getConversation(jid);
+
+        if(conversation)
+            conversation.mediaTransferError(message_id,mediaObject);
     }
 
+    function onMediaTransferProgressUpdated(progress,jid,message_id){
+        console.log("UPDATED PROGRESS "+progress)
+        var conversation = waChats.getConversation(jid);
 
-    function regSuccess()
-    {
-        console.log("REGISTRATION DONE!");
+        if(conversation)
+            conversation.mediaTransferProgressUpdated(progress,message_id);
     }
-    function regFail(reason)
-    {
-        console.log("REGISTRATION FAILED BECAUSE "+reason)
-    }
+        /************/
+
 
     /*****************************************/
 
-
-    ListModel{
-        id:chatsModel
-    }
-
-    ListModel{
-        id:contactsModel
-    }
-
     WAUpdate{
         id:updatePage
+    }
+
+    Settings{
+        id:settingsPage;
     }
 
     LoadingPage{
         id:loadingPage
     }
 
-
-    function removeChatItem(cid){
-        for (var i=0; i<chatsModel.count;i++)
-        {
-            console.log("deleting")
-            var chatItem = chatsModel.get(i);
-            console.log(chatItem.jid);
-            if(chatItem.jid == cid)
-            {
-                chatsModel.remove(i)
-                if(chatsModel.count == 0){
-                    chatsContainer.state="no_data";
-                }
-
-                return;
-            }
-        }
-    }
-
-
-    Page {
+    WAPage {
         id: mainPage;
-      // anchors.top: status_indicator.bottom
-
         tools: mainTools
-
-		orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
-						myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
-
 
         TabGroup {
             id: tabGroups
-            currentTab: waChat
-          //  platformAnimated: true
+            currentTab: waChats
 
-            //Page
             Chats{
-                id:waChat
+                id:waChats
                 height: parent.height
-                Component.onCompleted:  {
-                    waChat.clicked.connect(waContacts.openChatWindow)
-                    waChat.deleteConversation.connect(waContacts.deleteConversation)
-                    waChat.deleteConversation.connect(appWindow.deleteConversation)
-
-                }
             }
-            //Page
+
             Contacts{
                 id: waContacts
                 height: parent.height
-
-                Component.onCompleted: {
-                    //connecting signals
-                    waContacts.conversationUpdated.connect(waChat.updateConversation)
-                    waContacts.sendMessage.connect(appWindow.sendMessage);
-                    waContacts.sendTyping.connect(appWindow.sendTyping);
-                    waContacts.sendPaused.connect(appWindow.sendPaused);
-
-                }
             }
         }
-
-
 
         ToolBarLayout {
 
             id:mainTools
 
             ToolIcon{
-                iconSource: "pics/wazapp48.png"
-				platformStyle: ToolButtonStyle{inverted: stealth || theme.inverted}
+                iconSource: "common/images/icons/wazapp48.png"
+                platformStyle: ToolButtonStyle{inverted: theme.inverted}
             }
 
             ButtonRow {
-                style: TabButtonStyle { inverted:stealth || theme.inverted }
+                style: TabButtonStyle { inverted:theme.inverted }
 
                 TabButton {
 					id: chatsTabButton
-                    platformStyle: TabButtonStyle{inverted: stealth || theme.inverted}
+                    platformStyle: TabButtonStyle{inverted:theme.inverted}
                     text: qsTr("Chats")
                     //iconSource: "../images/icon-m-toolbar-home.png"
-                    tab: waChat
+                    tab: waChats
                 }
                 TabButton {
-                 	platformStyle: TabButtonStyle{inverted: stealth || theme.inverted}
+                    platformStyle: TabButtonStyle{inverted: theme.inverted}
                     text: qsTr("Contacts")
                     // iconSource: "../images/icon-m-toolbar-list.png"
                     tab: waContacts
@@ -434,33 +363,22 @@ WAStackWindow {
             }
 
             ToolIcon {
-                platformStyle: ToolButtonStyle{inverted: stealth || theme.inverted}
+                platformStyle: ToolButtonStyle{inverted:theme.inverted}
                 id:toolbar_menu_item
                 platformIconId: "toolbar-settings"
-                //onClicked: (waMenu.status === DialogStatus.Closed) ? waMenu.open() : waMenu.close()
-				onClicked: { pageStack.push (Qt.resolvedUrl("Settings.qml")) }
+
+                onClicked: { pageStack.push(settingsPage); }
 
             }
         }
-
-
-
     }
-
-
 
     WAMenu {
         id: waMenu
-        //onSyncClicked: {console.log("GOTCHA");refreshContacts()}
+
         Component.onCompleted: {
                 waMenu.syncClicked.connect(onSyncClicked)
-
-                }
-
-        /*onAboutClicked: {
-            aboutDialog.open();
-        }*/
-
+         }
     }
 
     QueryDialog {

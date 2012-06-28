@@ -32,8 +32,8 @@ class WAConstants():
 		
 	CLIENT_INSTALL_PATH = '/opt/waxmppplugin/bin/wazapp'
 	
-	DEFAULT_CONTACT_PICTURE = CLIENT_INSTALL_PATH+'/'+'UI/pics/user.png';
-	DEFAULT_GROUP_PICTURE = CLIENT_INSTALL_PATH+'/'+'UI/pics/user.png';
+	DEFAULT_CONTACT_PICTURE = CLIENT_INSTALL_PATH+'/'+'UI/common/images/user.png';
+	DEFAULT_GROUP_PICTURE = CLIENT_INSTALL_PATH+'/'+'UI/common/images/user.png';
 	
 	DEFAULT_SOUND_NOTIFICATION = "/usr/share/sounds/ring-tones/Message 1.mp3"
 	FOCUSED_SOUND_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_default_beep.wav"

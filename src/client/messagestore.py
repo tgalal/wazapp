@@ -151,6 +151,8 @@ class MessageStore(QObject):
 			msg['msg_id'] = msg['id']
 			tmp["data"].append(msg)
 			
+		self._d(tmp);
+			
 		self.messagesReady.emit(tmp);
 			
 	
@@ -181,7 +183,10 @@ class MessageStore(QObject):
 		return self.store.Groupmessage.findFirst({"key":key});
 		
 	def getOrCreateConversationByJid(self,jid):
-	
+		
+		if self.conversations.has_key(jid):
+			return self.conversations[jid];
+		
 		groupTest = jid.split('-');
 		if len(groupTest)==2:
 			conv = self.store.Groupconversation.findFirst(conditions={"jid":jid})

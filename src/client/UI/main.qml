@@ -156,12 +156,17 @@ WAStackWindow {
         waContacts.pushContacts(contacts)
     }
 
-    function onContactsSyncStatusChanged(state) {
-        /*UNCOMMENTME: SETTING TO STATE OF MAIN?! WTF?!!!!!!!!!!!!! */
-        if (state=="GETTING") loadingPage.operation = qsTr("Retrieving contacts list...")
-        else if (state=="SENDING") loadingPage.operation = qsTr("Fetching contacts...")
-        else if (state=="LOADING") loadingPage.operation = qsTr("Loading contacts...")
-        else loadingPage.operation = ""
+    function onContactsSyncStatusChanged(s) {
+        switch(s){
+        case "GETTING": loadingPage.operation = qsTr("Retrieving contacts list...");
+            break;
+        case "SENDING":  loadingPage.operation = qsTr("Fetching contacts...");
+            break;
+        case "LOADING": loadingPage.operation = qsTr("Loading contacts...");
+            break;
+        default:  loadingPage.operation = "";
+            break;
+        }
     }
 
     function openConversation(jid){

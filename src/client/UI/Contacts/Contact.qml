@@ -35,11 +35,17 @@ Rectangle{
     property string contactPicture:getPicture()
     property string contactName;
     property string contactStatus;
+    property string contactNumber;
+
     signal clicked();
 
     width: parent.width;
     color:"transparent"
 	clip: true
+
+    function unsetConversation(){
+        ContactHelper.conversation = false;
+    }
 
     function setConversation(c){
         ContactHelper.conversation=c;

@@ -33,11 +33,7 @@ WAPage {
     property alias indicator_state:wa_notifier.state
 
     //state:"no_data"
-
-    signal clicked(string number,string prev_state)
-    signal deleteConversation(string conv_id);
-
-    /********** NEW STUFF ***********/
+    signal deleteConversation(string jid);
 
     function getOrCreateConversation(jid){
 
@@ -68,20 +64,49 @@ WAPage {
 
         return false;
     }
+    function removeChatItem(jid){
 
-    ListModel{id:conversationsModel}
+        var chatItemIndex = findChatIem(jid);
+        console.log("deleting")
+        if(chatItemIndex >= 0){
+            var conversation = conversationsModel.get(chatItemIndex).conversation;
+            var contacts = conversation.getContacts();
 
-    function findConversation(jid){
-        for (var i=0; i<conversationsModel.count;i++)
-        {
-            var conversation = conversationsModel.get(i).conversation;
-            if(conversation.jid == jid)
-                   return  conversation;
+            for(var i=0; i<contacts.length; i++){
+
+                contacts[i].unsetConversation();
+            }
+
+            delete conversation;
+
+            conversationsModel.remove(chatItemIndex);
+
+            if(conversationsModel.count == 0){
+                chatsContainer.state="no_data";
+            }
         }
-        return 0
     }
 
-    /********************************/
+    function findChatIem(jid){
+        for (var i=0; i<conversationsModel.count;i++)
+        {
+            var chatItem = conversationsModel.get(i);
+
+            if(chatItem.conversation.jid == jid)
+                   return  i;
+        }
+        return -1;
+    }
+
+    function findConversation(jid){
+
+        var chatItemIndex = findChatIem(jid);
+
+        if(chatItemIndex >= 0)
+            return conversationsModel.get(chatItemIndex).conversation;
+
+        return 0
+    }
 
     states: [
         State {
@@ -93,33 +118,28 @@ WAPage {
         }
     ]
 
+    ListModel{id:conversationsModel}
+
     Component{
         id:chatsDelegate;
 
         Chat{
-           // conversation: model.conversation
-            onClicked: {
-                /*UNCOMMENTME
-				chatsContainer.clicked(model.jid,"chats")
-                appWindow.conversationOpened(model.jid);
-                unread_messages=0
-                */
-			}
             Component.onCompleted: {
                 setConversation(model.conversation);
             }
 
             width:chatsContainer.width
             onOptionsRequested: {
-                /*UNCOMMENTME
-                chatDelConfirm.cid_confirm = model.jid;
-				contactNumber = model.jid.split('-')[0].split('@')[0]
-				contactNumberGroup = isGroup
-				showContactDetails = isGroup? 
-									getAuthor(model.jid).split('-')[0]==getAuthor(contactInfo.name.split('-')[0]+"@s.whatsapp.net").split('@')[0] : 
-									getAuthor(model.jid)==model.jid
-                chatItemMenu.open()
-                */
+                chatMenu.jid = getConversation().jid;
+
+                if(!isGroup){
+                    chatMenu.number = getConversation().getContacts()[0].contactNumber;
+                    chatMenu.name =  getConversation().getContacts()[0].contactName;
+                }
+                else
+                    chatMenu.number = "";
+
+                chatMenu.open();
             }
         }
     }
@@ -162,37 +182,41 @@ WAPage {
     }
 
 	Menu {
-	id: chatItemMenu
+        id: chatMenu
+        property string name;
+        property string jid;
+        property string number;
 
-		MenuLayout {
+        MenuLayout {
+
             WAMenuItem {
-				height: 80
-                //UNCOMMENTME singleItem: !detailsMenuItem.visible
-				text: qsTr("Delete Conversation")
-				onClicked: chatDelConfirm.open()
-			}
-            /*UNCOMMENTME
-			MyMenuItem {
-				id: detailsMenuItem
-				visible: showContactDetails
-				height: visible ? 80 : 0
-				text: contactNumberGroup ? qsTr("Add group owner to contacts") : qsTr("Add to contacs")
-				onClicked: Qt.openUrlExternally("tel:"+contactNumber)
-			}
-            */
-		}
+                id: detailsMenuItem
+                visible: chatMenu.number?true:false
+                height: visible ? 80 : 0
+                text: chatMenu.name?qsTr("View contact"):qsTr("Add to contacts")
+                onClicked: Qt.openUrlExternally("tel:"+chatMenu.number);
+            }
+
+            WAMenuItem {
+                height: 80
+                singleItem: !detailsMenuItem.visible
+                text: qsTr("Delete Conversation")
+                onClicked: chatDelConfirm.open()
+            }
+
+
+        }
 	}
 
     QueryDialog {
         id: chatDelConfirm
-        property string cid_confirm;
         titleText: qsTr("Confirm Delete")
         message: qsTr("Are you sure you want to delete this conversation and all its messages?")
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
         onAccepted: {
-            deleteConversation(cid_confirm)
-            removeChatItem(cid_confirm)
+            deleteConversation(chatMenu.jid)
+            removeChatItem(chatMenu.jid)
         }
     }
 }

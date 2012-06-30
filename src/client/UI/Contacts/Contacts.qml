@@ -143,6 +143,7 @@ WAPage {
             picture:model.picture
             contactName:model.name;
             contactStatus:model.status;
+            contactNumber:model.number
 
             onClicked: {
 				hideSearchBar()

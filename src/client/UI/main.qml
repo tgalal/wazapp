@@ -53,8 +53,8 @@ WAStackWindow {
     signal sendTyping(string jid);
     signal sendPaused(string jid);
     signal quit()
-    signal deleteConversation(string cid);
-    signal deleteSingleMessage(string jid, int msg_id);
+    signal deleteConversation(string jid);
+    signal deleteMessage(string jid, int msg_id);
     signal conversationActive(string jid);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
@@ -327,6 +327,7 @@ WAStackWindow {
             Chats{
                 id:waChats
                 height: parent.height
+                onDeleteConversation: appWindow.deleteConversation(jid);
             }
 
             Contacts{

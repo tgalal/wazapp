@@ -70,7 +70,7 @@ class MessageStore(QObject):
 
 	
 
-	def deleteSingleMessage(self,jid,msgid):
+	def deleteMessage(self,jid,msgid):
 
 		if not self.conversations.has_key(jid):
 			return
@@ -150,8 +150,6 @@ class MessageStore(QObject):
 			msg['media']= media.getModelData() if media is not None else None
 			msg['msg_id'] = msg['id']
 			tmp["data"].append(msg)
-			
-		self._d(tmp);
 			
 		self.messagesReady.emit(tmp);
 			

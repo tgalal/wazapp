@@ -53,13 +53,8 @@ WAPage {
     property bool typingEnabled:false
     property bool iamtyping:false
     property string pageIdentifier:"conversation_page" //used in notification hiding process
-    property bool loadFinished: false
     property bool pageIsActive: false
     property bool showSendButton
-    property bool loaded: false
-
-    property int convLoaded: 0
-    property bool loadConvsReverse: false
 
     function loadMoreMessages(){
 
@@ -673,7 +668,7 @@ WAPage {
 				height: 80
                 text: qsTr("Remove message")
                 onClicked:{
-                    deleteSingleMessage(jid, selectedMessage.msg_id)
+                    deleteMessage(jid, selectedMessage.msg_id)
 					conv_data.remove(selectedMessageIndex)
                     if(hasMore && conv_items.contentHeight<(conversation_view.height-top_bar.height))
                         loadMoreMessages();

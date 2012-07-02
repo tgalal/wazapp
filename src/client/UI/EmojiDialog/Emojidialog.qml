@@ -8,9 +8,11 @@ Dialog {
 	width: parent.width
 	height: parent.height
 
+
     property string titleText: qsTr("Select Emoji")
     property string emojiPath:"../common/images/emoji/";
 
+    signal emojiSelected(string emojiCode);
 
     function get32(code){
         var c = ""+code;
@@ -26,6 +28,13 @@ Dialog {
             c="0"+code;
 
          return emojiPath+"20/emoji-E"+c+".png";
+    }
+
+    function openDialog(){
+
+        emojiSelector.open();
+        emojiSelector.loadEmoji(0,109);
+
     }
 
 	SelectionDialogStyle { id: selectionDialogStyle }
@@ -187,8 +196,11 @@ Dialog {
 
 							onClicked: {
 								var codeX = emojiDelegate.codeS;
-                                addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+codeX+'.png" />'
-								emojiSelector.reject()
+                                //addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+codeX+'.png" />'
+
+                                console.log("SELECTED INSIDE DIALOG "+codeX);
+
+                                selectEmoji(codeX)
 							}
 						}
 					} 
@@ -205,36 +217,22 @@ Dialog {
 		}
 	}
 
-	function cleanText(txt) {
-		var repl = "p, li { white-space: pre-wrap; }";
-		var res = txt;
-		res = Helpers.getCode(res);
-		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-		return res.replace(/^\s+/,"");
-	}	
 
-
-	onRejected: {
-		if ( emojiDialogParent=="conversation" ) {
-			showSendButton=true
-			addEmojiToChat()
-			goToEndOfList()
-			setFocusToChatText()
-		}
-		else if ( emojiDialogParent=="status" ) {
-			var str = cleanText(status_text.text)
-			str = str.substring(0,status_text.lastPosition) + cleanText(addedEmojiCode) + str.slice(status_text.lastPosition)
-			status_text.text = Helpers.emojify2(str)
-			status_text.cursorPosition = status_text.lastPosition + 1
-			status_text.forceActiveFocus()
-		}
-	}
 
 	Component.onCompleted: {
-		emojiSelector.open();
-		emojiSelector.loadEmoji(0,109)
+       // emojiSelector.open();
+        //emojiSelector.close();
+        //emojiSelector.loadEmoji(0,109)
 	}
 
+
+
+
+    function selectEmoji(emojiCode){
+
+        emojiSelected(emojiCode);
+        emojiSelector.accept();
+    }
 
 	function loadEmoji(s,e) {
 		var start = s; var end = e;

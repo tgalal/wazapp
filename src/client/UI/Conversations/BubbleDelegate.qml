@@ -37,7 +37,7 @@ Item {
         switch(mediatype_id){
 		    case 1: return textDelegate
 		    case 2: case 3: case 4: case 5: case 6: return mediaDelegate
-			case 10: return textAreaDelegate
+            case 10: return textInputComponent;
         }
     }
 

@@ -6,6 +6,7 @@ import "../common/js/Global.js" as Helpers
 import "js/conversation.js" as ConversationHelper
 import "../common"
 import "../Menu"
+import "../EmojiDialog"
 
 WAPage {
     id:conversation_view
@@ -54,7 +55,10 @@ WAPage {
     property bool iamtyping:false
     property string pageIdentifier:"conversation_page" //used in notification hiding process
     property bool pageIsActive: false
-    property bool showSendButton
+    property bool showSendButton;
+
+    signal sendButtonClicked;
+    signal emojiSelected(string emojiCode);
 
     function loadMoreMessages(){
 
@@ -158,11 +162,11 @@ WAPage {
     function updateLastMessage(){
         console.log("UPDATING LAST MESSAGE AND SHOULD REBIND ALL CONCERNED!");
 
-        var m = conv_data.get(conv_data.count-1);
+        var m = conv_data.get(conv_data.count-2);
 
         if(!lastMessage || lastMessage.created != m.created)
         {
-            lastMessage = conv_data.get(conv_data.count-1);
+            lastMessage = conv_data.get(conv_data.count-2);
             onChange();
         }
     }
@@ -173,10 +177,10 @@ WAPage {
     Component.onCompleted:{
 
 
-        /*UNCOMMENTMEMAYBE conv_data.insert(0,{"msg_id":"", "message":"", "type":0,
+       conv_data.insert(0,{"msg_id":"", "content":"", "type":0,
                             "timestamp":"", "status":"","author":"",
                             "mediatype_id":10, "media":"", "progress":0})
-        */
+
 
         //requestPresence(jid);
     }
@@ -270,6 +274,19 @@ WAPage {
     {
         var arr = uname.split(' ');
         return arr[0];
+    }
+
+    function goToEndOfList(){
+        conv_items.positionViewAtIndex(conv_items.count-1, ListView.Contain)
+    }
+
+    Emojidialog{
+        id:emojiDialog
+
+        Component.onCompleted: {
+            emojiDialog.emojiSelected.connect(conversation_view.emojiSelected);
+        }
+
     }
 
     Rectangle{
@@ -399,75 +416,43 @@ WAPage {
 	    }
     }
 
-	Rectangle {
-		color: theme.inverted? "transparent" : "#dedfde"
-        //anchors.top: parent.top
-        //anchors.topMargin: top_bar.height
-		width: parent.width
-        //height: parent.height - top_bar.height - input_button_holder.height
-        anchors.top:top_bar.bottom
-        anchors.bottom: input_holder.top;
-		clip: true
+    Rectangle {
+        color: theme.inverted? "transparent" : "#dedfde"
+        anchors.top: parent.top
+        anchors.topMargin: top_bar.height
+        width: parent.width
+        height: parent.height - top_bar.height - input_button_holder.height
+        clip: true
 
-		Rectangle {
-			id: topMargin
-			color: "transparent"
-			width: parent.width
-			height: Math.max(0, parent.height-(conv_items.count>3?input_button_holder.height:0)-conv_items.contentHeight)
+        Rectangle {
+            id: topMargin
+            color: "transparent"
+            width: parent.width
+            height: Math.max(0, parent.height-(conv_items.count>3?input_button_holder.height:0)-conv_items.contentHeight)
 
-		}
+        }
 
-		ListView{
-			id:conv_items
-			spacing: 6
-			delegate: myDelegate
-			model: conv_data
-			anchors.top: parent.top
-			anchors.topMargin: topMargin.height
-			height: parent.height - topMargin.height
-			width: parent.width
-			cacheBuffer: 10000
+        ListView{
+            id:conv_items
+            spacing: 6
+            delegate: myDelegate
+            model: conv_data
+            anchors.top: parent.top
+            anchors.topMargin: topMargin.height
+            height: parent.height - topMargin.height
+            width: parent.width
+            cacheBuffer: 10000
             onCountChanged: {
                 //do some magic
             }
             header: messagesListHeader
-		}
-	}
-
-
-
-    /*UNCOMMENTME
-    Connections {
-        target: appWindow
-
-        onSendCurrentMessage: {
-            if (activeConvJId==conversation_view.user_id) {
-                chat_text.forceActiveFocus()
-                var toSend = cleanText(chat_text.text);
-                toSend = toSend.trim();
-                if ( toSend != "")
-                {
-                    sendMessage(user_id,toSend);
-                    chat_text.text = "";
-                }
-            }
-        }
-        onSetFocusToChatText: {
-            if (activeConvJId==conversation_view.user_id) {
-                chat_text.forceActiveFocus()
-            }
-        }
-        onAddEmojiToChat: {
-            if (activeConvJId==conversation_view.user_id) {
-                var str = cleanText(chat_text.text)
-                str = str.substring(0,chat_text.lastPosition) + cleanText(addedEmojiCode) + str.slice(chat_text.lastPosition)
-                chat_text.text = Helpers.emojify2(str)
-                chat_text.cursorPosition = chat_text.lastPosition + 1
-                chat_text.forceActiveFocus()
-            }
+          //  footer: textInputComponent
         }
     }
-    */
+
+
+
+
 
     function cleanText(txt){
         var repl = "p, li { white-space: pre-wrap; }";
@@ -476,92 +461,6 @@ WAPage {
         res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
         return res.replace(/^\s+/,"");
     }
-
-    Rectangle {
-        id: input_holder
-        anchors.bottom:input_button_holder.top;
-        anchors.left: parent.left
-        width: parent.width
-        height: Math.max(chat_text.height, 65)
-        color: theme.inverted? "#1A1A1A" : "white"
-
-        Image {
-            x: 16; y: 12;
-            height: 36; width: 36; smooth: true
-            source: "../common/images/icons/wazapp48.png"
-        }
-
-        MouseArea {
-            id: input_holder_area
-            anchors.fill: parent
-            onClicked: {
-                showSendButton=true;
-                chat_text.forceActiveFocus()
-                goToEndOfList()
-            }
-        }
-
-        WATextArea {
-            id: chat_text
-            width:parent.width -60
-            x: 54
-            y: 0
-            placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : qsTr("Write your message here")
-            platformStyle: myTextFieldStyle
-            wrapMode: TextEdit.Wrap
-            textFormat: Text.RichText
-
-            property bool alreadyFocused: false
-
-            onTextChanged: {
-                if(!typingEnabled && !isGroup)
-                {
-                    //to prevent initial set of placeHolderText from firing textChanged signal
-                     //SERIOUSLY HOW MANY TIMES DO I HAVE TO ADD THIS DAMN CHECK AND IT GETS REMOVED?!!
-                    typingEnabled = true
-                    return
-                }
-
-                if(!iamtyping)
-                {
-                    console.log("TYPING");
-                    typing(jid);
-                }
-                iamtyping = true;
-                typing_timer.restart();
-            }
-
-            platformSipAttributes: SipAttributes {
-                actionKeyEnabled: true
-                actionKeyIcon: "image://theme/icon-m-toolbar-send-chat-white"
-                actionKeyLabel: qsTr("Send")
-            }
-            onEnterKeyClicked: { console.log("ENTER PRESSED!"); sendCurrentMessage(); setFocusToChatText() }
-
-            onActiveFocusChanged: {
-                lastPosition = chat_text.cursorPosition
-                console.log("LAST POSITION: " + lastPosition)
-                showSendButton = chat_text.focus || input_button_holder_area.focus || emoji_button.focus
-                if (showSendButton) {
-                    if (!alreadyFocused) {
-                        alreadyFocused = true
-                        //UNCOMMENTME goToEndOfList()
-                    }
-                } else
-                    alreadyFocused = false
-
-            }
-
-            onHeightChanged: {
-               //UNCOMMENTMEANDBELOWMAYBE var ant = delegateContainer.height
-                //delegateContainer.height= Math.max(chat_text.height, 65) +10
-                //if (pageIsActive && ant<delegateContainer.height) goToEndOfList()
-            }
-
-        }
-    }
-
-
 
 	Rectangle {
 		id: input_button_holder
@@ -577,8 +476,6 @@ WAPage {
 			anchors.fill: parent
 			onClicked: { 
 				showSendButton=true; 
-                //UNCOMMENTME goToEndOfList()
-				setFocusToChatText()
 			}
 		}
 
@@ -601,10 +498,11 @@ WAPage {
 		    anchors.left: parent.left
 			anchors.leftMargin: 16
 		    anchors.verticalCenter: send_button.verticalCenter
-		    onClicked: {
-				emojiDialogParent = "conversation"
-				var component = Qt.createComponent("Emojidialog.qml");
-		 		var sprite = component.createObject(conversation_view, {});
+            onClicked: {
+                //var component = Qt.createComponent("Emojidialog.qml");
+                //var sprite = component.createObject(conversation_view, {});
+
+                emojiDialog.openDialog();
 		    }
 		}
 
@@ -620,17 +518,8 @@ WAPage {
 			y: 10
 			//enabled: cleanText(chat_text.text).trim()!=""
 		    onClicked:{
-				showSendButton=true; 
-                chat_text.forceActiveFocus()
+                sendButtonClicked();
 
-                var toSend = cleanText(chat_text.text);
-                toSend = toSend.trim();
-                if (toSend != "")
-                {
-                    appWindow.sendMessage(jid,toSend);
-                    chat_text.text = "";
-                }
-                chat_text.forceActiveFocus()
 		    }
 		}
 	}
@@ -700,5 +589,140 @@ WAPage {
           }
     }
 
+    Component {
+        id: textInputComponent
 
+        Rectangle {
+            id: spacer
+            color: "transparent"
+            height: input_holder.height + 10
+            width: appWindow.inPortrait? 480 : 854
+
+            Rectangle {
+                id: input_holder
+                anchors.top: parent.top
+                anchors.topMargin: 10
+                anchors.left: parent.left
+                width: parent.width
+                height: Math.max(chat_text.height, 65)
+                color: theme.inverted? "#1A1A1A" : "white"
+
+                Image {
+                    x: 16; y: 12;
+                    height: 36; width: 36; smooth: true
+                    source: "../common/images/icons/wazapp48.png"
+                }
+
+                MouseArea {
+                    id: input_holder_area
+                    anchors.fill: parent
+                    onClicked: {
+                        showSendButton=true;
+                        chat_text.forceActiveFocus()
+                        goToEndOfList()
+                    }
+                }
+
+                TextFieldStyle {
+                    id: myTextFieldStyle
+                    backgroundSelected: ""
+                    background: ""
+                    backgroundDisabled: ""
+                    backgroundError: ""
+                }
+
+                Connections{
+                    target:conversation_view
+                    onSendButtonClicked:{
+                        console.log("SEND CLICKED");
+
+                        showSendButton=true;
+                        chat_text.forceActiveFocus()
+
+                        var toSend = cleanText(chat_text.text);
+                        toSend = toSend.trim();
+                        if (toSend != "")
+                        {
+                            appWindow.sendMessage(jid,toSend);
+                            chat_text.text = "";
+                        }
+                        chat_text.forceActiveFocus()
+
+                    }
+
+                    onEmojiSelected:{
+                        console.log("GOT EMOJI "+emojiCode);
+
+                        var emojiImg = '<img src="../common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
+                        console.log(emojiImg);
+                        chat_text.text+=emojiImg;
+
+                       /* var str = cleanText(chat_text.text);
+                        str = str.substring(0,chat_text.lastPosition) + cleanText(emojiCode) + str.slice(chat_text.lastPosition)
+                        chat_text.text = Helpers.emojify2(str)
+                        chat_text.cursorPosition = chat_text.lastPosition + 1
+                        chat_text.forceActiveFocus();*/
+                    }
+
+                }
+
+                WATextArea {
+                    id: chat_text
+                    width:parent.width -60
+                    x: 54
+                    y: 0
+                    placeholderText: (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : qsTr("Write your message here")
+                    platformStyle: myTextFieldStyle
+                    wrapMode: TextEdit.Wrap
+                    textFormat: Text.RichText
+
+                    property bool alreadyFocused: false
+
+                    onTextChanged: {
+                        if(!typingEnabled)
+                        {
+                            //to prevent initial set of placeHolderText from firing textChanged signal
+                             //SERIOUSLY HOW MANY TIMES DO I HAVE TO ADD THIS DAMN CHECK AND IT GETS REMOVED?!!
+                            typingEnabled = true
+                            return
+                        }
+
+                        if(!iamtyping)
+                        {
+                            console.log("TYPING");
+                            typing(jid);
+                        }
+                        iamtyping = true;
+                        typing_timer.restart();
+                    }
+
+                    platformSipAttributes: SipAttributes {
+                        actionKeyEnabled: true
+                        actionKeyIcon: "image://theme/icon-m-toolbar-send-chat-white"
+                        actionKeyLabel: qsTr("Send")
+                    }
+                    onEnterKeyClicked: { sendButtonClicked(); chat_text.forceActiveFocus() }
+
+                    onActiveFocusChanged: {
+                        lastPosition = chat_text.cursorPosition
+                        console.log("LAST POSITION: " + lastPosition)
+                        showSendButton = chat_text.focus || input_button_holder_area.focus || emoji_button.focus
+                        if (showSendButton) {
+                            if (!alreadyFocused) {
+                                alreadyFocused = true
+                                goToEndOfList()
+                            }
+                        } else
+                            alreadyFocused = false
+
+                    }
+
+
+
+                }
+            }
+
+        }
+
+    }
 }

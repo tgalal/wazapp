@@ -50,7 +50,7 @@ function addMessage(message)
 
 
 
-    var targetIndex = conv_data.count;
+    var targetIndex = conv_data.count-1;
 
     console.log("Looking where to insert ");
 
@@ -62,7 +62,7 @@ function addMessage(message)
             targetIndex = 0;
             reverseAppend = true;
 
-            for(var i=0; i <conv_data.count;i++){
+            for(var i=0; i <conv_data.count-1;i++){
                 var item = conv_data.get(i);
 
                 if(item.msg_id > message.msg_id)

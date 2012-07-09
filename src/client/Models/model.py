@@ -76,6 +76,9 @@ class Model(object):
 	
 			
 	def getTableName(self):
+		if vars(self).has_key("table"):
+			return self.table
+
 		table = self.whoami().lower()
 		if table[-2:] == "ia":
 			return table

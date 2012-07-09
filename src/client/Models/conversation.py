@@ -53,7 +53,6 @@ class Conversation(Model):
 		
 		
 	def loadMessages(self,offset = 0,limit=10):
-		print "find some messages"
 		conditions = {"conversation_id":self.id}
 		
 		if offset:
@@ -62,8 +61,6 @@ class Conversation(Model):
 		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit)
 		
 		messages.reverse();
-		
-		print "found some messages"
 		
 		cpy = messages[:]
 		messages.extend(self.messages);
@@ -77,9 +74,9 @@ class Conversation(Model):
 class Groupconversation(Model):
 	
 	def __init__(self):
-		print "init a group convo"
 		self.type="group"
 		self.messages = []
+		self.contacts = []
 		
 	def isGroup(self):
 		return True;
@@ -97,10 +94,28 @@ class Groupconversation(Model):
 		
 	
 	def getContacts(self):
-		return []
+		if len(self.contacts):
+			return self.contacts
+		
+		gc = self.store.GroupconversationsContacts
+		contacts = gc.findContacts(self.id);
+		
+		return contacts;
+		
+	def addContact(self,contactId):
+		inter = self.store.GroupconversationsContacts.findAll({"groupconversation_id":self.id,"contact_id":contactId});
+		
+		if len(inter):
+			return;
+		
+		inter = self.store.GroupconversationsContacts.create();
+		inter.groupconversation_id = self.id
+		inter.contact_id = contactId
+		
+		inter.save()
 		
 	def loadMessages(self,offset = 0,limit=10):
-		print "group: find some messages"
+		
 		conditions = {"groupconversation_id":self.id}
 		
 		if offset:
@@ -109,8 +124,6 @@ class Groupconversation(Model):
 		messages = self.store.Groupmessage.findAll(conditions,order=["id DESC"],limit=limit)
 		
 		messages.reverse();
-		
-		print "found some messages"
 		
 		cpy = messages[:]
 		messages.extend(self.messages);
@@ -144,7 +157,18 @@ class ConversationManager():
 		
 class GroupconversationsContacts(Model):
 	def __init__(self):
-		''''''
+		self.table = "groupconversations_contacts"
+		
+		
+	def findContacts(self,groupConversationId):
+		inter = self.findAll({"groupconversation_id":groupConversationId});
+		contacts = []
+		for i in inter:
+			contact = i.Contact.read(i.contact_id)
+			contacts.append(contact)
+		
+		return contacts
+		
 
 	
 		

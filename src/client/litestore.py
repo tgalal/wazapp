@@ -71,15 +71,14 @@ class LiteStore(DataStore):
 		self.ConversationManager = ConversationManager();
 		self.ConversationManager.setStore(self);
 		
+		self.Groupconversation = Groupconversation();
+		self.Groupconversation.setStore(self);
 		
 		self.GroupconversationsContacts = GroupconversationsContacts();
 		self.GroupconversationsContacts.setStore(self);
 		
 		self.Mediatype = Mediatype();
 		self.Mediatype.setStore(self);
-		
-		self.Groupconversation = Groupconversation();
-		self.Groupconversation.setStore(self);
 		
 		
 		self.Media = Media()

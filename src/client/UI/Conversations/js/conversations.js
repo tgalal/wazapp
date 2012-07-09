@@ -35,20 +35,6 @@ function addMessage(message)
 
     console.log("assign author");
     var author = message.contact;
-    var contacts = getContacts();
-
-    /*if(message.type==0){
-        for(var i=0;i<contacts.length;i++){
-
-            if(contacts[i] == author.jid){
-                author = contacts[i];
-                //author.jid = contacts
-                break;
-            }
-        }
-    }*/
-
-
 
     var targetIndex = conv_data.count-1;
 

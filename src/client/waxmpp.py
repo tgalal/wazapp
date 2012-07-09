@@ -411,27 +411,18 @@ class WAEventHandler(WAEventBase):
 	
 	def onGroupInfo(self,jid,ownerJid,subject,subjectOwnerJid,subjectT,creation):
 		self._d("Got group info")
-		#self._d("%s,%s,%s,%s,%s,%s"%(jid,owner,subject,subjectOwner,subjectT,creation))
+		WAXMPP.message_store.updateGroupInfo(jid,ownerJid,subject,subjectOwnerJid,subjectT,creation)
+		
+	def onGroupParticipants(self,jid,jids):
+		self._d("GOT group participants")
 		
 		conversation = WAXMPP.message_store.getOrCreateConversationByJid(jid);
 		
-		owner = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(ownerJid)
-		subjectOwner = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(subjectOwnerJid)
+		for j in jids:
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(j)
+			conversation.addContact(contact.id);
 		
-		conversation.contact_id = owner.id
-		conversation.subject = subject
-		conversation.subject_owner = subjectOwner.id
-		conversation.subject_timestamp = subjectT
-		conversation.created = creation
-		
-		conversation.save()
-		
-		if conversation.new > 0:
-			lastMessage = conversation.getLastMessage()
-			lastMessage.wantsReceipt = True
-			lastMessage.key = eval(lastMessage.key)
-			#TODO singla conversationUpdated which updates chats and conversations
-			self.message_received(lastMessage,False)
+		WAXMPP.message_store.sendConversationReady(jid);
 		
 		
 		
@@ -626,6 +617,15 @@ class StanzaReader(QThread):
 		subjectOwner = groupNode.getAttributeValue("s_o")
 		creation = groupNode.getAttributeValue("creation")
 		self.eventHandler.onGroupInfo(jid,owner,subject,subjectOwner,int(subjectT),int(creation))
+		
+	def handleParticipants(self,node,jid):
+		children = node.getAllChildren("participant");
+		jids = []
+		for c in children:
+			jids.append(c.getAttributeValue("jid"))
+		
+		self.eventHandler.onGroupParticipants(jid,jids)	
+		
 
 	def parseCategories(self,dirtyNode):
 		categories = {}
@@ -863,6 +863,10 @@ class StanzaReader(QThread):
 							signal = False
 							self._d("GETTING GROUP INFO")
 							self.connection.sendGetGroupInfo(fromAttribute)
+						
+						if not len(conversation.getContacts()):
+							self._d("GETTING GROUP CONTACTS")
+							self.connection.sendGetParticipants(fromAttribute)
 							
 					ret = WAXMPP.message_store.get(key);
 					
@@ -1171,7 +1175,7 @@ class WAXMPP():
 	
 	def getLastOnline(self,jid):
 		
-		if len(jid.split('-')) == 2: #SUPER CANCEL SUBSCRIBE TO GROUP
+		if len(jid.split('-')) == 2 or jid == "Server@s.whatsapp.net": #SUPER CANCEL SUBSCRIBE TO GROUP AND SERVER
 			return
 		
 		self.sendSubscribe(jid);
@@ -1239,6 +1243,17 @@ class WAXMPP():
 		
 		queryNode = ProtocolTreeNode("query",{"xmlns":"w:g"})
 		iqNode = ProtocolTreeNode("iq",{"id":idx,"type":"get","to":jid},[queryNode])
+		
+		self.out.write(iqNode)
+		
+		
+		
+	def sendGetParticipants(self,jid):
+		idx = self.makeId("get_participants_")
+		self.stanzaReader.requests[idx] = self.stanzaReader.handleParticipants
+		
+		listNode = ProtocolTreeNode("list",{"xmlns":"w:g"})
+		iqNode = ProtocolTreeNode("iq",{"id":idx,"type":"get","to":jid},[listNode]);
 		
 		self.out.write(iqNode)
 

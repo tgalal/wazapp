@@ -183,14 +183,34 @@ WAStackWindow {
         //This should be called if and only if conversation start point is backend
         console.log("Got a conv in conversationReady slot");
         var conversation = waChats.getOrCreateConversation(conv.jid);
-        console.log("Finding appropriate contact");
-        var contact = waContacts.getOrCreateContact({jid:conv.jid});
 
-        console.log("Adding to conversation");
-        conversation.addContact(contact);
+        var contact;
 
-        console.log("Binding conversation to contact");
-        contact.setConversation(conversation);
+        if(conversation.isGroup()) {
+            console.log("SUBJET IS "+conv.subject);
+            conversation.subject = conv.subject || "";
+            conversation.groupIcon = conv.picture || "";
+            console.log("Picture is "+conv.picture );
+
+            for(var i=0; i<conv.contacts.length; i++) {
+                console.log("ADDING CONTACT TO CONV");
+                contact = waContacts.getOrCreateContact({jid:conv.contacts[i].jid});
+                conversation.addContact(contact);
+                console.log("ADDED");
+            }
+        } else {
+
+            console.log("Finding appropriate contact");
+            contact = waContacts.getOrCreateContact({jid:conv.jid});
+
+            console.log("Adding to conversation");
+            conversation.addContact(contact);
+            console.log("Binding conversation to contact");
+            contact.setConversation(conversation);
+
+        }
+
+
 
 
     }

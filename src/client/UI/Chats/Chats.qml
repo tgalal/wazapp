@@ -82,7 +82,7 @@ WAPage {
             conversationsModel.remove(chatItemIndex);
 
             if(conversationsModel.count == 0){
-                chatsContainer.state="no_data";
+                //chatsContainer.state="no_data";
             }
         }
     }

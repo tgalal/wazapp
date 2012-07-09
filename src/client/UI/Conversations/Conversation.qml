@@ -39,6 +39,7 @@ WAPage {
     property variant contacts;
     property variant lastMessage;
     property string subject;
+    property string groupIcon;
     property string defaultGroupIcon:"../common/images/group.png"
     property int unreadCount;
     property int remainingMessagesCount;
@@ -85,16 +86,14 @@ WAPage {
     }
 
     function getPicture(){
-        var picture="";
+        var pic="";
 
         if(isGroup())
-            picture = defaultGroupIcon;
+            pic = groupIcon || defaultGroupIcon;
         else if(contacts && contacts.length)
-            picture = contacts[0].contactPicture;
+            pic = contacts[0].contactPicture;
 
-
-        console.log(picture);
-        return picture;
+        return pic;
     }
 
     function addObserver(o){
@@ -144,19 +143,10 @@ WAPage {
     }
 
     function addContact(c){
-        console.log("PUSHING")
         ConversationHelper.contacts.push(c);
-        console.log("PUSHED")
-        console.log(ConversationHelper.contacts);
-        console.log(contacts);
         contacts = ConversationHelper.contacts;
-        console.log("ASSIGNED")
         addObserver(c);
-        console.log("OBSERVED")
         onChange();
-        console.log("TRIGGERED CHANGE");
-
-       // c.setConversation(conversation_view);
     }
 
     function updateLastMessage(){
@@ -184,7 +174,6 @@ WAPage {
 
         //requestPresence(jid);
     }
-    /*NEW STUFF*/
     function open(){
 
         if(jid != appWindow.getActiveConversation()){
@@ -200,9 +189,7 @@ WAPage {
             console.log("SHOULD REFLECT!")
         }
     }
-    /*********/
 
-   // signal conversationUpdated(int msgId, int msgType, string number,string lastMsg,string time,string formattedDate);
     signal conversationUpdated(variant message);
     signal typing(string jid);
     signal paused(string jid);
@@ -390,7 +377,10 @@ WAPage {
             date: model.timestamp
             from_me:model.type==1
             progress:model.progress
-            name: ""/*UNCOMMENTME mediatype_id==10 || from_me || isGroup ? "" : getAuthor(model.author.jid).split('@')[0]*/
+            name: mediatype_id==10 || from_me || !isGroup ? "" :
+                                                            (ConversationHelper.getContact(model.author.jid).contactName
+                                                             || ConversationHelper.getContact(model.author.jid).contactNumber
+                                                             || "fixme:unknowncontact");
             author:model.author
 			state_status:model.status
             isGroup: conversation_view.isGroup()
@@ -653,9 +643,19 @@ WAPage {
                     onEmojiSelected:{
                         console.log("GOT EMOJI "+emojiCode);
 
-                        var emojiImg = '<img src="../common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
-                        console.log(emojiImg);
-                        chat_text.text+=emojiImg;
+                        var str = cleanText(chat_text.text);
+
+                        var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/32/emoji-E'+emojiCode+'.png" />'
+                        str = str.substring(0,chat_text.lastPosition) + emojiImg + str.slice(chat_text.lastPosition)
+
+                        chat_text.text = str;
+                        chat_text.cursorPosition = chat_text.lastPosition + 1
+                        chat_text.forceActiveFocus()
+
+
+                       // chat_text.text+=emojiImg;
+
+                        //chat_text.forceActiveFocus();
 
                        /* var str = cleanText(chat_text.text);
                         str = str.substring(0,chat_text.lastPosition) + cleanText(emojiCode) + str.slice(chat_text.lastPosition)
@@ -682,7 +682,6 @@ WAPage {
                         if(!typingEnabled)
                         {
                             //to prevent initial set of placeHolderText from firing textChanged signal
-                             //SERIOUSLY HOW MANY TIMES DO I HAVE TO ADD THIS DAMN CHECK AND IT GETS REMOVED?!!
                             typingEnabled = true
                             return
                         }
@@ -716,9 +715,6 @@ WAPage {
                             alreadyFocused = false
 
                     }
-
-
-
                 }
             }
 

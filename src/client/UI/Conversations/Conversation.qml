@@ -382,7 +382,7 @@ WAPage {
                                                              || ConversationHelper.getContact(model.author.jid).contactNumber
                                                              || "fixme:unknowncontact");
             author:model.author
-			state_status:model.status
+            state_status:isGroup && model.status == "pending"?"delivered":model.status
             isGroup: conversation_view.isGroup()
             bubbleColor: model.type==1?outboundBubbleColor:inboundBubbleColor;
 

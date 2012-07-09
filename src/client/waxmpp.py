@@ -423,7 +423,13 @@ class WAEventHandler(WAEventBase):
 			conversation.addContact(contact.id);
 		
 		WAXMPP.message_store.sendConversationReady(jid);
+	
+	def groupSubjectUpdated(self, jid,author,newSubject,timestamp):
+		self._d("Got group subject update")
+		g = WAXMPP.message_store.getOrCreateConversationByJid(jid);
+		contact = g.getOwner();
 		
+		self.onGroupInfo(jid,contact.jid,newSubject,author,timestamp,g.created);
 		
 		
 
@@ -702,8 +708,8 @@ class StanzaReader(QThread):
 			bodyNode = messageNode.getChild("body");
 			newSubject = None if bodyNode is None else bodyNode.data;
 
-			if newSubject is not None and self.groupEventHandler is not None:
-				self.groupEventHandler.group_new_subject(fromAttribute,author,newSubject,int(attribute_t));
+			if newSubject is not None and self.eventHandler is not None:
+				self.eventHandler.groupSubjectUpdated(fromAttribute,author,newSubject,int(attribute_t));
 			
 			if receiptRequested and self.eventHandler is not None:
 				self.eventHandler.subjectReceiptRequested(fromAttribute,msg_id);

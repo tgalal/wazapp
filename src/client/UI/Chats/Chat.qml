@@ -44,7 +44,7 @@ Rectangle{
     height: lastMessage || isGroup ? 102 : 0;
     color:"transparent"
 
-    state:(!lastMessage)?"":(lastMessage.type==1?lastMessage.status:"received")
+    state:(!lastMessage)?"":(lastMessage.type==1?(isGroup && lastMessage.status == "pending"?"delivered":lastMessage.status):"received")
 
     function setConversation(c){
         ChatHelper.conversation = c;

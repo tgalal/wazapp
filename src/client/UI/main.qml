@@ -287,11 +287,8 @@ WAStackWindow {
     function onMessageSent(message_id,jid){
         var conversation = waChats.getConversation(jid);
 
-        if(conversation.isGroup()){
-            conversation.messageDelivered(message_id);
-        }
-        else {
-             conversation.messageSent(message_id);
+        if(conversation){
+            conversation.messageSent(message_id);
         }
     }
 

@@ -686,12 +686,13 @@ class WAEventHandler(WAEventBase):
 
 			else:
 				conversation = fmsg.getConversation();
-				if msg_contact.jid is not None:
-					msgPicture = "/home/user/.cache/wazapp/contacts/" + conversation.jid.replace("@g.us","") + ".png"
+				jjid = conversation.jid.replace("@g.us","")
+				if msg_contact.jid is not None and os.path.isfile("/home/user/.cache/wazapp/contacts/" + jjid + ".png"):
+					msgPicture = "/home/user/.cache/wazapp/contacts/" + jjid + ".png"
 				else:
 					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
 
-				self.notifier.newMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject), newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject.decode("utf8")), newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			
 
 			self._d("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
@@ -2121,7 +2122,7 @@ class WAXMPP():
 
 		preimg.save("/home/user/.cache/wazapp/temp.jpg", "JPG")
 
-		preview = preimg.scaled(64, 64, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+		preview = preimg.scaled(51, 51, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
 		preview.save("/home/user/.cache/wazapp/temp2.jpg", "JPG")
 
 		self.stanzaReader.currentPictureJid = jid;

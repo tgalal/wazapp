@@ -377,7 +377,7 @@ WAPage {
 		onGroupCreated: {
 			setPicture(groupId, selectedGroupPicture)
 		}
-		onOnPictureUpdated: {
+		onOnContactUpdated: {
 			if (groupId == ujid) {
 				var participants;
 				for (var i=0; i<participantsModel.count; ++i) {

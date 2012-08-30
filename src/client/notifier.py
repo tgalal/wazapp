@@ -25,8 +25,13 @@ from constants import WAConstants
 from utilities import Utilities
 from QtMobility.MultimediaKit import QMediaPlayer
 
+from wadebug import NotifierDebug
+
 class Notifier():
 	def __init__(self,audio=False,vibra=True):
+		_d = NotifierDebug();
+		self._d = _d.d;
+		
 		self.manager = MNotificationManager('wazappnotify','WazappNotify');
 		self.vibra = vibra
 		
@@ -55,14 +60,12 @@ class Notifier():
 	
 	
 	def profileChanged(self):
-		print "Profile changed";
+		self._d("Profile changed");
 	
 	def enable(self):
-		#print "enabling notif"
 		self.enabled = True
 	
 	def disable(self):
-		#print "disabling notif"
 		self.enabled = False
 	
 	def saveNotification(self,jid,data):
@@ -90,7 +93,7 @@ class Notifier():
 			#jid = jids[0]
 			nId = self.notifications[jid]["id"];
 			del self.notifications[jid]
-			print "DELETING NOTIFICATION BY ID "+str(nId);
+			self._d("DELETING NOTIFICATION BY ID "+str(nId));
 			self.manager.removeNotification(nId);
 		
 				
@@ -153,7 +156,7 @@ class Notifier():
 		
 		if self.audio:
 			soundPath = self.getCurrentSoundPath();
-			print soundPath
+			self._d(soundPath)
 			self.audio.setMedia(QUrl.fromLocalFile(soundPath));
 			self.audio.play();
 			

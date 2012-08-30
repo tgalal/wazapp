@@ -22,7 +22,7 @@
 #include "warequest.h"
 #include <QDebug>
 
-const QString WARequest::userAgent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
+const QString WARequest::userAgent = "WhatsApp/2.3.35 S40Version/04.60 Device/nokiac3-00";
 
 WARequest::WARequest()
 {
@@ -116,7 +116,7 @@ void WARequest::sendRequest(QString url)
     reply->ignoreSslErrors();
 
     //connect(reply, SIGNAL(readyRead()), this, SLOT(readyRead()));
-   connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
             this, SLOT(networkError(QNetworkReply::NetworkError)));
     connect(reply, SIGNAL(sslErrors(QList<QSslError>)),
             this, SLOT(sslError(QList<QSslError>)));

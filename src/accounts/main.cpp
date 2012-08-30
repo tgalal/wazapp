@@ -19,6 +19,9 @@
 ** along with Wazapp. If not, see http://www.gnu.org/licenses/.
 **
 ****************************************************************************/
+#include <MLocale>
+#include <QTranslator>
+#include <QFile>
 #include <QtGui/QApplication>
 #include "qmlapplicationviewer.h"
 #include <QDeclarativeContext>
@@ -91,6 +94,18 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     qInstallMsgHandler(SimpleLoggingHandler);
 
     qDebug()<<"HELLO";
+
+    MLocale myLocale;
+    QString lang = myLocale.language();
+    QTranslator translator;
+
+    if (QFile::exists("/opt/waxmppplugin/qml/waxmppplugin/i18n/tr_"+ lang + ".qm"))
+    {
+        //qDebug() << "TRANSLATION:" << lang;
+        translator.load("/opt/waxmppplugin/qml/waxmppplugin/i18n/tr_" + lang);
+        app->installTranslator(&translator);
+    }
+
 
     AccountSetup::ProviderPluginProcess* plugin = new AccountSetup::ProviderPluginProcess;
     if ( plugin != AccountSetup::ProviderPluginProcess::instance() )

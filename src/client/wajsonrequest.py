@@ -24,6 +24,7 @@ from PySide import QtCore
 from PySide.QtCore import QThread
 from warequest import WARequest
 import json
+from wadebug import JsonRequestDebug;
 class WAJsonRequest(WARequest):
 
 
@@ -37,7 +38,11 @@ class WAJsonRequest(WARequest):
 	
 	done = QtCore.Signal(dict);
 	fail = QtCore.Signal();
-
+	
+	def __init__(self):
+		_d = JsonRequestDebug();
+		self._d = _d.debug;
+		super(WAJsonRequest,self).__init__();
 			
 	def addParam(self,name,value):
 		self.params.append({name:value});
@@ -47,7 +52,7 @@ class WAJsonRequest(WARequest):
 
 	def getUserAgent(self):
 		#agent = "WhatsApp/1.2 S40Version/microedition.platform";
-		agent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
+		agent = "WhatsApp/2.8.14 S60Version/5.3 Device/C7-00";
 		return agent;	
 
 	def sendRequest(self):
@@ -56,7 +61,7 @@ class WAJsonRequest(WARequest):
 
 			params = urllib.urlencode(self.params);
 		
-			Utilities.debug("Opening connection to "+self.base_url);
+			self._d("Opening connection to "+self.base_url);
 			self.conn = httplib.HTTPConnection(self.base_url,80);
 			headers = {"User-Agent":self.getUserAgent(),
 				"Content-Type":"application/x-www-form-urlencoded",

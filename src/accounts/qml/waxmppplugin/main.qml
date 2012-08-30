@@ -64,12 +64,12 @@ PageStackWindow {
                 editPage.pushName = phoneNumber
                 //appWindow.pageStack.pop(null);
                 appWindow.pageStack.push(editPage);
-                showNotification("Successfully Registered!\n Close me and relaunch Wazapp to login");
+                showNotification(qsTr("Successfully Registered!\n Close me and relaunch Wazapp to login"));
             }
 
             onVoiceCodeRequested:{
                 appWindow.pageStack.push(codeEntry);
-                showNotification("Code was requested successfully. You should receive a call now.");
+                showNotification(qsTr("Code was requested successfully. You should receive a call now."));
             }
         }
 
@@ -89,7 +89,7 @@ PageStackWindow {
 
     SelectionDialog {
         id: cc_selector
-        titleText: "Country"
+        titleText: qsTr("Country")
         selectedIndex: 61
         model: countriesModel
 
@@ -199,6 +199,7 @@ PageStackWindow {
         ListElement{name: "Iraq"; cc:"+964"}
         ListElement{name: "Iran"; cc:"+98"}
         ListElement{name: "Ireland (Eire)"; cc:"+353"}
+        ListElement{name: "Israel"; cc: "+972"}
         ListElement{name: "Italy"; cc:"+39"}
         ListElement{name: "Jamaica"; cc:"+1"}
         ListElement{name: "Japan"; cc:"+81"}
@@ -382,7 +383,7 @@ PageStackWindow {
         id:codeEntryLoading
 
         state: "reg_a"
-        buttonOneText: "Cancel"
+        buttonOneText: qsTr("Cancel")
 
         onButtonOneClicked: console.log("cancel clicked")
 
@@ -392,7 +393,7 @@ PageStackWindow {
                 name: "reg_a"
                 PropertyChanges {
                     target: codeEntryLoading
-                    operation:"Verifying your account"
+                    operation:qsTr("Verifying your account")
                 }
             }
         ]
@@ -401,7 +402,7 @@ PageStackWindow {
     LoadingPage{
         id:regVoiceLoading;
         state: "reg_a"
-        buttonOneText: "Enter code manually"
+        buttonOneText: qsTr("Enter code manually")
 
         onButtonOneClicked: console.log("manual code entry clicked")
 
@@ -410,7 +411,7 @@ PageStackWindow {
                 name: "reg_a"
                 PropertyChanges {
                     target: regVoiceLoading
-                    operation:"Sending Voice Registration Request"
+                    operation:qsTr("Sending Voice Registration Request")
                 }
             }
         ]
@@ -419,8 +420,8 @@ PageStackWindow {
     LoadingPage{
         id:regLoading;
         state: "reg_a"
-        buttonOneText: "Enter code manually"
-        buttonTwoText: "Use voice request"
+        buttonOneText: qsTr("Enter code manually")
+        buttonTwoText: qsTr("Use voice request")
 
         onButtonOneClicked: {
             console.log("manual code entry clicked")
@@ -442,7 +443,7 @@ PageStackWindow {
                 name: "reg_a"
                 PropertyChanges {
                     target: regLoading
-                    operation:"Sending Registration Request"
+                    operation:qsTr("Sending Registration Request")
 
                 }
             },
@@ -450,7 +451,7 @@ PageStackWindow {
                 name: "reg_b"
                 PropertyChanges {
                     target: regLoading
-                    operation: "Waiting for SMS"
+                    operation: qsTr("Waiting for SMS")
 
                 }
             },
@@ -458,7 +459,7 @@ PageStackWindow {
                 name: "reg_c"
                 PropertyChanges {
                     target: regLoading
-                    operation:"Got the SMS"
+                    operation:qsTr("Got the SMS")
 
                 }
             },
@@ -466,7 +467,7 @@ PageStackWindow {
                 name: "reg_d"
                 PropertyChanges {
                     target: regLoading
-                    operation:"Authenticating"
+                    operation:qsTr("Authenticating")
 
                 }
             },
@@ -475,7 +476,7 @@ PageStackWindow {
                 name: "reg_e"
                 PropertyChanges {
                     target: regLoading
-                    operation:"Success"
+                    operation:qsTr("Success")
 
                 }
             }
@@ -519,16 +520,16 @@ PageStackWindow {
         id: myMenu
         visualParent: pageStack
         MenuLayout {
-            MenuItem { text: qsTrId("Delete Account"); onClicked: delconfirm.open() }
+            MenuItem { text: qsTr("Delete Account"); onClicked: delconfirm.open() }
         }
     }
 
     QueryDialog {
         id: delconfirm
-        titleText: qsTrId("Confirm Delete")
-        message: qsTrId("Delete account?")
-        acceptButtonText: qsTrId("Delete")
-        rejectButtonText: qsTrId("Cancel")
+        titleText: qsTr("Confirm Delete")
+        message: qsTr("Delete account?")
+        acceptButtonText: qsTr("Delete")
+        rejectButtonText: qsTr("Cancel")
         onAccepted: actor.deleteAccount()
     }
 }

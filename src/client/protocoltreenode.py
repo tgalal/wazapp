@@ -17,10 +17,14 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from utilities import Utilities,S40MD5Digest,ByteArray;
+from wadebug import ConnDebug
 from waexceptions import *
 class ProtocolTreeNode():
 	
 	def __init__(self,tag,attributes,children=None,data=None):
+		d = ConnDebug()
+		self._d = d.d;
+		
 		self.tag = tag;
 		self.attributes = attributes;
 		self.children = children;
@@ -51,7 +55,7 @@ class ProtocolTreeNode():
 	@staticmethod
 	def require(node,string):
 		if not ProtocolTreeNode.tagEquals(node,string):
-			raise Exception("failed require. node: "+node+" string: "+string);
+			raise Exception("failed require. node: "+ node +" string: "+string);
 	
 	
 	def getChild(self,identifier):
@@ -99,7 +103,10 @@ class ProtocolTreeNode():
 	
 class BinTreeNodeReader():
 	def __init__(self,inputstream,dictionary):
-		Utilities.debug('Reader init');
+		d = ConnDebug()
+		self._d = d.d;
+		
+		self._d('Reader init');
 		self.tokenMap = dictionary;
 		self.rawIn = inputstream;
 		self.inn = ByteArray();
@@ -115,7 +122,6 @@ class BinTreeNodeReader():
 		size = self.readListSize(tag);
 		tag = self.inn.read();
 		if tag != 1:
-			Utilities.debug(tag);
 			raise Exception("expecting STREAM_START in streamStart");
 		attribCount = (size - 2 + size % 2) / 2;
 		attributes = self.readAttributes(attribCount);
@@ -128,7 +134,10 @@ class BinTreeNodeReader():
 		intBot = i.read(socketOnly);
 		#Utilities.debug(str(intTop)+"------------"+str(intBot));
 		value = (intTop << 8) + intBot;
-		return value;
+		if value is not None:
+			return value;
+		else:
+			return "";
 	
 	
 	def readInt24(self,i):
@@ -219,9 +228,12 @@ class BinTreeNodeReader():
 		self.inn.buf = [];
 		self.fillBuffer(stanzaSize);
 		ret = self.nextTreeInternal();
-		Utilities.debug("<<")
+		self._d("Incoming")
 		if ret is not None:
-			'''Utilities.debug(ret.toString());'''
+			if 'picture type="' in ret.toString():
+				self._d("<Picture!!!>");
+			else:
+				self._d("\n%s"%ret.toString());
 		return ret;
 	
 	def fillBuffer(self,stanzaSize):
@@ -310,6 +322,9 @@ class BinTreeNodeWriter():
 	tokenMap={}
 	
 	def __init__(self,o,dictionary):
+		d = ConnDebug()
+		self._d = d.d;
+		
 		self.realOut = o;
 		#self.out = o;
 		self.tokenMap = {}
@@ -329,8 +344,8 @@ class BinTreeNodeWriter():
 		
 		self.realOut.write(87);
 		self.realOut.write(65);
-		self.realOut.write(1);
 		self.realOut.write(0);
+		self.realOut.write(4);
 		
 		#self.out.write(0); ##HACK FOR WHAT BUFFER FLUSH SENDS IN JAVA
 		#self.out.write(26); ##HACK FOR WHAT BUFFER FLUSH SENDS IN JAVA
@@ -365,8 +380,8 @@ class BinTreeNodeWriter():
 		if node is None:
 			self.out.write(0);
 		else:
-			Utilities.debug(">>");
-			'''Utilities.debug(node.toString());'''
+			self._d("Outgoing");
+			#self._d("\n%s"%node.toString());
 			self.writeInternal(node);
 		
 		self.flushBuffer(needsFlush);
@@ -488,7 +503,7 @@ class BinTreeNodeWriter():
 					self.writeJid(user, server);
 					
 			except ValueError:
-				Utilities.debug("INEX");
+				self._d("INEX");
 				self.writeBytes(Utilities.encodeString(tag));
    
 	

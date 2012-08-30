@@ -17,12 +17,13 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 import httplib,urllib
-from utilities import Utilities
 from xml.dom import minidom
 
 import threading
 from PySide import QtCore
 from PySide.QtCore import QThread
+
+from wadebug import WADebug
 
 class WARequest(QThread):
 
@@ -37,9 +38,11 @@ class WARequest(QThread):
 	
 	done = QtCore.Signal(str);
 	fail = QtCore.Signal();
-
 	
-
+	def __init__(self):
+		WADebug.attach(self);
+		super(WARequest,self).__init__();
+	
 	def onResponse(self, name, value):
 		if name == "status":
 			self.status = value
@@ -49,14 +52,15 @@ class WARequest(QThread):
 	def addParam(self,name,value):
 		self.params.append({name:value.encode('utf-8')});
 
-		
+	def clearParams(self):
+		self.params = []
 	
 	def getUrl(self):
 		return  self.base_url+self.req_file;
 
 	def getUserAgent(self):
 		#agent = "WhatsApp/1.2 S40Version/microedition.platform";
-		agent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
+		agent = "WhatsApp/2.8.4 S60Version/5.2 Device/C7-00";
 		return agent;	
 	
 	
@@ -69,20 +73,20 @@ class WARequest(QThread):
 		
 		params = urllib.urlencode(self.params);
 		
-		Utilities.debug("Opening connection to "+self.base_url);
+		self._d("Opening connection to "+self.base_url);
 		self.conn = httplib.HTTPSConnection(self.base_url,443);
 		headers = {"User-Agent":self.getUserAgent(),
 			"Content-Type":"application/x-www-form-urlencoded",
 			"Accept":"text/xml"
 			};
 		
-		Utilities.debug(headers);
-		Utilities.debug(params);
+		self._d(headers);
+		self._d(params);
 		
 		self.conn.request("POST",self.req_file,params,headers);
 		resp=self.conn.getresponse()
  		response=resp.read();
- 		Utilities.debug(response);
+ 		self._d(response);
  		doc = minidom.parseString(response);
  		self.done.emit(response);
  		return response;

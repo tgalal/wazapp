@@ -1,0 +1,17 @@
+#!/bin/sh
+#killall wazapp 2> /dev/null
+chmod +x /opt/waxmppplugin/bin/wazapp/wazapp
+chmod +x /opt/waxmppplugin/bin/wazapp/wazapp_init
+
+if [ -f /usr/lib/AccountSetup/waxmppplugin ]
+then
+    rm /usr/lib/AccountSetup/waxmppplugin
+fi
+
+if [ -f /usr/lib/AccountSetup/bin/waxmppplugin ]
+then
+    rm /usr/lib/AccountSetup/bin/waxmppplugin
+fi
+
+ln -s /opt/waxmppplugin/bin/waxmppaccount /usr/lib/AccountSetup/waxmppplugin
+ln -s /opt/waxmppplugin/bin/waxmppplugin /usr/lib/AccountSetup/bin/waxmppplugin

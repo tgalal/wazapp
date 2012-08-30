@@ -24,7 +24,7 @@ class Utilities():
 
 	debug_mode = 1;
 	
-	waversion = "0.2.5.2"
+	waversion = "0.2.6.50"
 	
 
 	
@@ -98,11 +98,6 @@ class Utilities():
 			res = res+chr(b);
 		
 		return res;
-		
-	@staticmethod
-	def debug(msg):
-		if(Utilities.debug_mode == 1):
-			print msg;
 
 			
 

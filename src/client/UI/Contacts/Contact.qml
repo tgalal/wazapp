@@ -66,7 +66,7 @@ Rectangle{
 
 	Connections {
 		target: appWindow
-		onOnPictureUpdated: {
+		onOnContactUpdated: {
 			if (jid == ujid) {
 				contact_picture.imgsource = ""
 				contact_picture.imgsource = getPicture()

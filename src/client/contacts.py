@@ -178,7 +178,51 @@ class WAContacts(QObject):
 		#os.remove("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
 		self.contactUpdated.emit(jid);
 
+
+	def updateContactPushName(self,jid,pushname):
+		jname = jid.replace("@s.whatsapp.net","")
+
+		cm = self.manager
+		phoneContacts = cm.getContacts();
+
+		exists = False
+		for c in phoneContacts:
+			if jname == c['number']:
+				exists = True;
+				break;
+
+		contact = self.store.Contact.getOrCreateContactByJid(jid)
+		contact.pushname = pushname
+		contact.save()
+		self.store.cacheContacts(self.contacts);
+		
+		if exists is True:
+			self.contactUpdated.emit(jid);
+		else:
+			self.contactsRefreshed.emit();
 				
+	def checkPicture(self,jname,imagepath):
+		if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
+			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
+			if imagepath is not "":
+				user_img = QImage(QUrl(imagepath).toString().replace("file://",""))
+			if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
+				user_img = QImage("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+			mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
+			preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
+			PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
+			Mask = QPixmap.fromImage(mask_img);
+			Painter = QPainter(PixmapToBeMasked);
+			Painter.drawPixmap(0, 0, 96, 96, preimg);
+			Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
+			Painter.drawPixmap(0, 0, 96, 96, Mask);
+			Painter.end()
+			PixmapToBeMasked.save("/home/user/.cache/wazapp/contacts/" + jname + ".png", "PNG")
+			if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
+				os.remove("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+
+
+
 	def getContacts(self):
 		contacts = self.store.Contact.fetchAll();
 		if len(contacts) == 0:
@@ -197,34 +241,31 @@ class WAContacts(QObject):
 			os.makedirs("/home/user/.cache/wazapp/profile")
 
 		for wc in contacts:
+			jname = wc.jid.replace("@s.whatsapp.net","")
+			founded = False
 			for c in phoneContacts:
 				if wc.number == c['number']:
-					#@@TODO cache to enhance startup
-					jname = wc.jid.replace("@s.whatsapp.net","")
-					if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
-						user_img = QImage(QUrl(c['picture']).toString().replace("file://",""))
-						if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
-							user_img = QImage("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
-						mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
-						preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
-						PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
-						Mask = QPixmap.fromImage(mask_img);
-						Painter = QPainter(PixmapToBeMasked);
-						Painter.drawPixmap(0, 0, 96, 96, preimg);
-						Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
-						Painter.drawPixmap(0, 0, 96, 96, Mask);
-						Painter.end()
-						PixmapToBeMasked.save("/home/user/.cache/wazapp/contacts/" + jname + ".png", "PNG")
-						if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
-							os.remove("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+					founded = True
+					self.checkPicture(jname,c['picture'])
 					c['picture'] = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
 					wc.setRealTimeData(c['name'],c['picture']);
-					if wc.status is not None:
-						wc.status = wc.status.decode('utf-8');
-					#tmp.append(wc.toModel());
-					tmp.append(wc.getModelData());
-					self.contacts[wc.number] = wc;
 					break;
+
+			if founded is False:
+				self.checkPicture(jname,"")
+				c['name'] = wc.pushname if wc.pushname is not None else ""
+				c['picture'] = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
+				wc.setRealTimeData(c['name'],c['picture']);
+
+			if wc.status is not None:
+				wc.status = wc.status.decode('utf-8');
+			if wc.pushname is not None:
+				wc.pushname = wc.pushname.decode('utf-8');
+
+			if c['name'] is not "":
+				tmp.append(wc.getModelData());
+				self.contacts[wc.number] = wc;
+
 					
 		self.store.cacheContacts(self.contacts);
 		return sorted(tmp, key=lambda k: k['name'].upper()) ;

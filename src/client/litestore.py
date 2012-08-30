@@ -169,6 +169,7 @@ class LiteStore(DataStore):
 		
 		media_id = self.columnExists("messages","media_id");
 		created = self.columnExists("messages","created");
+		pushname = self.columnExists("contacts","pushname");
 		
 		if not media_id:
 			self._d.d("media_id Not found, altering table")
@@ -180,6 +181,10 @@ class LiteStore(DataStore):
 			
 			self._d.d("Copying data from timestamp to created col")
 			c.execute("update messages set created = timestamp")
+
+		if not pushname:
+			self._d.d("pushname in contacts Not found, altering table")
+			c.execute("Alter TABLE contacts add column 'pushname' TEXT")
 			
 			
 		self._d.d("Checking addition of 'new' column to conversation")
@@ -193,7 +198,7 @@ class LiteStore(DataStore):
 		
 
 	def prepareBase(self):
-		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR)'
+		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR, "pushname" TEXT)'
 		
 		
 		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0,"media_id" INTEGER,"created" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)'

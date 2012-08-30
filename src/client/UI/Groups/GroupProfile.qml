@@ -179,7 +179,7 @@ WAPage {
 			working = false
 		}
 		
-		onOnPictureUpdated: {
+		onOnContactUpdated: {
 			if (profileUser == ujid) {
 				picture.imgsource = ""
 				picture.imgsource = groupPicture
@@ -240,7 +240,7 @@ WAPage {
 					anchors.verticalCenter: picture.verticalCenter
 
 					Label {
-						text: groupSubject
+						text: Helpers.emojify(groupSubject)
 						font.bold: true
 						font.pixelSize: 26
 						width: parent.width
@@ -288,10 +288,7 @@ WAPage {
 				font.pixelSize: 22
 				text: qsTr("Change group subject")
 				enabled: !working && groupSubjectOwner!=""
-				onClicked: { 
-				    var plDialog = ObjectCreator.createObject(Qt.resolvedUrl("ChangeSubject.qml"), appWindow.pageStack);
-				    plDialog.open();
-				}
+				onClicked: pageStack.push(Qt.resolvedUrl("ChangeSubject.qml"))
 			}
 
 			Button {
@@ -371,6 +368,23 @@ WAPage {
 
 	}
 
+	function getUserAuthor(inputText) {
+		if (inputText==myAccount)
+			return qsTr("You")
+	    var resp = inputText;
+	    for(var i =0; i<contactsModel.count; i++)
+	    {
+	        if(resp == contactsModel.get(i).jid) {
+	            resp = contactsModel.get(i).name;
+				if (resp.indexOf("@")>-1 && contactsModel.get(i).pushname!="")
+					resp = contactsModel.get(i).pushname;
+				break;
+			}
+	    }
+	    return resp.split('@')[0]
+	}
+
+
 	Component {
 		id: participantsDelegate
 
@@ -398,7 +412,7 @@ WAPage {
 				anchors.verticalCenter: parent.verticalCenter
 				Label{
 					y: 2
-		            text: contactJid!=myAccount ? contactName : qsTr("You")
+		            text: getUserAuthor(contactName)
 				    font.pointSize: 18
 					elide: Text.ElideRight
 					width: parent.width

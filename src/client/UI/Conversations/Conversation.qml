@@ -92,10 +92,11 @@ WAPage {
 				owner = data[1]
 			}
 		}
-		onOnPictureUpdated: {
+		onOnContactUpdated: {
 			if (jid == ujid) {
 				userimage.imgsource = ""
 				userimage.imgsource = getPicture()
+				title:getTitle();
 			}
 		}
 		onSelectedMedia: {
@@ -139,7 +140,7 @@ WAPage {
         var title="";
 
         if(isGroup())
-            title = subject==""?groupSubjectNotReady:subject;
+            title = subject==""? groupSubjectNotReady : Helpers.emojify(subject)
         else if(contacts && contacts.length)
             title= getAuthor(jid);
 
@@ -218,6 +219,7 @@ WAPage {
         if(!lastMessage || lastMessage.created != m.created)
         {
             lastMessage = conv_data.get(conv_data.count-1);
+			title = getTitle()
             onChange();
         }
     }
@@ -411,12 +413,6 @@ WAPage {
                 imgsource:picture
                 anchors.verticalCenter: parent.verticalCenter
 				anchors.right: parent.right
-				/*onImageError: {
-					if (isGroup())
-						picture="../common/images/group.png"
-					else
-						picture="../common/images/user.png"
-				}*/
 				MouseArea {
 					anchors.fill: parent
 					// User Profile window. Not finished yet
@@ -461,6 +457,8 @@ WAPage {
         {
             if(resp == contactsModel.get(i).jid) {
                 resp = contactsModel.get(i).name;
+		    	if (resp.indexOf("@")>-1 && contactsModel.get(i).pushname!="")
+					resp = contactsModel.get(i).pushname;
 				break;
 			}
         }
@@ -519,7 +517,7 @@ WAPage {
             name: mediatype_id==10 || from_me==1 || !isGroup ? "" : getAuthor(model.author.jid).split('@')[0]
             author:model.author
 		 	state_status:isGroup && model.status == "pending"?"delivered":model.status
-            isGroup: conversation_view.isGroup()
+			isGroup: conversation_view.isGroup()
             bubbleColor: from_me==1 ? 1 : isGroup ? getBubbleColor(model.author.jid) : mainBubbleColor
 
 			onOptionsRequested: {

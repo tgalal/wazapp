@@ -66,7 +66,7 @@ Item {
 
 		TextBubble{
 			id:notificationBubble
-			message:delegateContainer.message
+			message:Helpers.emojify(delegateContainer.message)
 			name:delegateContainer.name
 			from_me:delegateContainer.from_me
 			date:Helpers.getDateText(delegateContainer.date).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))

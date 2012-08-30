@@ -61,7 +61,7 @@ function addMessage(reverse,position,message)
             }
     }*/
 
-    //console.log("inserting message at "+targetIndex +" -inverse is " +reverse);
+    //console.log("inserting message at "+targetIndex +" - pushName: " +message.pushname);
     conv_data.insert(targetIndex, {"msg_id":message.id,
                             "content":message.content,
                             "type":message.type,
@@ -70,9 +70,11 @@ function addMessage(reverse,position,message)
                             "created":message.created,
                             "status":msg_status,
                             "author":author,
+                            "pushname":message.pushname,
                             "mediatype_id":message.media_id?message.media.mediatype_id:1,
                             "media":message.media,
                             "progress":0})
+
     updateLastMessage();
 
     //conv_data.append({"msg_id":id,"message":message,"type":type, "timestamp":timestamp,"status":msg_status});

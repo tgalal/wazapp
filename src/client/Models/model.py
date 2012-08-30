@@ -233,7 +233,9 @@ class Model(object):
 	def createInstance(self,resultItem):
 		#modelInstance = copy.deepcopy(self);
 		modelInstance = self.create();
-		
+
+		if resultItem is None:
+			return modelInstance;
 		
 		for i in range(0,len(resultItem)):
 			modelInstance.setInstanceVariable(self.columns[i],resultItem[i]);

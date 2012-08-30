@@ -104,7 +104,7 @@ WAStackWindow {
 	signal setGroupSubject(string gjid, string subject);
 	signal getPictureIds(string jids);
 	signal getPicture(string jid, string type);
-	signal onPictureUpdated(string ujid);
+	signal onContactUpdated(string ujid);
 	signal setPicture(string jid, string file);
 	signal sendMediaMessage(string jid, string data, string image, string preview);
 	signal sendMediaImageFile(string jid, string file);

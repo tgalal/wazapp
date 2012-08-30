@@ -60,7 +60,7 @@ Rectangle{
 				owner = data[1]
 			}
 		}
-		onOnPictureUpdated: {
+		onOnContactUpdated: {
 			if (jid == ujid) {
 				chat_picture.imgsource = ""
 				chat_picture.imgsource = picture
@@ -76,10 +76,13 @@ Rectangle{
         {
             if(resp == contactsModel.get(i).jid) {
                 resp = contactsModel.get(i).name;
+		    	if (resp.indexOf("@")>-1 && contactsModel.get(i).pushname!="")
+					resp = contactsModel.get(i).pushname;
 				break;
 			}
         }
-        return resp.split('@')[0]
+
+		return resp.split('@')[0]
     }
 
     function setConversation(c){
@@ -96,7 +99,7 @@ Rectangle{
         jid = c.jid;
         subject = c.subject;
         title = c.title;
-        picture = c.picture;
+        picture = c.picture.indexOf("/home")>-1? c.picture : (isGroup? "../common/images/group.png" : "../common/images/user.png")
         lastMessage = c.lastMessage;
         unreadCount = c.unreadCount;
 		isOpenend = c.opened;
@@ -243,7 +246,7 @@ Rectangle{
                     text: lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
 					  	  (lastMessage.type==20 ? qsTr("%1 has join the group").arg(getAuthor(lastMessage.content)) : 
 						  (lastMessage.type==21 ? qsTr("%1 has left the group").arg(getAuthor(lastMessage.content)) :
-						  (lastMessage.type==22 ? qsTr("%1 has changed the subject to %2").arg(getAuthor(lastMessage.author.jid)).arg(lastMessage.content) :
+						  (lastMessage.type==22 ? qsTr("%1 has changed the subject to %2").arg(getAuthor(lastMessage.author.jid)).arg(Helpers.emojify(lastMessage.content)) :
 						  qsTr("%1 has changed the group picture").arg(getAuthor(lastMessage.content)) )))) :
 						  qsTr("(no messages)")
                    	width:parent.width -(status.visible?30:10)

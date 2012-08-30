@@ -70,7 +70,7 @@ class WAUI(QDeclarativeView):
 		self.c.contactsRefreshed.connect(self.rootObject().onRefreshSuccess);
 		self.c.contactsRefreshFailed.connect(self.rootObject().onRefreshFail);
 		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
-		self.c.contactUpdated.connect(self.rootObject().onPictureUpdated);
+		self.c.contactUpdated.connect(self.rootObject().onContactUpdated);
 		self.rootObject().refreshContacts.connect(self.c.resync)
 		self.rootObject().sendSMS.connect(self.sendSMS)
 		self.rootObject().makeCall.connect(self.makeCall)
@@ -186,6 +186,8 @@ class WAUI(QDeclarativeView):
 		self._d("POPULATE SINGLE");
 		self.c.updateContact(jid);
 	
+	def updatePushName(self, jid, push):
+		self.c.updateContactPushName(jid,push);
 
 	def populateContacts(self):
 		#syncer = ContactsSyncer(self.store);
@@ -276,6 +278,8 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.groupSubjectChanged.connect(self.rootObject().onGroupSubjectChanged);
 
 		whatsapp.eventHandler.profilePictureUpdated.connect(self.updateContact);
+
+		whatsapp.eventHandler.setPushName.connect(self.updatePushName);
 		#whatsapp.eventHandler.profilePictureUpdated.connect(self.rootObject().onPictureUpdated);
 
 		whatsapp.eventHandler.mediaTransferSuccess.connect(self.rootObject().onMediaTransferSuccess);

@@ -150,7 +150,7 @@ class WAHTTPHandler(QThread):
 				preimg = user_img.scaledToWidth(600, Qt.SmoothTransformation)
 			elif user_img.height() < user_img.width() and user_img.height() > 800:
 				preimg = user_img.scaledToHeight(800, Qt.SmoothTransformation)
-			elif user_img.height() > 600:
+			elif user_img.height() == user_img.width() and user_img.height() > 600:
 				preimg = user_img.scaled(600, 600, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
 			preimg.save("/home/user/.cache/wazapp/" + os.path.basename(image))
 			image = "/home/user/.cache/wazapp/" + os.path.basename(image)

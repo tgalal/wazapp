@@ -92,6 +92,7 @@ class WAEventHandler(WAEventBase):
 	getPicture = QtCore.Signal(str, str);
 	profilePictureUpdated = QtCore.Signal(str);
 	setPicture = QtCore.Signal(str, str);
+	setPushName = QtCore.Signal(str, str);
 	doQuit = QtCore.Signal();
 
 
@@ -426,10 +427,10 @@ class WAEventHandler(WAEventBase):
 
 		if img.height() > img.width():
 			result = img.scaledToWidth(320,Qt.SmoothTransformation);
-			result = result.copy(result.width()/2-28,result.height()/2-25,51,51);
+			result = result.copy(result.width()/2-28,result.height()/2-25,120,120);
 		elif img.height() < img.width():
 			result = img.scaledToHeight(320,Qt.SmoothTransformation);
-			result = result.copy(result.width()/2-25,result.height()/2-28,51,51);
+			result = result.copy(result.width()/2-25,result.height()/2-28,120,120);
 		#result = img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation);
 
 		result.save( "/home/user/.cache/wazapp/tempimg2.jpg", "JPG" );
@@ -461,7 +462,7 @@ class WAEventHandler(WAEventBase):
 			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
 			fmsg.setContact(contact);
 		
-		fmsg.setData({"status":0,"content":"","type":1})
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
 		WAXMPP.message_store.pushMessage(jid,fmsg)
 		
 		self.conn.sendMessageWithLocation(fmsg,latitude,longitude,iconBase);
@@ -646,7 +647,7 @@ class WAEventHandler(WAEventBase):
 		self._d("SHOW UI for "+jid)
 		self.showUI.emit(jid);
 
-	def message_received(self,fmsg,duplicate=False,mtype=""):
+	def message_received(self,fmsg,duplicate=False,mtype="",pushName=""):
 		msg_type = "duplicate" if duplicate else "new";
 
 		if fmsg.content is not None:
@@ -655,13 +656,11 @@ class WAEventHandler(WAEventBase):
 			try:
 				msg_contact = WAXMPP.message_store.store.getCachedContacts()[msg_contact.number];
 			except:
-				msg_contact.name= fmsg.getContact().number
 				msg_contact.picture = WAConstants.DEFAULT_GROUP_PICTURE
-			
 						
-			msgContent = fmsg.content #.encode('utf-8')
+			msgContent = fmsg.content
 			newContent = msgContent
-			contactName = msg_contact.name
+			contactName = msg_contact.name if msg_contact.name is not None else pushName
 			if fmsg.type == 23:
 				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the group picture")
 				newContent = newContent.replace("%1", contactName)
@@ -674,19 +673,29 @@ class WAEventHandler(WAEventBase):
 			elif fmsg.type == 22:
 				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the subject to %2")
 				if contactName == self.account:
-					contactName == QtCore.QCoreApplication.translate("WAEventHandler", "You")
+					contactName = QtCore.QCoreApplication.translate("WAEventHandler", "You")
 				newContent = newContent.replace("%1", contactName)
-				newContent = newContent.replace("%2", fmsg.content.encode('utf8'))
-			
-							
+				newContent = newContent.replace("%2", fmsg.content.decode("utf8"))
+
+						
 			if fmsg.Conversation.type == "single":
-				msgPicture = "/home/user/.cache/wazapp/contacts/" + msg_contact.jid.replace("@s.whatsapp.net","") + ".png"
+				if msg_contact.jid is not None:
+					msgPicture = "/home/user/.cache/wazapp/contacts/" + msg_contact.jid.replace("@s.whatsapp.net","") + ".png"
+				else:
+					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png"
+
 				self.notifier.newMessage(msg_contact.jid, contactName, newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+
 			else:
 				conversation = fmsg.getConversation();
-				msgPicture = "/home/user/.cache/wazapp/contacts/" + conversation.jid.replace("@g.us","") + ".png"
+				if msg_contact.jid is not None:
+					msgPicture = "/home/user/.cache/wazapp/contacts/" + conversation.jid.replace("@g.us","") + ".png"
+				else:
+					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
+
 				self.notifier.newMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject), newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			
+
 			self._d("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
 		else:
 			self._d("A {msg_type} message was received".format(msg_type=msg_type));
@@ -1128,8 +1137,30 @@ class StanzaReader(QThread):
 		#if messageNode.getChild("media") is not None:
 		#	return
 		
+
 		fromAttribute = messageNode.getAttributeValue("from");
 		author = messageNode.getAttributeValue("author");
+
+		pushName = None
+		notifNode = messageNode.getChild("notify")
+		if notifNode is not None:
+			pushName = notifNode.getAttributeValue("name");
+
+
+		if fromAttribute is not None and "@s.whatsapp.net" in fromAttribute and pushName is not None:
+			self._d("Setting Push Name: "+pushName+" to "+fromAttribute)
+			#contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(fromAttribute)
+			#contact.setData({"jid":fromAttribute,"number":fromAttribute.split('@')[0],"pushname":pushName})
+			#contact.save()
+			self.eventHandler.setPushName.emit(fromAttribute,pushName)
+
+		if fromAttribute is not None and "@g.us" in fromAttribute and author is not None and pushName is not None:
+			self._d("Setting Push Name: "+pushName+" to "+author)
+			#contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+			#contact.setData({"jid":author,"number":author.split('@')[0],"pushname":pushName})
+			#contact.save()
+			self.eventHandler.setPushName.emit(author,pushName)
+		
 		
 		if fromAttribute is not None and fromAttribute in self.eventHandler.blockedContacts:
 			self._d("CONTACT BLOCKED!")
@@ -1148,7 +1179,7 @@ class StanzaReader(QThread):
 		fmsg.conversation_id = conversation
 		fmsg.Conversation = conversation
 		
-		
+		#fmsg.setData({"push":pushName});
 		
 		
 		msg_id = messageNode.getAttributeValue("id");
@@ -1280,7 +1311,7 @@ class StanzaReader(QThread):
 					duplicate = True;
 						
 				if signal:
-					self.eventHandler.message_received(fmsg,duplicate,"notification");
+					self.eventHandler.message_received(fmsg,duplicate,"notification", pushName);
 		
 		
 		elif typeAttribute == "subject":
@@ -1541,7 +1572,7 @@ class StanzaReader(QThread):
 						duplicate = True;
 				
 				if signal:
-					self.eventHandler.message_received(fmsg,duplicate,"chat");
+					self.eventHandler.message_received(fmsg,duplicate,"chat",pushName);
 			
 
 
@@ -1764,8 +1795,9 @@ class WAXMPP():
 		for m in messages:
 			media = m.getMedia()
 			if media is not None:
-				if media.transfer_status == 2:
-					self.sendMessageWithBody(m);
+				print "media message. don't send"
+				#if media.transfer_status == 2:
+					#self.sendMessageWithBody(m);
 			else:
 				self.sendMessageWithBody(m);
 		self._d("Resending old messages done")
@@ -2002,7 +2034,8 @@ class WAXMPP():
 		self.out.write(iqNode)
 
 	def sendSetGroupSubject(self,gjid,subject):
-		self._d("setting group subject of " + gjid + " to " + subject)
+		subject = subject.encode('utf-8')
+		#self._d("setting group subject of " + gjid + " to " + subject)
 		idx = self.makeId("set_group_subject_")
 		self.stanzaReader.requests[idx] = self.stanzaReader.handleGroupSubject
 		

@@ -809,22 +809,22 @@
 <context>
     <name>StanzaReader</name>
     <message>
-        <location filename="../waxmpp.py" line="1395"/>
+        <location filename="../waxmpp.py" line="1393"/>
         <source>Image</source>
         <translation>Imagen</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="1398"/>
+        <location filename="../waxmpp.py" line="1396"/>
         <source>Audio</source>
         <translation>Audio</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="1401"/>
+        <location filename="../waxmpp.py" line="1399"/>
         <source>Video</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="1412"/>
+        <location filename="../waxmpp.py" line="1410"/>
         <source>Location</source>
         <translation>Ubicacion</translation>
     </message>
@@ -893,47 +893,47 @@
 <context>
     <name>WAEventHandler</name>
     <message>
-        <location filename="../waxmpp.py" line="573"/>
+        <location filename="../waxmpp.py" line="571"/>
         <source>Image</source>
         <translation>Imagen</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="594"/>
+        <location filename="../waxmpp.py" line="592"/>
         <source>Video</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="616"/>
+        <location filename="../waxmpp.py" line="614"/>
         <source>Audio</source>
         <translation>Audio</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="665"/>
+        <location filename="../waxmpp.py" line="663"/>
         <source>%1 has changed the group picture</source>
         <translation>%1 cambió la imagen del grupo</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="668"/>
+        <location filename="../waxmpp.py" line="666"/>
         <source>%1 has join the group</source>
         <translation>%1 se unió al grupo</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="671"/>
+        <location filename="../waxmpp.py" line="669"/>
         <source>%1 has left the group</source>
         <translation>%1 abandonó el grupo</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="674"/>
+        <location filename="../waxmpp.py" line="672"/>
         <source>%1 has changed the subject to %2</source>
         <translation>%1 cambió el asunto a %2</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="676"/>
+        <location filename="../waxmpp.py" line="674"/>
         <source>You</source>
         <translation>Usted</translation>
     </message>
     <message>
-        <location filename="../waxmpp.py" line="458"/>
+        <location filename="../waxmpp.py" line="456"/>
         <source>Location</source>
         <translation>Ubicacion</translation>
     </message>

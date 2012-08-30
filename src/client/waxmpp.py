@@ -427,18 +427,16 @@ class WAEventHandler(WAEventBase):
 
 		if img.height() > img.width():
 			result = img.scaledToWidth(320,Qt.SmoothTransformation);
-			result = result.copy(result.width()/2-28,result.height()/2-25,120,120);
+			result = result.copy(result.width()/2-28,result.height()/2-25,100,100);
 		elif img.height() < img.width():
 			result = img.scaledToHeight(320,Qt.SmoothTransformation);
-			result = result.copy(result.width()/2-25,result.height()/2-28,120,120);
+			result = result.copy(result.width()/2-25,result.height()/2-28,100,100);
 		#result = img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation);
 
 		result.save( "/home/user/.cache/wazapp/tempimg2.jpg", "JPG" );
 
 		f = open("/home/user/.cache/wazapp/tempimg2.jpg", 'r')
-		stream = f.read()
-		iconBase = QtCore.QByteArray(stream).toBase64()
-		stream = iconBase
+		stream = base64.b64encode(f.read())
 		f.close()
 
 
@@ -451,7 +449,7 @@ class WAEventHandler(WAEventBase):
 		mediaItem = WAXMPP.message_store.store.Media.create()
 		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_LOCATION
 		mediaItem.remote_url = None
-		mediaItem.preview = bytes(iconBase)
+		mediaItem.preview = stream
 		mediaItem.local_path ="%s,%s"%(latitude,longitude)
 		mediaItem.transfer_status = 2
 
@@ -465,7 +463,7 @@ class WAEventHandler(WAEventBase):
 		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
 		WAXMPP.message_store.pushMessage(jid,fmsg)
 		
-		self.conn.sendMessageWithLocation(fmsg,latitude,longitude,iconBase);
+		self.conn.sendMessageWithLocation(fmsg,latitude,longitude,stream);
 
 
 	def setBlockedContacts(self,contacts):
@@ -1941,7 +1939,7 @@ class WAXMPP():
 
 
 	def sendMessageWithLocation(self,fmsg,latitude,longitude,preview):
-		bodyNode = ProtocolTreeNode("media", {"xmlns":"urn:xmpp:whatsapp:mms","type":"location","latitude":latitude,"longitude":longitude},None,preview)
+		bodyNode = ProtocolTreeNode("media", {"xmlns":"urn:xmpp:whatsapp:mms","type":"location","latitude":latitude,"longitude":longitude},None,str(preview))
 		self.out.write(self.getMessageNode(fmsg,bodyNode));
 		self.msg_id+=1;
 

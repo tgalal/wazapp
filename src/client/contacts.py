@@ -181,24 +181,23 @@ class WAContacts(QObject):
 
 	def updateContactPushName(self,jid,pushname):
 		jname = jid.replace("@s.whatsapp.net","")
-
-		cm = self.manager
-		phoneContacts = cm.getContacts();
+		contacts = self.store.Contact.fetchAll();
 
 		exists = False
-		for c in phoneContacts:
-			if jname == c['number']:
-				exists = True;
-				break;
+		for wc in contacts:
+			if wc.jid == jid:
+				exists = True
 
 		contact = self.store.Contact.getOrCreateContactByJid(jid)
 		contact.pushname = pushname
 		contact.save()
-		self.store.cacheContacts(self.contacts);
+		#self.store.cacheContacts(self.contacts);
 		
 		if exists is True:
+			print "Contact already exists, emitting update signal."
 			self.contactUpdated.emit(jid);
 		else:
+			print "Contact doesn't exists, populating..."
 			self.contactsRefreshed.emit();
 				
 	def checkPicture(self,jname,imagepath):

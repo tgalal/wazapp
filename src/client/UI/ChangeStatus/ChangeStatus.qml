@@ -21,27 +21,27 @@
 ****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "../common/js/settings.js" as MySettings
 import "../common/js/Global.js" as Helpers
 import "../common"
-
+import "../EmojiDialog"
 
 WAPage {
 
 	id: content
 
-	orientationLock: myOrientation==2 ? PageOrientation.LockLandscape:
-			myOrientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+	signal emojiSelected(string emojiCode);
 
     Component.onCompleted: {
         status_text.forceActiveFocus();
     }
 
 	function cleanText(txt) {
-		var repl = "p, li { white-space: pre-wrap; }";
-		var res = txt;
-		res = Helpers.getCode(res);
-		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-		return res;
+        var repl = "p, li { white-space: pre-wrap; }";
+        var res = txt;
+        res = Helpers.getCode(res);
+        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
+        return res.replace(/^\s+/,"");
 	}	
 
 	tools: statusTool
@@ -53,6 +53,40 @@ WAPage {
 		height: 73
     }
 
+    Emojidialog{
+        id:emojiDialog
+
+        Component.onCompleted: {
+            emojiDialog.emojiSelected.connect(content.emojiSelected);
+        }
+
+    }
+
+	Connections {
+		target: content
+		onEmojiSelected: {
+		    consoleDebug("GOT EMOJI "+emojiCode);
+
+		   	var str = cleanText(status_text.text)
+			var pos = str.indexOf("&quot;")
+			var newPosition = status_text.lastPosition
+			while(pos>-1 && pos<status_text.lastPosition) {
+				status_text.lastPosition = status_text.lastPosition +5
+				pos = str.indexOf("&quot;", pos+1)
+			}
+			pos = str.indexOf("&amp;")
+			while(pos>-1 && pos<status_text.lastPosition) {
+				status_text.lastPosition = status_text.lastPosition +4
+				pos = str.indexOf("&amp;", pos+1)
+			}
+
+			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
+			str = str.substring(0,status_text.lastPosition) + cleanText(emojiImg) + str.slice(status_text.lastPosition)
+			status_text.text = Helpers.emojify2(str)
+			status_text.cursorPosition = newPosition + 1
+			status_text.forceActiveFocus()
+		}
+    }
 
     Rectangle {
         anchors.top: parent.top
@@ -77,7 +111,11 @@ WAPage {
 			    width:parent.width
 				wrapMode: TextEdit.Wrap
 				textFormat: Text.RichText
-				onActiveFocusChanged: { lastPosition = status_text.cursorPosition }
+				textColor: "black"
+				onActiveFocusChanged: { 
+					lastPosition = status_text.cursorPosition 
+					consoleDebug("LAST POSITION: " + lastPosition)
+				}
 			}
 
 			Rectangle {
@@ -98,11 +136,7 @@ WAPage {
 					anchors.left: parent.left
 					anchors.leftMargin: 0
 					anchors.verticalCenter: send_button.verticalCenter
-					onClicked:{
-						emojiDialogParent = "status"
-						var component = Qt.createComponent("Emojidialog.qml");
-				 		var sprite = component.createObject(content, {});
-					}
+					onClicked: emojiDialog.openDialog()
 				}
 
 			
@@ -123,6 +157,8 @@ WAPage {
 						if ( toSend != "")
 						{
 							changeStatus(toSend);
+							MySettings.setSetting("Status", toSend)
+							statusChanged()
 							pageStack.pop()
 						}
 					}

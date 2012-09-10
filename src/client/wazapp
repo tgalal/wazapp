@@ -18,6 +18,7 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
+import os
 import sys
 from PySide.QtGui import QApplication
 import PySide
@@ -31,6 +32,15 @@ from PySide import QtCore
 	
 if __name__ == "__main__":
 
+	if os.path.isfile("/home/user/.wazapp/log.txt"):
+		os.rename("/home/user/.wazapp/log.txt","/home/user/.wazapp/previows-log.txt")
+	if not os.path.exists("/home/user/MyDocs/Wazapp/media/contacts"):
+		os.makedirs("/home/user/MyDocs/Wazapp/media/contacts")
+
+	linuxCodec = QtCore.QTextCodec.codecForName("UTF-8")
+	QtCore.QTextCodec.setCodecForTr(linuxCodec)
+	QtCore.QTextCodec.setCodecForCStrings(linuxCodec)
+	QtCore.QTextCodec.setCodecForLocale(linuxCodec)
 	
 	lang_name = unicode(QtCore.QLocale.system().name())
 	translator = QtCore.QTranslator()

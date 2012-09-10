@@ -71,8 +71,8 @@ class ConnMonitor(QObject):
 			if self.config is None:
 				self.config = config
 			else:
-				self.connected.emit()
 				self.createSession();
+				self.connected.emit()
 		
 	def onOnlineStateChanged(self,state):
 		self.online = state

@@ -62,7 +62,7 @@ class WAManager():
 	
 	
 		if(account is None):
-			self.d("Forced reg");
+			#self.d("Forced reg");
 			return self.regFallback()
 			#gui.forceRegistration();
 			#self.app.exit();
@@ -88,21 +88,21 @@ class WAManager():
 		self.app.focusChanged.connect(gui.focusChanged)
 		gui.quit.connect(self.quit);
 
+		gui.populatePhoneContacts();
 		gui.populateContacts();
 		
 		gui.populateConversations();
-		
+		print "SHOW FULL SCREEN"
 		gui.showFullScreen();
 		
-		
-		
-		
-		
-
+		print "INIT CONNECTION"
 		gui.initConnection();
 		#splash.finish(gui);
-		
+		gui.setMyAccount(account.jid);
+
 		self.gui = gui;
-		
+		print "INITIAL CONNECTION CHECK"
 		self.gui.whatsapp.eventHandler.initialConnCheck()
+		
+		self.gui.whatsapp.eventHandler.setMyAccount(account.jid)
 		

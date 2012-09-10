@@ -20,7 +20,6 @@ from utilities import Utilities
 from warequeststatus import WARequestStatus
 from PySide.QtCore import QObject
 from PySide import QtCore;
-from litestore import LiteStore as DataStore
 import thread
 
 class WAChangeStatus(WARequestStatus):
@@ -37,16 +36,11 @@ class WAChangeStatus(WARequestStatus):
 
 	def sync(self, msg):
 		print "TRYING TO CHANGE STATUS..." + msg;
-		
+		self.clearParams();
 		self.addParam("me",self.store.account.phoneNumber);
 		self.addParam("s",msg)
 		self.addParam("cc","31")
 		data = self.sendRequest();
-		
-		if data:
-			print "STATUS CHANGED!";
-		else:
-			print "STATUS ERROR!";
 		
 		self.exit();
 

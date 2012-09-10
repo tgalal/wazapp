@@ -26,8 +26,8 @@ function moveToCorrectIndex(jid){
         Triggered when lastMessage is updated.
         It moves the chat item with jid to correct position according to lastMessage created time
      */
-    console.log("---/.[[][][][][][][][][][][][][][][][][][][][][][][][][][][]]");
-    console.log("SORTING")
+    //console.log("---/.[[][][][][][][][][][][][][][][][][][][][][][][][][][][]]");
+    //console.log("SORTING")
     var index=0;
     var chatItem;
     for (var i=0; i< conversationsModel.count;i++)
@@ -39,7 +39,7 @@ function moveToCorrectIndex(jid){
             break;
          }
     }
-    console.log("go the object and its index at"+index)
+    //console.log("go the object and its index at"+index)
 
     var lastMessage = chatItem.conversation.lastMessage;
      //got the object and its index
@@ -51,23 +51,23 @@ function moveToCorrectIndex(jid){
 
     var targetIndex = index;
 
-    console.log("rescanning")
+    //console.log("rescanning")
 
     for (var i=0; i<index;i++) //we won't be moving lower than that
     {
         var  compItem = conversationsModel.get(i).conversation.lastMessage;
-        console.log(compItem);
+        //console.log(compItem);
 
         if(compItem && lastMessage.created > compItem.created){
-            console.log("found target at "+i);
+            //console.log("found target at "+i);
              targetIndex = i;
              break
         }
     }
-    console.log("moving")
-    console.log(conversationsModel.count);
-    console.log(index);
-    console.log(targetIndex);
+    //console.log("moving")
+    //console.log(conversationsModel.count);
+    //console.log(index);
+    //console.log(targetIndex);
     conversationsModel.move(index,targetIndex,1);
-    console.log("MOVED!!")
+    //console.log("MOVED!!")
 }

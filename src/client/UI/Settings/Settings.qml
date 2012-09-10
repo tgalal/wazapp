@@ -21,7 +21,7 @@
 ****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
-
+import "../common/js/settings.js" as MySettings
 import "../common"
 
 WAPage {
@@ -29,10 +29,12 @@ WAPage {
 
 	signal syncClicked();
 
-    property int bubbleColor:1
-    property int orientation:0
+    //property int bubbleColor:1
+    property int orientation
 
-	Component.onCompleted: {
+    Component.onCompleted: {
+		MySettings.initialize()
+		orientation = parseInt(MySettings.getSetting("Orientation", "0"))
         syncClicked.connect(onSyncClicked)
     }
 
@@ -44,7 +46,7 @@ WAPage {
             onClicked: pageStack.pop()
         }
 
-        ToolButton
+        /*ToolButton
         {
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 300
@@ -56,7 +58,7 @@ WAPage {
         {
             iconSource: "../common/images/about" + (theme.inverted ? "-white" : "") + ".png";
             onClicked: { aboutDialog.open() }
-        }
+        }*/
     }
 
 	TextFieldStyle {
@@ -102,7 +104,7 @@ WAPage {
             anchors { top: parent.top; left: parent.left; right: parent.right; margins: 16 }
             spacing: 10
 
-			GroupSeparator {
+			/*GroupSeparator {
 				title: qsTr("Whatsapp")
 			}
 
@@ -123,8 +125,8 @@ WAPage {
 					color: "green"
 				}
             
-			}
-			Button {
+			}*/
+			/*Button {
 				width: parent.width
 				text: qsTr("Sync contacts")
 				onClicked: { console.log("SYNC"); syncClicked(); }
@@ -135,21 +137,24 @@ WAPage {
 			}
 			Button {
 				width: parent.width
-				onClicked: pageStack.push (Qt.resolvedUrl("ChangeStatus.qml"))
+				onClicked: pageStack.push (Qt.resolvedUrl("../ChangeStatus/ChangeStatus.qml"))
 				text: qsTr("Change status")
-            }
+            }*/
 
 			GroupSeparator {
 				title: qsTr("Appearance")
 			}
 			Label {
+				verticalAlignment: Text.AlignBottom
 				text: qsTr("Orientation:")
+				height: 30
 			}
 			ButtonRow {
                 Button {
                     text: qsTr("Automatic")
                     checked: orientation==0
                     onClicked: {
+						MySettings.setSetting("Orientation", "0")
                         orientation=0
                     }
                 }
@@ -157,6 +162,7 @@ WAPage {
                     text: qsTr("Portrait")
                     checked: orientation==1
                     onClicked: {
+						MySettings.setSetting("Orientation", "1")
                         orientation=1
                     }
                 }
@@ -164,13 +170,16 @@ WAPage {
                     text: qsTr("Landscape")
                     checked: orientation==2
                     onClicked: {
+						MySettings.setSetting("Orientation", "2")
                         orientation=2
                     }
                 }
             }
 
 			Label {
+				verticalAlignment: Text.AlignBottom
 				text: qsTr("Theme color:")
+				height: 50
 			}
 			ButtonRow {
                 id: br1
@@ -179,6 +188,7 @@ WAPage {
                     checked: theme.inverted ? false : true
                     //platformStyle: myButtonStyleLeft
                     onClicked: {
+						MySettings.setSetting("ThemeColor", "White")
                         theme.inverted = false
                     }
                 }
@@ -187,45 +197,77 @@ WAPage {
                     checked: theme.inverted ? true : false
                     //platformStyle: myButtonStyleRight
                     onClicked: {
+						MySettings.setSetting("ThemeColor", "Black")
                         theme.inverted = true
                     }
                 }
             }
 			Label {
+				verticalAlignment: Text.AlignBottom
 				text: qsTr("Bubble color:")
+				height: 50
 			}
 			ButtonRow {
                 id: br2
+				height: 70
                 Button {
                     text: qsTr("Cyan")
-                    checked: bubbleColor==1
+                    checked: mainBubbleColor==1
                     onClicked: {
-                        bubbleColor=1
+						MySettings.setSetting("BubbleColor", "1")
+                        mainBubbleColor=1
                     }
                 }
                 Button {
                     text: qsTr("Green")
-                    checked: bubbleColor==4
+                    checked: mainBubbleColor==4
                     onClicked: {
-                        bubbleColor=4
+						MySettings.setSetting("BubbleColor", "4")
+                        mainBubbleColor=4
                     }
                 }
                 Button {
                     text: qsTr("Pink")
-                    checked: bubbleColor==3
+                    checked: mainBubbleColor==3
                     onClicked: {
-                        bubbleColor=3
+						MySettings.setSetting("BubbleColor", "3")
+                        mainBubbleColor=3
                     }
                 }
                 Button {
                     text: qsTr("Orange")
-                    checked: bubbleColor==2
+                    checked: mainBubbleColor==2
                     onClicked: {
-                        bubbleColor=2
+						MySettings.setSetting("BubbleColor", "2")
+                        mainBubbleColor=2
                     }
                 }
             }
 
+			GroupSeparator {
+				title: qsTr("Chats")
+			}
+			SwitchItem {
+				title: qsTr("Enter key sends the message")
+				check: sendWithEnterKey
+				onCheckChanged: {
+					MySettings.setSetting("SendWithEnterKey", value)
+					sendWithEnterKey = value=="Yes"
+				}
+			}
+
+			GroupSeparator {
+				title: qsTr("Media sending")
+			}
+			SwitchItem {
+				title: qsTr("Resize images before sending")
+				check: resizeImages
+				onCheckChanged: {
+					MySettings.setSetting("ResizeImages", value)
+					resizeImages = value=="Yes"
+					setResizeImages(resizeImages)
+				}
+			}
 
 		}
 

@@ -35,11 +35,35 @@ SpeechBubble {
 
 
         switch(media.mediatype_id){
-            case 2: thumb = !media.local_path?"data:image/jpg;base64,"+media.preview:"file://"+media.local_path; break;
-            case 3: thumb = "image://theme/icon-m-content-audio"; break;
-            case 4: thumb = "image://theme/icon-m-content-videos"; break;
-            case 5: thumb = media.preview?"data:image/jpg;base64,"+media.preview:"image://theme/icon-m-content-localities"; transferState = "success"; openButton.text = message; break;
-            case 6: thumb = "image://theme/icon-m-content-avatar-placeholder"; transferState = "success"; openButton.text = message; break;
+            case 2: {
+				thumb = !media.local_path ? "data:image/jpg;base64,"+media.preview : "file://"+media.local_path
+				openButton.text = message=="" ? qsTr("Image") : message
+				break
+			}
+            case 3: {
+				thumb = "image://theme/icon-m-content-audio"
+				openButton.text = message=="" ? qsTr("Audio") : message
+				break
+			}
+            case 4: {
+				thumb = "image://theme/icon-m-content-videos"
+				openButton.text = message=="" ? qsTr("Video") : message
+				break
+			}
+            case 5: {
+				thumb = media.preview ? "data:image/jpg;base64,"+media.preview : 
+						"../common/images/content-location.png"
+				transferState = "success"
+				openButton.text = message=="" ? qsTr("Location") : message
+				break
+			}
+            case 6: {
+				thumb = media.preview ? "data:image/jpg;base64,"+media.preview : 
+						"image://theme/icon-m-content-avatar-placeholder"
+				transferState = "success"
+				openButton.text = message
+				break
+			}
         }
 
 
@@ -61,8 +85,8 @@ SpeechBubble {
         height: state=="success" ? 54 + (openButton.lineCount==2? 32:0) : 80
         color:"transparent"
 		anchors.left: parent.left
-		anchors.leftMargin: (appWindow.inPortrait?480:854) -(openButton.visible?openButton.paintedWidth:180) - 86
-       // height:parent.height
+		anchors.leftMargin: from_me==1 ? 0 : (appWindow.inPortrait?480:854) -(openButton.visible?openButton.paintedWidth:180) - 86
+       	//height:parent.height
         state:(mediaBubble.progress > 0 && mediaBubble.progress < 100)?"inprogress": mediaBubble.transferState
 		
         states: [
@@ -76,9 +100,9 @@ SpeechBubble {
 
                 PropertyChanges {
                     target: operationButton
-                    visible:!delegateContainer.from_me
+                    //visible: delegateContainer.from_me!=1
                     enabled:true
-                    text:delegateContainer.from_me? qsTr("Send"):qsTr("Download")
+                    text: delegateContainer.from_me==1? qsTr("Send"):qsTr("Download")
                 }
             },
 
@@ -114,7 +138,7 @@ SpeechBubble {
                     target: operationButton
                     enabled:false
                     visible:true
-                    text:delegateContainer.from_me? qsTr("Sending"):qsTr("Downloading")
+                    text: delegateContainer.from_me==1? qsTr("Sending"):qsTr("Downloading")
                 }
 
 
@@ -141,8 +165,8 @@ SpeechBubble {
 			width: istate=="Loaded!" ? 66 : 0 
 			size: istate=="Loaded!" ? 60 : 0
 			height: width
-			x: from_me ? 18 : parent.width - 58
-			y: name==="" ? -1 : - 28
+			x: from_me==1 ? 18 : parent.width - 58
+			y: name==="" ? -1 : name=="" ? - 22 : -29
             visible: thumb!=""
             imgsource: thumb
 		}
@@ -151,10 +175,13 @@ SpeechBubble {
             id:buttonsHolder
 
             width: openButton.visible? openButton.paintedWidth : 180
-            height:openButton.height
-           // anchors.verticalCenter: msg_image.verticalCenter
-            anchors.right: parent.right
-            anchors.rightMargin: 66
+            height: openButton.visible? openButton.height : 32
+           	//anchors.verticalCenter: msg_image.verticalCenter
+			anchors.left: from_me==1 ? parent.left : this.left
+			anchors.right: from_me? this.right : parent.right
+			anchors.leftMargin: from_me==1? 84 : 0
+            anchors.rightMargin: from_me==1? 0 : 66
+			//anchors.topMargin: operationButton.visible? 4 : 0
 
             Text {
                 id: openButton
@@ -163,29 +190,35 @@ SpeechBubble {
 				font.family: "Nokia Pure Light"
 				font.weight: Font.Light
 				font.pixelSize: 23
-				color: from_me? "black" : "white"
+				color: from_me==1? "black" : "white"
                 text: message
 				maximumLineCount: 2
-				anchors.right: parent.right
+				anchors.left: from_me==1 ? parent.left : this.left
+				anchors.right: from_me? this.right : parent.right
+				//anchors.leftMargin: from_me==1? 84 : 0
 				wrapMode: "WrapAtWordBoundaryOrAnywhere"
 				elide: Text.ElideRight
-				horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
+				horizontalAlignment: from_me==1? Text.AlignLeft : Text.AlignRight
             }
 
-            Button {
-                id: operationButton
-                visible:false
-
+            SheetButton {
+				id: operationButton
+				platformStyle: SheetButtonStyle {
+					textColor: from_me==1 ? "black" : "white"
+					disabledTextColor: from_me==1 ? "gray" : "lightgray"
+					background: "image://theme/meegotouch-sheet-button-background-selected"
+				}
+                visible:state!="success"
                 width: parent.width
                 height: 38
                 font.pixelSize: 20
                 text: qsTr("Download")
 
                 onClicked: {
-                     operationButton.enabled=false
+					operationButton.enabled=false
                     operationButton.text= qsTr("Initializing")
 
-                    if(delegateContainer.from_me)
+                    if(delegateContainer.from_me==1)
                         uploadClicked()
                     else
                         downloadClicked()

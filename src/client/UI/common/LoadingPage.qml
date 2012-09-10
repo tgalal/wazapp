@@ -61,7 +61,7 @@ WAPage{
 
 
     WAHeader{
-        title: "Wazapp"
+        title: qsTr("Sync contacts")
         anchors.top:parent.top
         width:parent.width
 		height: 73
@@ -74,6 +74,13 @@ WAPage{
         anchors.verticalCenter: parent.verticalCenter
 
 
+		BusyIndicator {
+		    implicitWidth: 96
+		    anchors.horizontalCenter: parent.horizontalCenter
+		    visible: true
+		    running: visible
+		}
+
         Label{
             text:operation
             horizontalAlignment: Text.AlignHCenter
@@ -81,11 +88,11 @@ WAPage{
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
         }
 
-        ProgressBar{
+        /*ProgressBar{
             indeterminate: true
             width:parent.width-32
             anchors.horizontalCenter: parent.horizontalCenter
-        }
+        }*/
 
         Label{
             id:timout_text

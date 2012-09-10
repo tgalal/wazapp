@@ -42,7 +42,7 @@ Page {
             spacing:3
             anchors.horizontalCenter: parent.horizontalCenter
             ToolButton {
-                text: qsTrId("Next")
+                text: qsTr("Next")
                 //enabled: mainPage.checkFilled()
                 onClicked: {
                     if(number_field.value.length >5){
@@ -55,14 +55,14 @@ Page {
                          sendConfirm.open()
                     }
                     else{
-                        showNotification("Please enter a valid phone number")
+                        showNotification(qsTr("Please enter a valid phone number"))
                     }
 
 
                 }
             }
             ToolButton {
-                text: qsTrId("Cancel and quit")
+                text: qsTr("Cancel and quit")
                 onClicked: Qt.quit()
             }
         }
@@ -75,7 +75,7 @@ Page {
         WAHeader{
             id:header;
             width:parent.width
-            title: "Voice Reg"
+            title: qsTr("Voice Reg")
         }
 
         Flickable {
@@ -102,7 +102,7 @@ Page {
 
                 LabeledField{
                     id:cc_field
-                    label: "Country code"
+                    label: qsTr("Country code")
                      width:parent.width
                      input_size: "small"
                      value: countriesModel.get(cc_selector.selectedIndex).cc
@@ -120,7 +120,7 @@ Page {
 
                 LabeledField{
                     id:number_field
-                    label:"Enter your phone number, without your country code"
+                    label:qsTr("Enter your phone number, without your country code")
                     width:parent.width
                     value:number
                     inputMethodHints: Qt.ImhDigitsOnly
@@ -129,14 +129,13 @@ Page {
 
                 Label{
                     width:parent.width
-                    text:"When you click next, you will receive a call that repeats your verficiation code. Please enter this code in the next screen"
+                    text:qsTr("When you click next, you will receive a call that repeats your verficiation code. Please enter this code in the next screen")
                     font.pixelSize: 15
                 }
 
                 Label{
                     width:parent.width
-                    text:"*By registering and clicking next you agree to <a href='http://www.whatsapp.com/legal/#TOS'>Whatsapp's terms of service</a>"
-
+                    text:qsTr("*By registering and clicking next you agree to <a href='http://www.whatsapp.com/legal/#TOS'>Whatsapp's terms of service</a>")
                     onLinkActivated: Qt.openUrlExternally(link)
                 }
 
@@ -150,10 +149,10 @@ Page {
 
     QueryDialog {
         id: sendConfirm
-        titleText: qsTrId("Confirm number")
-        message: "You will receive your verification code through a voice call made by Whatsapp to "+cc_field.value+number_field.value+", which must be the phone number you are registering with. Is this phone number correct?"
-        acceptButtonText: qsTrId("Yes")
-        rejectButtonText: qsTrId("No")
+        titleText: qsTr("Confirm number")
+        message: qsTr("You will receive your verification code through a voice call made by Whatsapp to %1, which must be the phone number you are registering with. Is this phone number correct?").arg(cc_field.value+number_field.value)
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
         onAccepted: saveAccount(cc_field.value,number_field.value)
     }
 }

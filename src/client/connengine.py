@@ -71,7 +71,8 @@ class MySocketConnection(socket.socket):
 			tmp = "";
 			
 			for d in data:
-				tmp += chr(d);
+				tmp += chr(d)
+
 			try:
 				self.sendall(tmp);
 			except:

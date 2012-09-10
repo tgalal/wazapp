@@ -8,7 +8,7 @@ Rectangle {
 
     property string picture;
 
-    property bool from_me;
+    property int from_me;
     property string date;
     property string name;
     property int msg_id;
@@ -26,55 +26,37 @@ Rectangle {
     signal clicked();
 
 	width: appWindow.inPortrait ? 480 : 854
-	height: bubbleContent.children[0].height + (mediatype_id==1?msg_date.height:0) + 
-			(sender_name.text!=""?sender_name.height:0) + (from_me?28:30) ;
+	height: from_me==20 || from_me==21 || from_me==22 || from_me==23? bubbleContent.children[0].height + 30 :
+			bubbleContent.children[0].height + (mediatype_id==1?msg_date.height:0) + 
+			(sender_name.text!=""?sender_name.height:0) + (from_me==1?28:30) ;
 	color: "transparent"
-
-    function xgetBubbleColor(user) {
-		var color = -1
-         /*UNCOMMENTME
-		if (groupMembers.count==0) {
-			groupMembers.insert(groupMembers.count, {"name":user})
-			color = 1
-		} else {
-			for(var i =0; i<groupMembers.count; i++)
-			{
-				if(user == groupMembers.get(i).name) {
-				    color = i+1;
-					break;
-				}
-			}
-			if (color==-1) {
-				groupMembers.insert(groupMembers.count, {"name":user})
-				color = groupMembers.count
-			}
-        }*/
-		return parseInt(color);
-	}
-
 
     function getBubbleBorderImageSource(){
         var imageSrc = "../images/bubbles/";
-        imageSrc += from_me?"outgoing":"incoming";
-        imageSrc += bubbleColor+"-";
-        imageSrc += mArea.pressed? "pressed" : "normal";
+		if (from_me==20 || from_me==21 || from_me==22 || from_me==23) {
+			imageSrc += "notification"
+		} else {
+		    imageSrc += from_me==1?"outgoing":"incoming";
+		    imageSrc += bubbleColor
+		    imageSrc += mArea.pressed? "-pressed" : "-normal";
+		}
         imageSrc += ".png";
 
-        console.log(imageSrc);
+        //console.log(imageSrc);
         return imageSrc;
     }
 
 
 	BorderImage {
 		anchors.top: parent.top
-		anchors.topMargin: from_me ? 8 : 0
+		anchors.topMargin: from_me==1? 8 : from_me==2? 2 : 1
 		anchors.left: parent.left
-		anchors.leftMargin: from_me ? 10 : parent.width-width-10
-        //width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0), sender_name.paintedWidth) +26
-        width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me?28:0)+(mediatype_id!=1?66:0),
+		anchors.leftMargin: from_me==1? 10 : from_me==0? parent.width-width-10 : (parent.width-width)/2
+        //width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me==1?28:0), sender_name.paintedWidth) +26
+        width: Math.max(childrenWidth, msg_date.paintedWidth+(from_me==1?28:0)+(mediatype_id!=1?66:0),
                         sender_name.paintedWidth+(mediatype_id!=1?66:0)) +26
 
-		height: parent.height + (from_me ? 2 : 0)
+		height: parent.height + (from_me==1 ? 2 : 0)
 
         source: getBubbleBorderImageSource();
 
@@ -99,11 +81,11 @@ Rectangle {
 
 	Image {
         id: status
-        visible: from_me
+        visible: from_me==1
         anchors.left: msg_date.left
         anchors.leftMargin: msg_date.paintedWidth + 12
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 12
+        anchors.bottomMargin: 11
 		height: 16; width: 16
         source: state_status!="" ? "../images/indicators/" + state_status + ".png" : ""
 		smooth: true
@@ -118,15 +100,15 @@ Rectangle {
 	    font.pixelSize: 20
 	    font.bold: true
 	    anchors.left: parent.left
-		anchors.leftMargin: from_me ? (20+(mediatype_id==1?0:66)) : (80-(mediatype_id==1?0:66))
+		anchors.leftMargin: from_me==1 ? (20+(mediatype_id==1?0:66)) : (80-(mediatype_id==1?0:66))
 		horizontalAlignment: Text.AlignRight
-		visible: name!=""
+		visible: name!="" && from_me==0
 	}
 
 	Item{
         id: bubbleContent
 		anchors.top: parent.top
-		anchors.topMargin: from_me ? 16 : sender_name.text=="" ? 18 : 48
+		anchors.topMargin: from_me ? 16 : sender_name.text=="" ? 18 : 46
 		height: bubbleContent.children[0].height
 	}
 	
@@ -135,14 +117,15 @@ Rectangle {
 		anchors.top: bubbleContent.bottom
 		anchors.topMargin: mediatype_id==1? 4 : (mediatype_id==1?-20:-18)
 	    text: date
-	    color: from_me ? "black" : "white"
+	    color: from_me==1 ? "black" : "white"
 	    anchors.left: parent.left
-		anchors.leftMargin: from_me ? (20+(mediatype_id==1?0:66)) : (80-(mediatype_id==1?0:66))
+		anchors.leftMargin: from_me==1 ? (20+(mediatype_id==1?0:66)) : (80-(mediatype_id==1?0:66))
 		width: parent.width -100
 	    font.pixelSize: 16
 	    font.weight: Font.Light
-		horizontalAlignment: from_me? Text.AlignLeft : Text.AlignRight
-		opacity: from_me && !theme.inverted? 0.5 : 0.7
+		horizontalAlignment: from_me==1? Text.AlignLeft : Text.AlignRight
+		opacity: from_me==1 && !theme.inverted? 0.5 : 0.7
+		visible: from_me==0 || from_me==1
 	}
 
 

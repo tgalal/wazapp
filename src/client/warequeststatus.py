@@ -53,7 +53,8 @@ class WARequestStatus(QThread):
 	def addParam(self,name,value):
 		self.params.append({name:value.encode('utf-8')});
 
-		
+	def clearParams(self):
+		self.params = [];
 	
 	def getUrl(self):
 		return  self.base_url+self.req_file;
@@ -66,8 +67,6 @@ class WARequestStatus(QThread):
 	
 
 	def sendRequest(self):
-
-
 		
 		self.params =  [param.items()[0] for param in self.params];
 		
@@ -89,7 +88,7 @@ class WARequestStatus(QThread):
 		resp=self.conn.getresponse()
  		response=resp.read();
  		self._d(response);
- 		doc = minidom.parseString(response);
+ 		#doc = minidom.parseString(response);
  		self.done.emit(response);
  		return response;
 		#response_node  = doc.getElementsByTagName("response")[0];

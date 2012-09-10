@@ -32,6 +32,9 @@ WAPage {
     id: chatsContainer
     property alias indicator_state:wa_notifier.state
 
+	property string contactNumber
+	property bool contactNumberGroup
+
     //state:"no_data"
     signal deleteConversation(string jid);
 
@@ -42,14 +45,14 @@ WAPage {
         if(conversation)
             return conversation;
 
-        console.log("NOT FOUND")
+        consoleDebug("CONV: NOT FOUND")
         conversation = new Components.Conversation(appWindow).view;
         conversation.jid = jid;
 
-        console.log("APPENDING");
+        //consoleDebug("APPENDING");
         conversationsModel.append({conversation:conversation})
 
-        console.log("RETURNING")
+        //consoleDebug("RETURNING")
         return conversation;
     }
 
@@ -57,7 +60,7 @@ WAPage {
 
     function getConversation(jid){
 
-        console.log("FIND");
+        //consoleDebug("FIND");
         var conversation = findConversation(jid);
         if(conversation)
             return conversation;
@@ -67,7 +70,7 @@ WAPage {
     function removeChatItem(jid){
 
         var chatItemIndex = findChatIem(jid);
-        console.log("deleting")
+        consoleDebug("deleting")
         if(chatItemIndex >= 0){
             var conversation = conversationsModel.get(chatItemIndex).conversation;
             var contacts = conversation.getContacts();
@@ -120,6 +123,7 @@ WAPage {
 
     ListModel{id:conversationsModel}
 
+
     Component{
         id:chatsDelegate;
 
@@ -139,16 +143,31 @@ WAPage {
                 else
                     chatMenu.number = "";
 
+				contactNumber = chatMenu.jid.split('-')[0].split('@')[0]
+				contactNumberGroup = isGroup
+
+				profileUser = chatMenu.jid
                 chatMenu.open();
             }
         }
     }
 
-    Column{
-        anchors.fill: parent;
-        spacing:0
+
+	WAHeader{
+		id: header
+        title: qsTr("Chats")
+		bubbleCount: chatsList.count
+        anchors.top:parent.top
         width:parent.width
-        height:parent.height
+		height: 73
+    }
+
+    Column{
+        anchors.top: header.bottom
+		anchors.left: parent.left
+        spacing: 0
+        width: parent.width
+        height: parent.height - header.height
         WANotify{
             id:wa_notifier
         }
@@ -190,20 +209,50 @@ WAPage {
         MenuLayout {
 
             WAMenuItem {
-                id: detailsMenuItem
-                visible: chatMenu.number?true:false
-                height: visible ? 80 : 0
-                text: chatMenu.name?qsTr("View contact"):qsTr("Add to contacts")
-                onClicked: Qt.openUrlExternally("tel:"+chatMenu.number);
-            }
-
-            WAMenuItem {
                 height: 80
-                singleItem: !detailsMenuItem.visible
-                text: qsTr("Delete Conversation")
-                onClicked: chatDelConfirm.open()
+                //singleItem: !detailsMenuItem.visible
+                text: contactNumberGroup? qsTr("Delete and exit group") : qsTr("Delete Conversation")
+                onClicked: {
+					if (contactNumberGroup) {
+						chatDelAndExitConfirm.open()
+					} else {
+						chatDelConfirm.open()
+					}
+				}
             }
 
+			/*WAMenuItem {
+				height: visible ? 80 : 0
+				visible: contactNumberGroup
+				text: qsTr("View group information")
+				onClicked: {
+					mainPage.pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
+				}
+			}
+
+			WAMenuItem {
+				id: profileMenuItem
+				height: visible ? 80 : 0
+				//visible: !contactNumberGroup
+				text: contactNumberGroup? qsTr("View group owner profile") : qsTr("View contact profile")
+				onClicked: {
+					profileUser = contactNumber + "@s.whatsapp.net"
+					mainPage.pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+				}
+			}*/
+
+			WAMenuItem {
+				id: profileMenuItem
+				height: visible ? 80 : 0
+				//visible: !contactNumberGroup
+				text: contactNumberGroup? qsTr("View group information") : qsTr("View contact profile")
+				onClicked: {
+					if (contactNumberGroup)
+						mainPage.pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
+					else
+						mainPage.pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+				}
+			}
 
         }
 	}
@@ -219,4 +268,25 @@ WAPage {
             removeChatItem(chatMenu.jid)
         }
     }
+
+    QueryDialog {
+        id: chatDelAndExitConfirm
+        titleText: qsTr("Confirm Delete and Exit")
+        message: qsTr("Are you sure you want to delete this conversation and exit this group?")
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
+        onAccepted: {
+			groupId = chatMenu.jid;
+			endGroupChat(groupId)
+        }
+    }
+
+	Connections {
+		target: appWindow
+		onGroupEnded: {
+            deleteConversation(groupId)
+            removeChatItem(groupId)
+		}
+	}
+
 }

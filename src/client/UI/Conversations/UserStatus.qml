@@ -47,12 +47,12 @@ Rectangle {
             d.setSeconds(Qt.formatDateTime ( d, "ss" )-secondsAgo)
 
             if(container.state != "online" && container.state!="typing") {
-                 lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:MM");
+                 lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
                  container.state="offline"
             }
         }
         else{
-             lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:MM");
+             lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
              container.state="offline"
         }
     }

@@ -32,48 +32,46 @@ Menu {
     signal aboutClicked();
 
         MenuLayout {
-       // MenuItem { text: qsTr("Reset profile/Register") }
-        //MenuItem { text: qsTr("Settings") }
 
 		MenuItem {
-            id:change_status
-            text: qsTr("Change my status");
-
-            onClicked: pageStack.push (Qt.resolvedUrl("ChangeStatus.qml"))
+            text: qsTr("Create group");
+			enabled: connectionStatus=="online"
+            onClicked: {
+				selectedContacts = ""
+				participantsModel.clear()
+				pageStack.push (Qt.resolvedUrl("../Groups/CreateGroup.qml"))
+			}
         }
 
-         MenuItem{
-                visible:updateVisible
-                text:"Update Wazapp"
-                onClicked:{appWindow.pageStack.push(updatePage)}
-         }
+		MenuItem {
+            text: qsTr("My profile");
+			//enabled: connectionStatus=="online"
+            onClicked: pageStack.push (Qt.resolvedUrl("../Profile/Profile.qml"))
+        }
 
         MenuItem {
             id:sync_item
             text: qsTr("Sync Contacts");
-            onClicked: {console.log("SYNC");syncClicked();}
-            }
-
-        /*MenuItem{
-            text:appWindow.stealth?qsTr("Normal Mode"):qsTr("Stealth Mode!");
-            onClicked:appWindow.stealth?appWindow.normalMode():appWindow.stealthMode();
-        }*/
+			enabled: connectionStatus=="online"
+            //onClicked: { console.log("SYNC"); syncClicked(); }
+			onClicked: pageStack.push (Qt.resolvedUrl("../Contacts/SelectContacts.qml"))
+        }
 
         MenuItem{
-            text:"Invert Colors"
-            onClicked:{appWindow.normalMode();theme.inverted = !theme.inverted}
+            text: qsTr("Settings")
+            onClicked: { pageStack.push(settingsPage); }
         }
 
 
         MenuItem {
-               text: qsTr("About")
-               onClicked: aboutClicked();
-        }
+           text: qsTr("About")
+           onClicked: appWindow.aboutInit();
+ 	   }
 
 
         MenuItem{
             text:qsTr("Quit")
-            onClicked:appWindow.quitInit();
+            onClicked: appWindow.quitInit();
         }
 
 

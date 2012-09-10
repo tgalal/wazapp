@@ -31,7 +31,8 @@ function Contact(jid){
     this.number = tmp[0];
     this.name = this.number;
     this.picture = "none";
-    this.status= "";
+    this.status = "";
+	this.pushname = "";
 }
 
 function populateContacts(contacts)

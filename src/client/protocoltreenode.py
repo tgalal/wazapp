@@ -134,7 +134,10 @@ class BinTreeNodeReader():
 		intBot = i.read(socketOnly);
 		#Utilities.debug(str(intTop)+"------------"+str(intBot));
 		value = (intTop << 8) + intBot;
-		return value;
+		if value is not None:
+			return value;
+		else:
+			return "";
 	
 	
 	def readInt24(self,i):
@@ -227,7 +230,10 @@ class BinTreeNodeReader():
 		ret = self.nextTreeInternal();
 		self._d("Incoming")
 		if ret is not None:
-			self._d("\n%s"%ret.toString());
+			if 'picture type="' in ret.toString():
+				self._d("<Picture!!!>");
+			else:
+				self._d("\n%s"%ret.toString());
 		return ret;
 	
 	def fillBuffer(self,stanzaSize):
@@ -338,8 +344,10 @@ class BinTreeNodeWriter():
 		
 		self.realOut.write(87);
 		self.realOut.write(65);
-		self.realOut.write(1);
 		self.realOut.write(0);
+		self.realOut.write(4);
+		#self.realOut.write(1);
+		#self.realOut.write(0);
 		
 		#self.out.write(0); ##HACK FOR WHAT BUFFER FLUSH SENDS IN JAVA
 		#self.out.write(26); ##HACK FOR WHAT BUFFER FLUSH SENDS IN JAVA

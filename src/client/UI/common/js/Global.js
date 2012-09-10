@@ -60,7 +60,7 @@ function emojify(inputText) {
     var replacedText;
         var regx = /([\ue001-\ue537])/g
         replacedText = inputText.replace(regx, function(s, eChar){
-            return '<img src="../common/images/emoji/20/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
+            return '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
         });
     return replacedText
 }
@@ -78,7 +78,7 @@ function emojifyBig(inputText) {
     var replacedText;
         var regx = /([\ue001-\ue537])/g
         replacedText = inputText.replace(regx, function(s, eChar){
-            return '<img src="../common/images/emoji-32/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
+            return '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/32/emoji-' + eChar.charCodeAt(0).toString(16).toUpperCase() + '.png" />';
         });
     return replacedText
 }

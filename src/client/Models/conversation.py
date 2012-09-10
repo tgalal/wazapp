@@ -101,14 +101,14 @@ class Groupconversation(Model):
 		contacts = gc.findContacts(self.id);
 		
 		return contacts;
-		
+
 	def getOwner(self):
 		if not self.contact_id:
 			return 0
 			
 		if not self.Contact.id:
 			self.Contact = self.Contact.read(self.contact_id);
-		
+
 		return self.Contact
 		
 	def addContact(self,contactId):

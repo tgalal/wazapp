@@ -47,7 +47,7 @@ Page {
             spacing:3
             anchors.horizontalCenter: parent.horizontalCenter
             ToolButton {
-                text: qsTrId("Next")
+                text: qsTr("Next")
                 //enabled: mainPage.checkFilled()
                 onClicked: {
                     if(number_field.value.length >5){
@@ -60,37 +60,41 @@ Page {
                          sendConfirm.open()
                     }
                     else{
-                        showNotification("Please enter a valid phone number")
+                        showNotification(qsTr("Please enter a valid phone number"))
                     }
 
 
                 }
             }
             ToolButton {
-                text: qsTrId("Cancel")
+                text: qsTr("Cancel")
                 onClicked: Qt.quit()
             }
         }
     }
 
+    WAHeader{
+        id:header;
+        width:parent.width
+        title:qsTr("Registration")
+    }
+
     Column{
-        anchors.fill: parent
-
-
-        WAHeader{
-            id:header;
-            width:parent.width
-            title:"Registration"
-        }
+        anchors.top: header.bottom
+        height: parent.height - header.height
+        width: parent.width
 
         Flickable {
-                  width:parent.width
-                  height:parent.height - header.height
-                  clip: true
-                  anchors.margins: 5
-                  contentWidth: width
-                  contentHeight: form_column.height
-                  boundsBehavior: Flickable.StopAtBounds
+            anchors.fill: parent
+            anchors.topMargin: 12
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            clip: true
+            anchors.margins: 5
+            contentWidth: width
+            contentHeight: form_column.height
+            boundsBehavior: Flickable.StopAtBounds
+
             Column{
                 spacing:10
                 width:parent.width
@@ -108,7 +112,7 @@ Page {
 
                 LabeledField{
                     id:cc_field
-                    label: "Country code"
+                    label: qsTr("Country code")
                      width:parent.width
                      input_size: "small"
                      value: countriesModel.get(cc_selector.selectedIndex).cc
@@ -124,7 +128,7 @@ Page {
 
                 LabeledField{
                     id:number_field
-                    label:"Enter your phone number, without your country code"
+                    label:qsTr("Enter your phone number, without your country code")
                     width:parent.width
                     inputMethodHints: Qt.ImhDigitsOnly
 
@@ -132,7 +136,7 @@ Page {
 
                 Label{
                     width:parent.width
-                    text:"When you click next, Whatsapp will send you a 3 digit verification code. I will attempt to save you the effort of entering this code yourself :)"
+                    text:qsTr("When you click next, Whatsapp will send you a 3 digit verification code. I will attempt to save you the effort of entering this code yourself :)")
                     font.pixelSize: 15
                 }
                 Column{
@@ -142,11 +146,11 @@ Page {
                     spacing: 10
                     Label{
                         width:parent.width
-                        text:"Or try another method:"
+                        text:qsTr("Or try another method:")
                     }
 
                     Button{
-                        text: "Code through voice"
+                        text: qsTr("Code through voice")
                         anchors.horizontalCenter: parent.horizontalCenter
                         onClicked: {
                             voiceRegPage.cc = cc_field.value
@@ -156,7 +160,7 @@ Page {
                     }
 
                     Button{
-                        text:"Enter code manually"
+                        text:qsTr("Enter code manually")
                         anchors.horizontalCenter: parent.horizontalCenter
                         onClicked: {
                             appWindow.pageStack.push(codeEntry)
@@ -167,7 +171,7 @@ Page {
                     Button{
                         id:all_fail_btn
                         visible:false
-                        text:"Everything failing? Try me"
+                        text:qsTr("Everything failing? Try me")
                         anchors.horizontalCenter: parent.horizontalCenter
                         onClicked: {
                             appWindow.pageStack.push(codeEntryLoading);
@@ -181,7 +185,7 @@ Page {
 
                 Label{
                     width:parent.width
-                    text:"*By registering you agree to <a href='http://www.whatsapp.com/legal/#TOS'>Whatsapp's terms of service</a>"
+                    text:qsTr("*By registering and clicking next you agree to <a href='http://www.whatsapp.com/legal/#TOS'>Whatsapp's terms of service</a>")
                     onLinkActivated: Qt.openUrlExternally(link)
                 }
             }
@@ -194,10 +198,10 @@ Page {
 
     QueryDialog {
         id: sendConfirm
-        titleText: qsTrId("Confirm number")
-        message: "Whatsapp will send an SMS with your 3 digit activation code to "+cc_field.value+number_field.value+". Is this phone number correct?"
-        acceptButtonText: qsTrId("Yes")
-        rejectButtonText: qsTrId("No")
+        titleText: qsTr("Confirm number")
+        message: qsTr("Whatsapp will send an SMS with your 3 digit activation code to %1. Is this phone number correct?").arg(cc_field.value+number_field.value)
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
         onAccepted: saveAccount(cc_field.value,number_field.value)
     }
 }

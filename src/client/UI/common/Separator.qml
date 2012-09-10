@@ -29,7 +29,7 @@ Rectangle {
 
     Rectangle {
         id: sortingDivisionLine
-        y:0
+        anchors.verticalCenter: parent.verticalCenter
 		x:0
 		width: parent.width
         height: 1
@@ -38,7 +38,7 @@ Rectangle {
     }
 
 	Rectangle {
-        y:1
+        anchors.top: sortingDivisionLine.bottom
 		x:0
 		width: parent.width
         height: 1

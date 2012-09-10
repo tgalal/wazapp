@@ -26,23 +26,25 @@ function getChatData() {
 }
 
 //function addMessage(id,message,type,formattedDate,timestamp,status)
-function addMessage(message)
+function addMessage(reverse,position,message)
 {
-    var reverseAppend = false;
+    //var reverseAppend = reverse;
 
-    console.log("Adding message");
+    //console.log("Adding message");
     var msg_status = message.status == 0?"sending":message.status==1?"pending":"delivered";
 
-    console.log("assign author");
+    //console.log("assign author");
     var author = message.contact;
 
-    var targetIndex = conv_data.count-1;
+    var targetIndex = position //conv_data.count;
+	//if (reverse) targetIndex = conv_data.count-1
+	if (targetIndex > conv_data.count) targetIndex = conv_data.count
 
-    console.log("Looking where to insert ");
+    //console.log("Looking where to insert ");
 
 
 
-    if(lastMessage && message.msg_id < lastMessage.msg_id){
+   /* if(lastMessage && message.msg_id < lastMessage.msg_id){
             //Message is loaded from a "load more" request
             //Now look where to put it
             targetIndex = 0;
@@ -53,13 +55,13 @@ function addMessage(message)
 
                 if(item.msg_id > message.msg_id)
                 {
-                    targetIndex = i==0?0:i-1;
+                    targetIndex = i==0?0:i;
                     break;
                 }
             }
-    }
+    }*/
 
-    console.log("inserting message at "+targetIndex);
+    //console.log("inserting message at "+targetIndex +" - pushName: " +message.pushname);
     conv_data.insert(targetIndex, {"msg_id":message.id,
                             "content":message.content,
                             "type":message.type,
@@ -68,18 +70,15 @@ function addMessage(message)
                             "created":message.created,
                             "status":msg_status,
                             "author":author,
+                            "pushname":message.pushname,
                             "mediatype_id":message.media_id?message.media.mediatype_id:1,
                             "media":message.media,
                             "progress":0})
+
     updateLastMessage();
 
     //conv_data.append({"msg_id":id,"message":message,"type":type, "timestamp":timestamp,"status":msg_status});
-    if (!reverseAppend) conv_items.positionViewAtEnd()
-    else{
-
-        conv_items.positionViewAtIndex(targetIndex,ListView.Center);
-
-    }
+    if (!reverse) conv_items.positionViewAtEnd()
 
    // else conv_items.positionViewAtIndex(targetIndex);
     // conversation_view.conversationUpdated(id,type,conversation_view.user_id,message,timestamp,formattedDate);

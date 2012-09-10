@@ -21,6 +21,7 @@ from PySide import QtCore
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView,QDeclarativeProperty
+from QtMobility.Messaging import *
 from contacts import WAContacts
 from status import WAChangeStatus
 from waxmpp import WAXMPP
@@ -44,8 +45,8 @@ class WAUI(QDeclarativeView):
 		
 		super(WAUI,self).__init__();
 		url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
-		
-		
+
+
 		
 		self.rootContext().setContextProperty("waversion", Utilities.waversion);
 		self.setSource(url);
@@ -69,13 +70,18 @@ class WAUI(QDeclarativeView):
 		self.c.contactsRefreshed.connect(self.rootObject().onRefreshSuccess);
 		self.c.contactsRefreshFailed.connect(self.rootObject().onRefreshFail);
 		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
+		self.c.contactUpdated.connect(self.rootObject().onContactUpdated);
 		self.rootObject().refreshContacts.connect(self.c.resync)
+		self.rootObject().sendSMS.connect(self.sendSMS)
+		self.rootObject().makeCall.connect(self.makeCall)
+		self.rootObject().sendVCard.connect(self.sendVCard)
+		self.rootObject().consoleDebug.connect(self.consoleDebug)
 		
 				
 		#Changed by Tarek: connected directly to QContactManager living inside contacts manager
-		self.c.manager.manager.contactsChanged.connect(self.rootObject().onContactsChanged);
-		self.c.manager.manager.contactsAdded.connect(self.rootObject().onContactsChanged);
-		self.c.manager.manager.contactsRemoved.connect(self.rootObject().onContactsChanged);
+		#self.c.manager.manager.contactsChanged.connect(self.rootObject().onContactsChanged);
+		#self.c.manager.manager.contactsAdded.connect(self.rootObject().onContactsChanged);
+		#self.c.manager.manager.contactsRemoved.connect(self.rootObject().onContactsChanged);
 
 
 		
@@ -90,6 +96,7 @@ class WAUI(QDeclarativeView):
 		self.rootObject().deleteConversation.connect(self.messageStore.deleteConversation)
 		self.rootObject().deleteMessage.connect(self.messageStore.deleteMessage)
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
+		self.rootObject().removeSingleContact.connect(self.messageStore.removeSingleContact)
 		self.dbusService = WAService(self);
 		
 	
@@ -145,24 +152,53 @@ class WAUI(QDeclarativeView):
 		
 		#reg.start();
 		
+
+	def consoleDebug(self,text):
+		self._d(text);
+
+
+	def setMyAccount(self,account):
+		self.rootObject().setMyAccount(account)
+		self.account = account
+
+	def sendSMS(self, num):
+		print "SENDING SMS TO " + num
+		m = QMessage()
+		m.setType(QMessage.Sms)
+		a = QMessageAddress(QMessageAddress.Phone, num)
+		m.setTo(a)
+		m.setBody("")
+		s = QMessageService()
+		s.compose(m)
+
+
+	def makeCall(self, num):
+		print "CALLING TO " + num
+		bus = dbus.SystemBus()
+		csd_call = dbus.Interface(bus.get_object('com.nokia.csd', '/com/nokia/csd/call'), 'com.nokia.csd.Call')
+		csd_call.CreateWith(str(num), dbus.UInt32(0))
+	
+	def sendVCard(self,jid,name):
+		self.c.exportContact(jid,name);
+	
 		
+	def updateContact(self, jid):
+		self._d("POPULATE SINGLE");
+		self.c.updateContact(jid);
+	
+	def updatePushName(self, jid, push):
+		self.c.updateContactPushName(jid,push);
+
 	def populateContacts(self):
 		#syncer = ContactsSyncer(self.store);
 		
-		
-		
-		
 		#self.c.refreshing.connect(syncer.onRefreshing);
 		#syncer.done.connect(c.updateContacts);
-		
-		self._d("POPULATE");
-		contacts = self.c.getContacts();
-		
-		#if len(contacts) == 0:
-		#	syncer.start();
 
+		self._d("POPULATE CONTACTS");
+		contacts = self.c.getContacts();
 		self.rootObject().pushContacts(contacts);
-		
+
 		#if self.whatsapp is not None:
 		#	self.whatsapp.eventHandler.networkDisconnected()
 
@@ -170,6 +206,12 @@ class WAUI(QDeclarativeView):
 	def populateConversations(self):
 		self.messageStore.loadConversations()
 		
+
+	def populatePhoneContacts(self):
+		self._d("POPULATE PHONE CONTACTS");
+		contacts = self.c.getPhoneContacts();
+		self.rootObject().pushPhoneContacts(contacts);
+
 	
 	def login(self):
 		self.whatsapp.start();
@@ -199,7 +241,7 @@ class WAUI(QDeclarativeView):
 		
 		password = self.store.account.password;
 		usePushName = self.store.account.pushName
-		resource = "Symbian-2.6.61-443";
+		resource = "Symbian-2.8.4-31110";
 		chatUserID = self.store.account.username;
 		domain ='s.whatsapp.net'
 		
@@ -212,6 +254,7 @@ class WAUI(QDeclarativeView):
 		whatsapp.setReceiptAckCapable(True);
 		whatsapp.setContactsManager(self.c);
 		
+		whatsapp.eventHandler.connected.connect(self.rootObject().onConnected);
 		whatsapp.eventHandler.typing.connect(self.rootObject().onTyping)
 		whatsapp.eventHandler.paused.connect(self.rootObject().onPaused)
 		whatsapp.eventHandler.showUI.connect(self.showUI)
@@ -219,7 +262,6 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.messageDelivered.connect(self.rootObject().onMessageDelivered);
 		whatsapp.eventHandler.connecting.connect(self.rootObject().onConnecting);
 		whatsapp.eventHandler.loginFailed.connect(self.rootObject().onLoginFailed);
-		whatsapp.eventHandler.connected.connect(self.rootObject().onConnected);
 		whatsapp.eventHandler.sleeping.connect(self.rootObject().onSleeping);
 		whatsapp.eventHandler.disconnected.connect(self.rootObject().onDisconnected);
 		whatsapp.eventHandler.available.connect(self.rootObject().onAvailable);
@@ -227,6 +269,19 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.lastSeenUpdated.connect(self.rootObject().onLastSeenUpdated);
 		whatsapp.eventHandler.updateAvailable.connect(self.rootObject().onUpdateAvailable)
 		
+		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().onGroupInfoUpdated);
+		whatsapp.eventHandler.groupCreated.connect(self.rootObject().onGroupCreated);
+		whatsapp.eventHandler.addedParticipants.connect(self.rootObject().onAddedParticipants);
+		whatsapp.eventHandler.removedParticipants.connect(self.rootObject().onRemovedParticipants);
+		whatsapp.eventHandler.groupParticipants.connect(self.rootObject().onGroupParticipants);
+		whatsapp.eventHandler.groupEnded.connect(self.rootObject().onGroupEnded);
+		whatsapp.eventHandler.groupSubjectChanged.connect(self.rootObject().onGroupSubjectChanged);
+
+		whatsapp.eventHandler.profilePictureUpdated.connect(self.updateContact);
+
+		whatsapp.eventHandler.setPushName.connect(self.updatePushName);
+		#whatsapp.eventHandler.profilePictureUpdated.connect(self.rootObject().onPictureUpdated);
+
 		whatsapp.eventHandler.mediaTransferSuccess.connect(self.rootObject().onMediaTransferSuccess);
 		whatsapp.eventHandler.mediaTransferError.connect(self.rootObject().onMediaTransferError);
 		whatsapp.eventHandler.mediaTransferProgressUpdated.connect(self.rootObject().onMediaTransferProgressUpdated)
@@ -245,13 +300,36 @@ class WAUI(QDeclarativeView):
 		self.rootObject().quit.connect(whatsapp.eventHandler.quit)
 		self.rootObject().fetchMedia.connect(whatsapp.eventHandler.fetchMedia)
 		self.rootObject().fetchGroupMedia.connect(whatsapp.eventHandler.fetchGroupMedia)
-		
+		self.rootObject().uploadMedia.connect(whatsapp.eventHandler.uploadMedia)
+		self.rootObject().uploadGroupMedia.connect(whatsapp.eventHandler.uploadGroupMedia)
+		self.rootObject().getGroupInfo.connect(whatsapp.eventHandler.getGroupInfo)
+		self.rootObject().createGroupChat.connect(whatsapp.eventHandler.createGroupChat)
+		self.rootObject().addParticipants.connect(whatsapp.eventHandler.addParticipants)
+		self.rootObject().removeParticipants.connect(whatsapp.eventHandler.removeParticipants)
+		self.rootObject().getGroupParticipants.connect(whatsapp.eventHandler.getGroupParticipants)
+		self.rootObject().endGroupChat.connect(whatsapp.eventHandler.endGroupChat)
+		self.rootObject().setGroupSubject.connect(whatsapp.eventHandler.setGroupSubject)
+		self.rootObject().getPictureIds.connect(whatsapp.eventHandler.getPictureIds)
+		self.rootObject().getPicture.connect(whatsapp.eventHandler.getPicture)
+		self.rootObject().setPicture.connect(whatsapp.eventHandler.setPicture)
+		self.rootObject().sendMediaImageFile.connect(whatsapp.eventHandler.sendMediaImageFile)
+		self.rootObject().sendMediaVideoFile.connect(whatsapp.eventHandler.sendMediaVideoFile)
+		self.rootObject().sendMediaAudioFile.connect(whatsapp.eventHandler.sendMediaAudioFile)
+		self.rootObject().sendMediaMessage.connect(whatsapp.eventHandler.sendMediaMessage)
+		self.rootObject().sendLocation.connect(whatsapp.eventHandler.sendLocation)
+		#self.rootObject().sendVCard.connect(whatsapp.eventHandler.sendVCard)
+		self.c.contactExported.connect(whatsapp.eventHandler.sendVCard)
+
+		self.rootObject().setBlockedContacts.connect(whatsapp.eventHandler.setBlockedContacts)
+		self.rootObject().setResizeImages.connect(whatsapp.eventHandler.setResizeImages)
+
 		#self.reg = Registration();
 		self.whatsapp = whatsapp;
 		
 		#change whatsapp status
 		self.cs = WAChangeStatus(self.store);
 		self.rootObject().changeStatus.connect(self.cs.sync)
+
 		
 		#print "el acks:"
 		#print whatsapp.supports_receipt_acks

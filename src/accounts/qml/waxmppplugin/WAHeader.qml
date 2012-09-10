@@ -32,10 +32,12 @@ Rectangle{
     Image{
         id:wazapp_icon
         anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        height:80
+		anchors.leftMargin: 12
+        anchors.top: parent.top
+		anchors.topMargin: 12
+        height:72
         width:height
-       // source:'/usr/share/icons/hicolor/80x80/apps/waxmppplugin80.png'
+        smooth: true
         source:'images/wazapp80.png'
     }
 
@@ -43,8 +45,9 @@ Rectangle{
         id:mainTitle
         text: "Wazapp"
         color:"#27a01b"
-        font.pixelSize: 40
-        anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: 30
+        anchors.top: parent.top
+		anchors.topMargin: 8
         anchors.left: wazapp_icon.right
         anchors.leftMargin: 10
     }
@@ -52,13 +55,10 @@ Rectangle{
     Label{
         id:pageTitle
         color:"gray"
-        anchors.left: mainTitle.right
-        anchors.leftMargin: 5
-        font.pixelSize: mainTitle.font.pixelSize
+        anchors.left: mainTitle.left
+        anchors.top: mainTitle.bottom
+        font.pixelSize: 26
         anchors.verticalCenter: parent.verticalCenter
-       // anchors.bottom:parent.bottom
-        //anchors.bottomMargin: 20
-       // font.italic: true
     }
 
     Separator{

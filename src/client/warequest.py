@@ -52,14 +52,15 @@ class WARequest(QThread):
 	def addParam(self,name,value):
 		self.params.append({name:value.encode('utf-8')});
 
-		
+	def clearParams(self):
+		self.params = []
 	
 	def getUrl(self):
 		return  self.base_url+self.req_file;
 
 	def getUserAgent(self):
 		#agent = "WhatsApp/1.2 S40Version/microedition.platform";
-		agent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
+		agent = "WhatsApp/2.8.4 S60Version/5.2 Device/C7-00";
 		return agent;	
 	
 	

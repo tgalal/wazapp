@@ -38,8 +38,8 @@ Item {
             height: size
             smooth: true
             fillMode: Image.PreserveAspectCrop
-
-            source: imgsource
+			cache: false
+            source: imgsource //imgsource.indexOf("@")>-1 ? "" : imgsource
 			onStatusChanged: {
                 if (image1.status==Image.Ready) istate="Loaded!";
 				if (image1.status==Image.Error) istate=imgsource;

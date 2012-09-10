@@ -25,6 +25,7 @@ import com.nokia.meego 1.0
 import "js/contacts.js" as ContactsManager
 import "../common/js/Global.js" as Helpers
 import "../common"
+import "../Menu"
 
 WAPage {
     id: contactsContainer
@@ -49,9 +50,9 @@ WAPage {
 		}
 	}
 
-    ListModel{
+    /*ListModel{
         id:contactsModel
-    }
+    }*/
 
 
      function pushContacts(contacts)
@@ -77,7 +78,7 @@ WAPage {
         //contact not found, create
         var contact = new ContactsManager.Contact(c.jid);
 
-        contactsModel.append(contact);
+        //contactsModel.append(contact);
 
         return ContactsManager.contactsViews[ContactsManager.contactsViews.length-1];
 
@@ -141,9 +142,15 @@ WAPage {
 
             jid:model.jid
             picture:model.picture
-            contactName:model.name;
+            contactName: model.name
+			contactShowedName: searchInput.text.length>0 ? replaceText(model.name, searchInput.text) : model.name
             contactStatus:model.status;
             contactNumber:model.number
+
+			onOptionsRequested: {
+				profileUser = model.jid
+				contactMenu.open()
+			}
 
             onClicked: {
 				hideSearchBar()
@@ -152,8 +159,17 @@ WAPage {
         }
     }
 
+	WAHeader{
+		id: header
+        title: qsTr("Contacts")
+		bubbleCount: contactsModel.count
+        anchors.top:parent.top
+        width:parent.width
+		height: 73
+    }
+
     WANotify{
-		anchors.top: parent.top
+		anchors.top: header.bottom
         id:wa_notifier
     }
 
@@ -161,9 +177,10 @@ WAPage {
 		id: searchbar
 		width: parent.width
 		height: 0
-		anchors.top: parent.top
+		anchors.top: header.bottom
 		anchors.topMargin: wa_notifier.height
 		color: "transparent"
+		clip: true
 
 		property int h1
 		property int h2
@@ -235,10 +252,10 @@ WAPage {
 	}
 
     Rectangle {
-        anchors.top: parent.top
+        anchors.top: header.bottom
 		anchors.topMargin: wa_notifier.height + searchbar.height
         width:parent.width
-        height:parent.height - wa_notifier.height - searchbar.height
+        height:parent.height - wa_notifier.height - searchbar.height - header.height
 		color: "transparent"
 		clip: true
 
@@ -253,6 +270,7 @@ WAPage {
                 font.pointSize: 20
                 width:parent.width
                 horizontalAlignment: Text.AlignHCenter
+				color: "gray"
             }
         }
 
@@ -263,7 +281,7 @@ WAPage {
             model: contactsModel
             delegate: myDelegate
             spacing: 1
-			cacheBuffer: 10000
+			cacheBuffer: 30000 // contactsModel.count * 81 --> this should work too.
 			highlightFollowsCurrentItem: false
             section.property: "alphabet"
             section.criteria: ViewSection.FirstCharacter
@@ -293,6 +311,60 @@ WAPage {
 			enabled: searchInput.text===""
 		}
 
+    }
+
+	Menu {
+	id: contactMenu
+
+		MenuLayout {
+			WAMenuItem {
+				height: 80
+				text: blockedContacts.indexOf(profileUser)==-1? qsTr("Block contact") : qsTr("Unblock contact")
+				onClicked: { 
+					if (blockedContacts.indexOf(profileUser)==-1)
+						blockContact(profileUser)
+					else
+						unblockContact(profileUser)
+				}
+			}
+			WAMenuItem {
+				height: 80
+				//singleItem: true
+				text: qsTr("View contact profile")
+				onClicked: { 
+					mainPage.pageStack.push (Qt.resolvedUrl("ContactProfile.qml"))
+				}
+			}
+			/*WAMenuItem {
+				height: 80
+				//singleItem: true
+				text: qsTr("Delete contact")
+				onClicked: {
+					removeContactConfirm.open()
+				}
+			}*/
+		}
+	}
+
+    function getAuthor(inputText) {
+        var resp = inputText;
+        for(var i =0; i<contactsModel.count; i++)
+        {
+            if(resp == contactsModel.get(i).jid) {
+                resp = contactsModel.get(i).name;
+				break;
+			}
+        }
+        return resp
+    }
+
+    QueryDialog {
+        id: removeContactConfirm
+        titleText: qsTr("Confirm delete")
+        message: qsTr("Are you sure you want to delete %1?").arg(getAuthor(profileUser))
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
+        onAccepted: removeSingleContact(profileUser)
     }
 
 

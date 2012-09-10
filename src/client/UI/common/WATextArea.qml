@@ -9,12 +9,15 @@ import "/usr/lib/qt4/imports/com/nokia/meego/TextAreaHelper.js" as TextAreaHelpe
 FocusScope {
     id: root
 
+	signal textPasted
 	signal enterKeyClicked
+	signal inputPanelChanged
 	property int lastPosition:0
 
     // Common public API
     property alias text: textEdit.text
     property alias placeholderText: prompt.text
+	property alias textColor: textEdit.color
 
     property alias font: textEdit.font
     property alias cursorPosition: textEdit.cursorPosition
@@ -55,6 +58,7 @@ FocusScope {
 
     function paste() {
         textEdit.paste()
+		textPasted()
     }
 
     function cut() {
@@ -154,6 +158,10 @@ FocusScope {
         font: root.platformStyle.textFont
         color: "gray"
         elide: Text.ElideRight
+		onVisibleChanged: {
+			if (prompt.visible) platformCloseSoftwareInputPanel()
+			else platformOpenSoftwareInputPanel()
+		}
     }
 
     MouseArea {
@@ -227,11 +235,13 @@ FocusScope {
             target: inputContext
 
             onSoftwareInputPanelVisibleChanged: {
+				inputPanelChanged()
                 if (activeFocus)
                     TextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
 
             onSoftwareInputPanelRectChanged: {
+				inputPanelChanged()
                 if (activeFocus)
                     TextAreaHelper.repositionFlickable(contentMovingAnimation);
             }

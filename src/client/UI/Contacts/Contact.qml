@@ -34,10 +34,12 @@ Rectangle{
     property string defaultPicture:"../common/images/user.png"
     property string contactPicture:getPicture()
     property string contactName;
+    property string contactShowedName;
     property string contactStatus;
     property string contactNumber;
 
     signal clicked();
+	signal optionsRequested()
 
     width: parent.width;
     color:"transparent"
@@ -62,6 +64,16 @@ Rectangle{
         return picture;
     }
 
+	Connections {
+		target: appWindow
+		onOnContactPictureUpdated: {
+			if (jid == ujid) {
+				contact_picture.imgsource = ""
+				contact_picture.imgsource = getPicture()
+			}
+		}	
+	}
+
 	Rectangle {
 		anchors.fill: parent
 		color: theme.inverted? "darkgray" : "lightgray"
@@ -72,19 +84,22 @@ Rectangle{
     MouseArea{
         id:mouseArea
         anchors.fill: parent
+		onPressAndHold: container.optionsRequested()
         onClicked:{
-            console.log("CLICKED");
-            if(ContactHelper.conversation){
+            consoleDebug("CLICKED");
+			consoleDebug("OPENING CONTACT FOR CONVERSATION: " + jid)
+
+            /*if(ContactHelper.conversation){
                 //ContactHelper.conversation.jid="sdgsg-fsdfsdf"
                 ContactHelper.conversation.open()
-             }else{
-                console.log("NOT FOUND")
-
+             }else{*/
+                consoleDebug("CONTACT: NOT FOUND")
+				container.clicked() // Needed to clear quick search
                 ContactHelper.conversation = waChats.getOrCreateConversation(jid);
                 setConversation(ContactHelper.conversation)
                 ContactHelper.conversation.addContact(container);
                 ContactHelper.conversation.open();
-            }
+            //}
         }
     }
 
@@ -107,28 +122,40 @@ Rectangle{
 			//onClicked: mouseArea.clicked()
         }
 
-        Column{
-			width: parent.width -80
-		    Label{
+		Column{
+			width: parent.width -80 - (userblocked.visible? 54 : 0) 
+			y: contact_status.visible? 0 : 14
+			Label {
 				y: 2
-		        id: contact_name
-                text:contactName
-		        font.pointSize: 18
+				id: contact_name
+				text:contactShowedName
+				font.pointSize: 18
 				elide: Text.ElideRight
 				width: parent.width -16
 				font.bold: true
-		    }
-		    Label{
-		        id:contact_status
-                text:Helpers.emojify(contactStatus)
-		        font.pixelSize: 20
-		        color: "gray"
+			}
+			Label {
+				id:contact_status
+				text: Helpers.emojify(contactStatus)
+				font.pixelSize: 20
+				color: "gray"
 				width: parent.width -16
 				elide: Text.ElideRight
 				height: 24
 				clip: true
-		   }
+				visible: contactStatus!==""
+			}
+		}
 
-        }
+		Image {
+			id: userblocked
+	        anchors.verticalCenter: contact_picture.verticalCenter
+	        width: 28
+	        height: 28
+	        smooth: true
+	        source: "../common/images/blocked.png"
+			visible: blockedContacts.indexOf(jid)>-1
+		}
+
     }
 }

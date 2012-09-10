@@ -34,7 +34,17 @@ class WADebug():
 		
 	def d(self,message):#shorthand
 		self.debug(message)
-
+		logline = "" #str(self.formatMessage(message))+"\n"
+		if not "Sql:" in logline:
+			try:
+				# This tries to open an existing file but creates a new file if necessary.
+				logfile = open("/home/user/.wazapp/log.txt", "a")
+				try:
+					logfile.write(logline)
+				finally:
+					logfile.close()
+			except IOError:
+				pass
 
 class JsonRequestDebug(WADebug):
 	pass

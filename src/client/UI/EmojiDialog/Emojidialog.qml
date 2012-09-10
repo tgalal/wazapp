@@ -33,6 +33,7 @@ Dialog {
     function openDialog(){
 
         emojiSelector.open();
+		emojiCategory.checkedButton = peopleEmoji
         emojiSelector.loadEmoji(0,109);
 
     }
@@ -115,30 +116,35 @@ Dialog {
 
 		    Button {
 		    	id: peopleEmoji
+			platformStyle: ButtonStyle { inverted: true }
                 iconSource: get32(415);
 			 	onClicked: emojiSelector.loadEmoji(0,109);
 		    }
 
 		    Button {
 		        id: natureEmoji
+			platformStyle: ButtonStyle { inverted: true }
                 iconSource: get32(303);
 			 	onClicked: emojiSelector.loadEmoji(109,162)
 		    }
 
 		    Button {
 		        id: eventsEmoji
+			platformStyle: ButtonStyle { inverted: true }
                 iconSource: get32(325)
 			 	onClicked: emojiSelector.loadEmoji(162,297)
 		    }
 		
 			Button {
 		        id: placesEmoji
+			platformStyle: ButtonStyle { inverted: true }
                 iconSource: get32(36)
 			 	onClicked: emojiSelector.loadEmoji(297,367)
 		    }
 
 		    Button {
 		        id: symbolsEmoji
+			platformStyle: ButtonStyle { inverted: true }
                 iconSource: get32(210)
 			 	onClicked: emojiSelector.loadEmoji(367,466)
 		    }
@@ -180,8 +186,8 @@ Dialog {
 						Rectangle {
 							x:1; y:1; width:68; height:48; radius: 20
 							gradient: Gradient {
-								GradientStop { position: 0.0; color: "#3c3c3b" }
-								GradientStop { position: 1.0; color: "#1c1c1c" }
+								GradientStop { position: 0.0; color: mousearea.pressed ? "#218ade" : "#3c3c3b" }
+								GradientStop { position: 1.0; color: mousearea.pressed ? "#218ade" : "#1c1c1c" }
 							}
 						}
 						Image {
@@ -192,8 +198,8 @@ Dialog {
 							height: 32
 						}
 						MouseArea {
+							id: mousearea
 							anchors.fill: parent
-
 							onClicked: {
 								var codeX = emojiDelegate.codeS;
                                 //addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+codeX+'.png" />'
@@ -219,11 +225,11 @@ Dialog {
 
 
 
-	Component.onCompleted: {
-       // emojiSelector.open();
+	//Component.onCompleted: {
+        //emojiSelector.open();
         //emojiSelector.close();
         //emojiSelector.loadEmoji(0,109)
-	}
+	//}
 
 
 

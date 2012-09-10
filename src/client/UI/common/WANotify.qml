@@ -30,6 +30,7 @@ Rectangle{
     height:50;
     color: "transparent";
     state:"offline"
+	clip: true
 
     Label{
         id:current_state

@@ -21,6 +21,7 @@
 ****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import QtMobility.gallery 1.1
 
 import "Chats"
 import "common"
@@ -28,6 +29,9 @@ import "Contacts"
 import "Menu"
 import "Updater"
 import "Settings"
+import "Conversations"
+import "Profile"
+import "common/js/settings.js" as MySettings
 
 //import com.nokia.extras 1.0
 
@@ -35,21 +39,42 @@ WAStackWindow {
     id: appWindow
     initialPage: mainPage  
     showStatusBar: !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
+	showToolBar: !dialogOpened
 
     toolBarPlatformStyle:ToolBarStyle{
         inverted: theme.inverted
     }
 
-    Component.onCompleted: {theme.inverted = true;}
+    Component.onCompleted: {
+		MySettings.initialize()
+		theme.inverted = MySettings.getSetting("ThemeColor", "White")=="Black"
+		mainBubbleColor = parseInt(MySettings.getSetting("BubbleColor", "1"))
+		sendWithEnterKey = MySettings.getSetting("SendWithEnterKey", "Yes")=="Yes"
+		resizeImages = MySettings.getSetting("ResizeImages", "No")=="Yes"
+	}
+
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     property string activeConvJId:""
+	property string profileUser
+	property bool updateSingleStatus: false
+	property bool dialogOpened: false
+    property int mainBubbleColor
+	property bool sendWithEnterKey
+	property bool resizeImages
+	property string selectedPicture
+	property string selectedContactName: ""
+	property string selectedGroupPicture
+	property string bigProfileImage
 
     /****** Signal and Slot definitions *******/
 
+	signal consoleDebug(string text);
+
+	signal statusChanged();
     signal changeStatus(string new_status)
     signal sendMessage(string jid, string msg);
     signal requestPresence(string jid);
-    signal refreshContacts();
+    signal refreshContacts(string jid);
     signal sendTyping(string jid);
     signal sendPaused(string jid);
     signal quit()
@@ -58,13 +83,96 @@ WAStackWindow {
     signal conversationActive(string jid);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);
+    signal uploadMedia(int id);
+    signal uploadGroupMedia(int id);
     signal loadMessages(string jid, int offsetId, int limit);
     signal conversationOpened(string jid);
+	signal sendSMS(string num)
+	signal makeCall(string num)
+	signal getGroupInfo(string jid);
+	signal groupInfoUpdated();
+	signal createGroupChat(string subject);
+	signal groupCreated();
+	signal addParticipants(string gjid, string participants);
+	signal addedParticipants();
+	signal removeParticipants(string gjid, string participants);
+	signal removedParticipants();
+	signal getGroupParticipants(string gjid);
+	signal groupParticipants();
+	signal endGroupChat(string gjid);
+	signal groupEnded();
+	signal setGroupSubject(string gjid, string subject);
+	signal getPictureIds(string jids);
+	signal getPicture(string jid, string type);
+	signal onContactUpdated(string ujid);
+	signal setPicture(string jid, string file);
+	signal sendMediaMessage(string jid, string data, string image, string preview);
+	signal sendMediaImageFile(string jid, string file);
+	signal sendMediaVideoFile(string jid, string file);
+	signal sendMediaAudioFile(string jid, string file);
+	signal sendLocation(string jid, string latitude, string longitude, string rotate);
+    signal sendVCard(string jid, string contact);
+	signal removeSingleContact(string jid);
+
+	signal setBlockedContacts(string contacts);
+	signal setResizeImages(bool resize);
+
+	signal onMediaTransferProgressUpdated(int progress, string cjid, int message_id)
+
+	signal selectedMedia(string url);
+	property string currentJid: ""
+
+	property string groupId
+	function onGroupCreated(group_id) {
+		groupId = group_id + "@g.us"
+		groupCreated()
+	}
+
+	function onAddedParticipants() {
+		addedParticipants()
+	}
+
+	function onRemovedParticipants() {
+		removedParticipants()
+	}
+
+
+	property string groupParticipantsIds
+	function onGroupParticipants(jids) {
+		groupParticipantsIds = jids
+		groupParticipants()
+	}
+
+	function onGroupEnded() {
+		groupEnded()
+	}
+
+	property string groupInfoData
+	function onGroupInfoUpdated(data) {
+		groupInfoData = data
+		groupInfoUpdated()
+	}
+
+	function onGroupSubjectChanged() {
+		getGroupInfo(profileUser)
+	}
+
+	
+	function uploadResult(data, image, to, preview) {
+		if (data.indexOf("ERROR")==-1)
+			sendMediaMessage(to, data, image, preview)
+	}
+
     //prevent double opened, sometimes QContactsManager sends more than 1 signal
     property bool updateContactsOpenend: false
 
             /******************/
-    function onConnected(){setIndicatorState("online")}
+	property string connectionStatus
+    function onConnected(){
+		setIndicatorState("online")
+		//getPictures();
+	}
+
     function onConnecting(){setIndicatorState("connecting")}
     function onDisconnected(){setIndicatorState("connecting")}
     function onSleeping(){setIndicatorState("offline")}
@@ -78,7 +186,7 @@ WAStackWindow {
     }
 
     function setActiveConv(activeJid){
-        console.log("SETTING ACTIVE CONV "+activeJid)
+        consoleDebug("SETTING ACTIVE CONV "+activeJid)
         activeConvJId=activeJid
     }
 
@@ -108,13 +216,17 @@ WAStackWindow {
         quitConfirm.open();
     }
 
+    function aboutInit(){
+        aboutDialog.open();
+    }
+
 
 	function onContactsChanged() {
 
         /*@@TODO: invalid way and should be removed. When a contact changes, only that changed contact should be synced silently
                 and UI gets updated silently as well.**/
 		if (updateContactsOpenend==false) {
-		console.log("CONTACTS CHANGED!!!");
+		consoleDebug("CONTACTS CHANGED!!!");
 			updateContactsOpenend = true
 			//updateContacts.open()  UI crashes with this, needs more work
 		}
@@ -122,20 +234,29 @@ WAStackWindow {
 
     function onSyncClicked(){
         tabGroups.currentTab=waContacts;
-        //loadingPage.operation="Refreshing Contacts"
         appWindow.pageStack.push(loadingPage);
-        refreshContacts();
+        refreshContacts("ALL");
     }
 
+	signal refreshSuccessed
     function onRefreshSuccess(){
-        appWindow.pageStack.pop();
+		if(!updateSingleStatus) {
+			appWindow.pageStack.pop();
+			//getPictures()
+		}
+		updateSingleStatus = false
+		refreshSuccessed()
     }
 
+	signal refreshFailed
     function onRefreshFail(){
-        appWindow.pageStack.pop();
+        if(!updateSingleStatus) appWindow.pageStack.pop();
+		updateSingleStatus = false
+		refreshFailed()
     }
 
     function setIndicatorState(indicatorState){
+		connectionStatus = indicatorState
         var showPoints = [waChats, waContacts]
         for(var p in showPoints){
             showPoints[p].indicator_state= indicatorState
@@ -152,8 +273,57 @@ WAStackWindow {
         return 0;
     }
 
+	property string myAccount
+	function setMyAccount(account) {
+		myAccount = account
+
+		blockedContacts = MySettings.getSetting("BlockedContacts", "")
+		setBlockedContacts(blockedContacts)
+
+		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
+		setResizeImages(resizeImages)
+	}
+
+	function getPictures() {
+		var list;
+    	for(var i =0; i<contactsModel.count; i++) {
+			list = list + (list!==""? ",":"") + contactsModel.get(i).jid;
+			consoleDebug("ADDING TO LIST: " + contactsModel.get(i).jid)
+		}
+		getPictureIds(list)
+	}
+
+
+	property variant blockedContacts: ""
+
+	function blockContact(jid) {
+		blockedContacts = blockedContacts + (blockedContacts!==""? ",":"") + jid;
+		MySettings.setSetting("BlockedContacts", blockedContacts)
+		setBlockedContacts(blockedContacts)
+	}
+
+	function unblockContact(jid) {
+		var newc = blockedContacts
+		newc = newc.replace(jid,"")
+		newc = newc.replace(",,",",")
+		blockedContacts = newc
+		MySettings.setSetting("BlockedContacts", blockedContacts)
+		setBlockedContacts(blockedContacts)
+	}
+
+
     function pushContacts(contacts){
         waContacts.pushContacts(contacts)
+    }
+
+    function pushPhoneContacts(contacts){
+        phoneContactsModel.clear()
+		consoleDebug("APPENDING CONTACTS:" + contacts.length)
+		for (var i=0; i<contacts.length; i++) {
+			//consoleDebug("APPENDING CONTACT:" + contacts[i][2])
+			phoneContactsModel.insert(phoneContactsModel.count,{"name":contacts[i][0], 
+									 "picture":contacts[i][1], "numbers":contacts[i][2].toString()})
+		}
     }
 
     function onContactsSyncStatusChanged(s) {
@@ -170,7 +340,7 @@ WAStackWindow {
     }
 
     function openConversation(jid){
-          console.log("should open chat window with "+jid)
+          consoleDebug("should open chat window with "+jid)
 
           var conversation = waChats.getOrCreateConversation(jid);
           conversation.open();
@@ -181,31 +351,29 @@ WAStackWindow {
 
     function conversationReady(conv){
         //This should be called if and only if conversation start point is backend
-        console.log("Got a conv in conversationReady slot");
+        consoleDebug("Got a conv in conversationReady slot: " + conv.jid);
         var conversation = waChats.getOrCreateConversation(conv.jid);
 
         var contact;
 
         if(conversation.isGroup()) {
-            console.log("SUBJET IS "+conv.subject);
+            consoleDebug("SUBJET IS "+conv.subject);
             conversation.subject = conv.subject || "";
             conversation.groupIcon = conv.picture || "";
-            console.log("Picture is "+conv.picture );
+            consoleDebug("Picture is "+conv.picture );
 
-            for(var i=0; i<conv.contacts.length; i++) {
-                console.log("ADDING CONTACT TO CONV");
+            /*for(var i=0; i<conv.contacts.length; i++) {
+                consoleDebug("ADDING CONTACT TO GROUP CONV");
                 contact = waContacts.getOrCreateContact({jid:conv.contacts[i].jid});
                 conversation.addContact(contact);
-                console.log("ADDED");
-            }
+                consoleDebug("ADDED");
+            }*/
         } else {
 
-            console.log("Finding appropriate contact");
+            consoleDebug("Finding appropriate contact");
             contact = waContacts.getOrCreateContact({jid:conv.jid});
-
-            console.log("Adding to conversation");
             conversation.addContact(contact);
-            console.log("Binding conversation to contact");
+            consoleDebug("Binding conversation to contact");
             contact.setConversation(conversation);
 
         }
@@ -216,21 +384,21 @@ WAStackWindow {
     }
 
     function messagesReady(messages){
-        console.log("GOT MESSAGES SIGNAL");
+        consoleDebug("GOT MESSAGES SIGNAL");
         var conversation = waChats.getConversation(messages.jid);
-        console.log("proceed to check validity of conv")
+        consoleDebug("proceed to check validity of conv")
         if(!conversation){
-            console.log("FATAL UI ERROR, HOW COME CONV IS NOT HERE?!!");
+            consoleDebug("FATAL UI ERROR, HOW COME CONV IS NOT HERE?!!");
             appWindow.quitInit();
         }
 
-        conversation.unreadCount=messages.conversation.unreadCount;
+        conversation.unreadCount=messages.conversation.unreadCount?messages.conversation.unreadCount:0;
         conversation.remainingMessagesCount = messages.conversation.remainingMessagesCount;
 
-        console.log("Adding messages to conv")
+        consoleDebug("Adding messages to conv")
         for (var i =0; i< messages.data.length; i++)
         {
-            console.log("adding a message");
+            //consoleDebug("adding a message");
             conversation.addMessage(messages.data[i]);
         }
 
@@ -302,7 +470,7 @@ WAStackWindow {
 
         /**** Media ****/
     function onMediaTransferSuccess(jid,message_id,mediaObject){
-        console.log("Caught media transfer success in main")
+        consoleDebug("Caught media transfer success in main")
         var conversation = waChats.getConversation(jid);
 
         if(conversation)
@@ -310,20 +478,20 @@ WAStackWindow {
     }
 
     function onMediaTransferError(jid,message_id,mediaObject){
-        console.log("ERROR!! "+jid)
+        consoleDebug("ERROR!! "+jid)
         var conversation = waChats.getConversation(jid);
 
         if(conversation)
             conversation.mediaTransferError(message_id,mediaObject);
     }
 
-    function onMediaTransferProgressUpdated(progress,jid,message_id){
-        console.log("UPDATED PROGRESS "+progress)
+    /*function onMediaTransferProgressUpdated(progress,jid,message_id){
+        consoleDebug("UPDATED PROGRESS "+progress + " for " + jid + " - message id: " + message_id)
         var conversation = waChats.getConversation(jid);
 
         if(conversation)
             conversation.mediaTransferProgressUpdated(progress,message_id);
-    }
+    }*/
         /************/
 
 
@@ -334,12 +502,89 @@ WAStackWindow {
     }
 
     Settings{
-        id:settingsPage;
+        id:settingsPage
     }
+
+	SendPicture {
+		id:sendPicture
+	}
+
+	SendVideo {
+		id:sendVideo
+	}
+
+	SendAudio {
+		id:sendAudio
+	}
+
+	SendAudioFile {
+		id:sendAudioFile
+	}
+
+	SelectPicture {
+		id:setProfilePicture
+	}
 
     LoadingPage{
         id:loadingPage
     }
+
+    ListModel{
+        id:contactsModel
+    }
+
+    ListModel{
+        id:phoneContactsModel
+    }
+
+	property variant selectedContacts: ""
+	ListModel {
+		id: participantsModel
+	}
+
+
+	DocumentGalleryModel {
+		id: galleryModel
+		rootType: DocumentGallery.Image
+		properties: [ "url", "fileName" ]
+		sortProperties: [ "-dateTaken" ] 
+		autoUpdate: true
+	}
+
+	DocumentGalleryModel {
+		id: galleryVideoModel
+		rootType: DocumentGallery.Video
+		properties: [ "url", "fileName" ]
+		sortProperties: [ "-lastModified" ] 
+		autoUpdate: true
+	}
+
+	DocumentGalleryModel {
+		id: galleryArtistModel
+		rootType: DocumentGallery.Album
+		properties: ["artist", "title"]
+		sortProperties: ["artist", "title"]
+		autoUpdate: true
+	}
+
+
+	property string filterAlbum
+    DocumentGalleryModel {
+        id: galleryAudioModel
+        rootType: DocumentGallery.Audio
+        properties: ["url", "fileName", "title", "artist", "duration"]
+        sortProperties: ["+title"]
+		autoUpdate: true
+		filter: GalleryFilterIntersection {
+            filters: [
+                GalleryEqualsFilter {
+                    property: "albumTitle"
+                    value: filterAlbum.replace("'","\\'")
+                }
+            ]
+		}
+   }
+
 
     WAPage {
         id: mainPage;
@@ -355,7 +600,7 @@ WAStackWindow {
                 onDeleteConversation: appWindow.deleteConversation(jid);
             }
 
-            Contacts{
+            Contacts {
                 id: waContacts
                 height: parent.height
             }
@@ -381,6 +626,7 @@ WAStackWindow {
                     tab: waChats
                 }
                 TabButton {
+					id: contactsTabButton
                     platformStyle: TabButtonStyle{inverted: theme.inverted}
                     text: qsTr("Contacts")
                     // iconSource: "../images/icon-m-toolbar-list.png"
@@ -391,9 +637,9 @@ WAStackWindow {
             ToolIcon {
                 platformStyle: ToolButtonStyle{inverted:theme.inverted}
                 id:toolbar_menu_item
-                platformIconId: "toolbar-settings"
-
-                onClicked: { pageStack.push(settingsPage); }
+                platformIconId: "toolbar-view-menu"
+				onClicked: (waMenu.status === DialogStatus.Closed) ? waMenu.open() : waMenu.close()
+                //onClicked: { pageStack.push(settingsPage); }
 
             }
         }
@@ -403,8 +649,8 @@ WAStackWindow {
         id: waMenu
 
         Component.onCompleted: {
-                waMenu.syncClicked.connect(onSyncClicked)
-         }
+            waMenu.syncClicked.connect(onSyncClicked)
+		}
     }
 
     QueryDialog {
@@ -425,6 +671,16 @@ WAStackWindow {
         onAccepted: quit();
     }
 
+    QueryDialog {
+        id:aboutDialog
+        icon: "common/images/icons/wazapp80.png"
+        titleText: "Wazapp" //This should not be translated!
+        message: qsTr("version") + " " + waversion + "\n\n" + 
+                 qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
+				 qsTr("You are trying it at your own risk.") + "\n" + 
+				 qsTr("Please report any bugs to") + "\n" + "tarek@wazapp.im"
+ 
+    }
 
     QueryDialog {
         id: updateDialog

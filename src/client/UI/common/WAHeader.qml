@@ -27,13 +27,16 @@ Rectangle{
     height:100;
    // anchors.top:parent.top
     property alias title:pageTitle.text
+	property int bubbleCount: 0
     color:"transparent"
+	clip: true
 
     Image{
 	    id:wazapp_icon
 	    anchors.left: parent.left
-		anchors.leftMargin: 12
-	    anchors.verticalCenter: parent.verticalCenter
+		anchors.leftMargin: 16
+	    anchors.top: parent.top
+		anchors.topMargin: 18
 	    height:36
 	    width:height
 		smooth: true
@@ -46,7 +49,30 @@ Rectangle{
 	    font.pixelSize: 34
 	    anchors.verticalCenter: parent.verticalCenter
 	    anchors.left: wazapp_icon.right
-	    anchors.leftMargin: 12
+	    anchors.leftMargin: 14
+	}
+
+	Rectangle {
+		id: bubble
+		color: theme.inverted? "darkgray" : "lightgray"
+		opacity: theme.inverted? 0.2 : 0.8
+		radius: 14
+		smooth: true
+		width: counter.paintedWidth + 24
+		height: 32
+        visible: bubbleCount!=0
+		anchors.right: parent.right
+		anchors.rightMargin: 16
+		anchors.verticalCenter: parent.verticalCenter
+	}
+
+	Label {
+		id: counter
+		color: theme.inverted? "lightgray" : "gray"
+		font.pixelSize: 18
+		anchors.centerIn: bubble
+        text: bubbleCount
+		visible: bubbleCount!=0
 	}
 
 	Rectangle {

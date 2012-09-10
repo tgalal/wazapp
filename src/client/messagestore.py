@@ -18,10 +18,11 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from PySide import QtCore
 from PySide.QtCore import QObject
+from PySide.QtGui import QImage
 import time
 import datetime
 from wadebug import MessageStoreDebug
-
+import os
 
 class MessageStore(QObject):
 
@@ -82,7 +83,9 @@ class MessageStore(QObject):
 		else:
 			self.store.Groupmessage.delete({"groupconversation_id":conv.id, "id":msgid})
 
-	
+
+	def removeSingleContact(self, jid):
+		seld._d("Removing contact: "+jid);
 	
 	
 	def loadConversations(self):
@@ -96,11 +99,17 @@ class MessageStore(QObject):
 			
 			print "loaded messages"
 			
+			if "@g.us" in jid:
+				jname = jid.replace("@g.us","")
+				if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
+					img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+					img.save("/home/user/.cache/wazapp/contacts/" + jname + ".png")
+			
 			self.sendConversationReady(jid);
 			self.sendMessagesReady(jid,c.messages);
 		
 
-	def loadMessages(self,jid,offset=0, limit=10):
+	def loadMessages(self,jid,offset=0, limit=1):
 	
 		self._d("Load more messages requested");
 		
@@ -303,19 +312,14 @@ class MessageStore(QObject):
 			message.media_id = message.Media.id
 			
 		message.save();
-		
-		
-		
+	
 		self.conversations[jid] = conversation #to rebind new unread counts
 		self.conversations[jid].messages.append(message)
-		
-		
-		
-		
+	
 		if signal:
 			if not conversationLoaded:
 				self.sendConversationReady(jid)
-			
+		
 			self.sendMessagesReady(jid,[message]);
 			
 			

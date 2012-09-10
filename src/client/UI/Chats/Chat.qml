@@ -24,6 +24,7 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 
 import "js/chat.js" as ChatHelper
+import "../common/js/Global.js" as Helpers
 import "../common"
 
 
@@ -32,19 +33,84 @@ Rectangle{
 
     property string jid;
     property string subject;
+	property string owner;
     property string groupSubjectNotReady:qsTr("Fetching group subject")+"...";
     property bool isGroup:false
     property string title;//:ChatHelper.conversation.title;
     property variant lastMessage;
     property string picture;
     property int unreadCount;
+	property bool isOpenend:false
+	property string typing: "<i>" + qsTr("is writting a message...") + "</i>"
+
     signal clicked(string number);
     signal optionsRequested()
-    visible:lastMessage || isGroup ? true : false;
-    height: lastMessage || isGroup ? 102 : 0;
+
+    height: 102 //lastMessage || isGroup ? 102 : 0;
     color:"transparent"
 
     state:(!lastMessage)?"":(lastMessage.type==1?(isGroup && lastMessage.status == "pending"?"delivered":lastMessage.status):"received")
+
+
+	Connections {
+		target: appWindow
+		onGroupInfoUpdated: {
+			var data = groupInfoData.split("<<->>")
+			if (jid==groupId) {
+				consoleDebug("CONVERSATION JID: " + jid)
+				subject = data[2]
+				owner = data[1]
+			}
+		}
+		onOnContactPictureUpdated: {
+			if (jid == ujid) {
+				chat_picture.imgsource = ""
+				chat_picture.imgsource = picture
+			}
+		}	
+		onUpdatePushName: {
+			if (jid == ujid) {
+				if (title = jid.split('@')[0]) {
+					consoleDebug("Update push name in Chat")
+					chat_title.text = npush
+				}
+			}
+		}
+
+		onOnTyping: {
+			if (jid == ujid) 
+				last_msg.text = typing
+		}
+
+		onOnPaused: {
+			if (jid == ujid) 
+				last_msg.text = lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
+			  	    (lastMessage.type==20 ? qsTr("%1 has join the group").arg(getAuthor(lastMessage.content)) : 
+				    (lastMessage.type==21 ? qsTr("%1 has left the group").arg(getAuthor(lastMessage.content)) :
+				    (lastMessage.type==22 ? qsTr("%1 has changed the subject to %2").arg(getAuthor(lastMessage.author.jid)).arg(Helpers.emojify(lastMessage.content)) :
+					qsTr("%1 has changed the group picture").arg(getAuthor(lastMessage.content)) )))) :
+					qsTr("(no messages)")
+		}
+
+
+	}
+
+    function getAuthor(inputText) {
+		if (inputText==myAccount)
+			return qsTr("You")
+        var resp = inputText;
+        for(var i =0; i<contactsModel.count; i++)
+        {
+            if(resp == contactsModel.get(i).jid) {
+                resp = contactsModel.get(i).name;
+		    	if (resp.indexOf("@")>-1 && contactsModel.get(i).pushname!="")
+					resp = contactsModel.get(i).pushname;
+				break;
+			}
+        }
+
+		return resp.split('@')[0]
+    }
 
     function setConversation(c){
         ChatHelper.conversation = c;
@@ -60,11 +126,11 @@ Rectangle{
         jid = c.jid;
         subject = c.subject;
         title = c.title;
-        picture = c.picture;
+        picture = c.picture.indexOf("/home")>-1? c.picture : (isGroup? "../common/images/group.png" : "../common/images/user.png")
         lastMessage = c.lastMessage;
-        unreadCount =c.unreadCount;
-
-        if(lastMessage)
+        unreadCount = c.unreadCount;
+		isOpenend = c.opened;
+		if(lastMessage)
             waChats.moveToCorrectIndex(jid);
     }
 
@@ -111,7 +177,16 @@ Rectangle{
         id:mouseArea
         anchors.fill: parent
         onClicked: {
+			/*if (!ChatHelper.conversation.opened) {
+				ChatHelper.conversation.loadReverse = true
+				ChatHelper.conversation.loadMoreMessages(19)
+				ChatHelper.conversation.loadReverse = false
+			}*/
             ChatHelper.conversation.open();
+			if (isGroup && subject=="") {
+				consoleDebug("GETTING GROUP INFO FOR "+jid)
+				getGroupInfo(jid)
+			}
         }
         onPressAndHold: optionsRequested()
     }
@@ -164,6 +239,7 @@ Rectangle{
                     font.bold: true
 					font.pointSize: 18
                     verticalAlignment: Text.AlignVCenter
+					height: 30
                 }
 				Rectangle {
 					color: "gray"
@@ -183,31 +259,40 @@ Rectangle{
             Row{
                 spacing:5
                 width:parent.width
+				y: -2
 
                 Image {
                     id: status
-                    height: 18; width: 18
+                    height: lastMessage ? 16 : 0
+					width: 16
 					smooth: true
-                    y:5
+                    y: 5
  				}
                 Label{
                     id:last_msg
-                    text: lastMessage?lastMessage.content:"";
-                   	width:parent.width
+                    text: lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
+					  	  (lastMessage.type==20 ? qsTr("%1 has join the group").arg(getAuthor(lastMessage.content)) : 
+						  (lastMessage.type==21 ? qsTr("%1 has left the group").arg(getAuthor(lastMessage.content)) :
+						  (lastMessage.type==22 ? qsTr("%1 has changed the subject to %2").arg(getAuthor(lastMessage.author.jid)).arg(Helpers.emojify(lastMessage.content)) :
+						  qsTr("%1 has changed the group picture").arg(getAuthor(lastMessage.content)) )))) :
+						  qsTr("(no messages)")
+                   	width:parent.width -(status.visible?30:10)
                     elide: Text.ElideRight
                     font.pixelSize: 20
-                    height: 30
-                    verticalAlignment: Text.AlignVCenter
+                    height: 28
+                    color: text==typing ? "gray" : (unreadCount!=0 ? "#27a01b" : chat_title.color)
+					clip: true
                 }
             }
 
             Label{
-                id:last_msg_time
-                text:lastMessage?lastMessage.formattedDate:"";
+                id: last_msg_time
+                text: lastMessage? Helpers.getDateText(lastMessage.formattedDate).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday")) : ""
                 font.pixelSize: 16
 				color: "gray"
 				height: 30
                 width:parent.width
+				visible: text!==""
             }	    
         }
     }

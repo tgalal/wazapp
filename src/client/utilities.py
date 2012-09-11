@@ -24,7 +24,7 @@ class Utilities():
 
 	debug_mode = 1;
 	
-	waversion = "0.2.6.50"
+	waversion = "0.2.6.100"
 	
 
 	
@@ -41,25 +41,21 @@ class Utilities():
 	
 	@staticmethod
 	def getCountryCode():
-		#return "20";
 		net_info = QSystemNetworkInfo();
 		return net_info.homeMobileCountryCode();
 	
 	@staticmethod
 	def getMcc():
-		#return "602"
 		net_info = QSystemNetworkInfo();
 		return net_info.currentMobileCountryCode();
 	
 	@staticmethod
 	def getMnc():
-		#return "002"
 		net_info = QSystemNetworkInfo();
 		return net_info.currentMobileNetworkCode();
 		
 	@staticmethod
 	def getImei():
-		#return "355960045823461";
 		dev_info = QSystemDeviceInfo();
 		return dev_info.imei();
 	
@@ -126,12 +122,6 @@ class Utilities():
 
 	@staticmethod	
 	def getChatPassword():
-		
-		#return 'b0bf737944ddff59cf23c0db23d7fadb';
-		#imei = '123456789012345'
-		#imei = '355960045823461'
-		#imei =  '311334045241253'
-		
 		imei = Utilities.getImei();
 		
 		

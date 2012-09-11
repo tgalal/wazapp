@@ -28,7 +28,7 @@ from QtMobility.MultimediaKit import QMediaPlayer
 from wadebug import NotifierDebug
 
 class Notifier():
-	def __init__(self,audio=False,vibra=False):
+	def __init__(self,audio=False,vibra=True):
 		_d = NotifierDebug();
 		self._d = _d.d;
 		

@@ -242,6 +242,7 @@ class WAUI(QDeclarativeView):
 		password = self.store.account.password;
 		usePushName = self.store.account.pushName
 		resource = "Symbian-2.8.4-31110";
+		resource = "iPhone-2.8.3"
 		chatUserID = self.store.account.username;
 		domain ='s.whatsapp.net'
 		

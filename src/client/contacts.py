@@ -36,6 +36,7 @@ from constants import WAConstants
 import thread
 from wadebug import WADebug;
 import sys
+from constants import WAConstants
 
 class ContactsSyncer(WARequest):
 	'''
@@ -300,7 +301,7 @@ class WAContacts(QObject):
 					os.remove("/home/user/.cache/wazapp/contacts/" + name + ".vcf")
 				print "founded contact: " + c.displayLabel()
 				contacts.append(c)
-				openfile = QFile("/home/user/MyDocs/Wazapp/media/contacts/" + name + ".vcf")
+				openfile = QFile(WAConstants.VCARD_PATH + "/" + name + ".vcf")
 				openfile.open(QIODevice.WriteOnly)
 				if openfile.isWritable():
 					exporter = QVersitContactExporter()

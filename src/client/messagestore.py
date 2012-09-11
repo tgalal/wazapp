@@ -339,7 +339,7 @@ class MessageStore(QObject):
 		conversation.save()
 		
 		self.conversations[jid] = conversation;
-		self.sendConversationReady(conversation.jid)
+		self.sendConversationReady(jid)
 		
 		
 		

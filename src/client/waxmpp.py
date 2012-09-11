@@ -364,7 +364,7 @@ class WAEventHandler(WAEventBase):
 
 		self.conn.changeState(2);
 		#DISABLED CHECK FOR UPDATES FOR NOW
-		#self.updater.run()
+		self.updater.run()
 
 		#self.conn.disconnect()
 

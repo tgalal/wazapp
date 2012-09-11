@@ -22,7 +22,8 @@
 #include "warequest.h"
 #include <QDebug>
 
-const QString WARequest::userAgent = "WhatsApp/2.3.35 S40Version/04.60 Device/nokiac3-00";
+//const QString WARequest::userAgent = "WhatsApp/2.3.35 S40Version/04.60 Device/nokiac3-00";
+const QString WARequest::userAgent= "WhatsApp/2.8.13 S60Version/5.3 Device/C7-00"; //Now no more wazapp not supported error!
 
 WARequest::WARequest()
 {

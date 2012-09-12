@@ -47,7 +47,7 @@ class WAJsonRequest(WARequest):
 
 	def getUserAgent(self):
 		#agent = "WhatsApp/1.2 S40Version/microedition.platform";
-		agent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
+		agent = "WhatsApp/2.8.3 iPhone_OS/5.0.1 Device/Unknown_(iPhone4,1)";
 		return agent;	
 
 	def sendRequest(self):

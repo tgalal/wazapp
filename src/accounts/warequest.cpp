@@ -22,7 +22,9 @@
 #include "warequest.h"
 #include <QDebug>
 
-const QString WARequest::userAgent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
+//const QString WARequest::userAgent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
+const QString WARequest::userAgent = "WhatsApp/2.8.13 S60Version/5.3 Device/C7-00";
+
 
 WARequest::WARequest()
 {
@@ -106,13 +108,14 @@ void WARequest::sendRequest(QString url)
     qDebug()<< "SENDING";
 
     QNetworkRequest request;
-    request.setUrl(QUrl(url));
+    request.setUrl(QUrl(url+"?"+encodeUrl(params)));
 
     request.setRawHeader("User-Agent", userAgent.toAscii());
-    request.setRawHeader("Content-Type","application/x-www-form-urlencoded");
-    request.setRawHeader("Accept","text/xml");
+    //request.setRawHeader("Content-Type","application/x-www-form-urlencoded");
+    //request.setRawHeader("Accept","text/xml");
 
-    QNetworkReply *reply = manager->post(request,encodeUrl(params));
+    //QNetworkReply *reply = manager->post(request,encodeUrl(params));
+    QNetworkReply *reply = manager->get(request);
     reply->ignoreSslErrors();
 
     //connect(reply, SIGNAL(readyRead()), this, SLOT(readyRead()));
@@ -122,7 +125,7 @@ void WARequest::sendRequest(QString url)
             this, SLOT(sslError(QList<QSslError>)));
 
 
-    //qDebug()<< url;
+
    // qDebug()<<encodeUrl(params);
 
    // manager->get(request);

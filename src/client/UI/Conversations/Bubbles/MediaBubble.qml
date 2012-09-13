@@ -13,8 +13,9 @@ SpeechBubble {
     property string thumb;
     property int progress:0
     property variant media;
+	property bool showVideoIcon: false
 
-
+	property string localPath;
     property string transferState;
 
 	property bool loaded: false
@@ -36,7 +37,7 @@ SpeechBubble {
 
         switch(media.mediatype_id){
             case 2: {
-				thumb = !media.local_path ? "data:image/jpg;base64,"+media.preview : "file://"+media.local_path
+				thumb = media.preview? "data:image/jpg;base64,"+media.preview : "file://"+media.local_path
 				openButton.text = message=="" ? qsTr("Image") : message
 				break
 			}
@@ -46,20 +47,19 @@ SpeechBubble {
 				break
 			}
             case 4: {
-				thumb = "image://theme/icon-m-content-videos"
+				thumb = media.preview? "data:image/jpg;base64,"+media.preview : "image://theme/icon-m-content-videos"
 				openButton.text = message=="" ? qsTr("Video") : message
+				showVideoIcon = media.preview? true : false
 				break
 			}
             case 5: {
-				thumb = media.preview ? "data:image/jpg;base64,"+media.preview : 
-						"../common/images/content-location.png"
+				thumb = media.preview ? "data:image/jpg;base64,"+media.preview : "../common/images/content-location.png"
 				transferState = "success"
 				openButton.text = message=="" ? qsTr("Location") : message
 				break
 			}
             case 6: {
-				thumb = media.preview ? "data:image/jpg;base64,"+media.preview : 
-						"image://theme/icon-m-content-avatar-placeholder"
+				thumb = media.preview ? "data:image/jpg;base64,"+media.preview : "image://theme/icon-m-content-avatar-placeholder"
 				transferState = "success"
 				openButton.text = message
 				break
@@ -169,6 +169,7 @@ SpeechBubble {
 			y: name==="" ? -1 : name=="" ? - 22 : -29
             visible: thumb!=""
             imgsource: thumb
+			showVideo: showVideoIcon
 		}
 
         Item{
@@ -222,11 +223,7 @@ SpeechBubble {
                         uploadClicked()
                     else
                         downloadClicked()
-
-
                 }
-
-
             }
 
         }
@@ -241,7 +238,9 @@ SpeechBubble {
             anchors.top:buttonsHolder.bottom
             anchors.topMargin: 10
 			visible: state!="success"
-
+			platformStyle: ProgressBarStyle {
+				knownTexture: "../../common/images/progress" + (theme.inverted? "-inverted":"") + ".png"
+			}
         }
 
 

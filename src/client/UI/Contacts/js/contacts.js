@@ -35,6 +35,7 @@ function Contact(jid){
 	this.pushname = "";
 }
 
+
 function populateContacts(contacts)
 {
 
@@ -65,6 +66,7 @@ function populateContacts(contacts)
 
     for(var i =0; i<contacts.length; i++)
     {
+		//console.log("APPENDING CONTACT: " + contacts[i].jid + " - " + contacts[i].name)
         contactsModel.append(contacts[i]);
 
         var cachedConv =   conversations[contacts[i].jid];

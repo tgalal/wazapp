@@ -29,16 +29,16 @@ using namespace WA_UTILITIES::Utilities;
 
 WACodeRequest::WACodeRequest(QString cc, QString in, QString method)
 {
-    this->addParam("dot","1");
     this->addParam("cc",cc);
     this->addParam("in",in);
-    //this->addParam("to",cc+in);
-    this->addParam("lg","zz");
-    this->addParam("lc","ZZ");
+    this->addParam("to",cc+in);
+    this->addParam("lc","US");
+    this->addParam("lg","en");
     this->addParam("mcc",Utilities::getMcc());
     this->addParam("mnc",Utilities::getMnc());
+    this->addParam("imsi",Utilities::getImsi());
     this->addParam("method",method);
-    this->addParam("imsi", Utilities::getImsi());
+
 
     connect(this,SIGNAL(trigger(QString)),this,SLOT(sendRequest(QString)));
     connect(this,SIGNAL(done(QString)),this,SLOT(onDone(QString)));
@@ -54,7 +54,6 @@ void WACodeRequest::onDone(QString data)
 {
     QDomDocument document;
     document.setContent(data);
-
 
     QDomElement response= document.elementsByTagName("response").at(0).toElement();
 

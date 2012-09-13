@@ -62,19 +62,21 @@ WAPage {
 		contactStatus = MySettings.getSetting("Status", "")
 		contactNumber = myAccount.split('@')[0]
 		contactPicture = "/home/user/.cache/wazapp/contacts/" + contactNumber + ".png"
+		bigImage.source = ""
+		bigImage.source = "/home/user/.wazapp/cache/profile/" + profileUser.split('@')[0] + ".jpg"
 		getPicture(myAccount, "image")
 
 	}
 
 	Connections {
 		target: appWindow
-		onOnPictureUpdated: {
+		onOnContactPictureUpdated: {
 			if (myAccount == ujid) {
 				contactPicture = "/home/user/.cache/wazapp/contacts/" + contactNumber + ".png"
 				picture.imgsource = ""
 				picture.imgsource = contactPicture
 				bigImage.source = ""
-				bigImage.source = contactPicture.replace(".png",".jpg").replace("contacts","profile")
+				bigImage.source = "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
 			}
 		}
 		onStatusChanged: {
@@ -85,7 +87,7 @@ WAPage {
 	Image {
 		id: bigImage
 		visible: false
-		source: contactPicture.replace(".png",".jpg").replace("contacts","profile")
+		//source: contactPicture.replace(".png",".jpg").replace("contacts","profile")
 	}
 
 
@@ -108,10 +110,11 @@ WAPage {
 				width: size
 				imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
 				onClicked: { 
-					if (bigImage.height>0) 
-						bigProfileImage = contactPicture.replace(".png",".jpg").replace("contacts","profile")
-						pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-						//Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
+					if (bigImage.width>0) {
+						bigProfileImage = "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
+						//pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
+						Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
+					}
 				}
 			}
 

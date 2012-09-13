@@ -30,11 +30,11 @@ import "../Menu"
 WAPage {
     id: contactsContainer
 
-	state:"no_data"
+	//state:"no_data"
 
 	property alias indicator_state:wa_notifier.state
 
-	states: [
+	/*states: [
 		State {
 			name: "no_data"
 			PropertyChanges {
@@ -42,7 +42,7 @@ WAPage {
 				visible:true
 			}
 		}
-	]
+	]*/
 
     onStatusChanged: {
         if(status == PageStatus.Activating){
@@ -50,16 +50,10 @@ WAPage {
 		}
 	}
 
-    /*ListModel{
-        id:contactsModel
-    }*/
-
-
-     function pushContacts(contacts)
-     {
-       // console.log("AHOM"+contacts)
-        ContactsManager.populateContacts(contacts);
-     }
+    function pushContacts(contacts)
+    {
+		ContactsManager.populateContacts(contacts);
+    }
 
     function getOrCreateContact(c){
 
@@ -133,19 +127,19 @@ WAPage {
 
         Contact{
             property bool filtered: model.name.match(new RegExp(searchInput.text,"i")) != null
-            id:contactComp
+            id: contactComp
             height: filtered ? 80 : 0
 			visible: height!=0
             Component.onCompleted: {
                 ContactsManager.contactsViews.push(contactComp)
             }
 
-            jid:model.jid
-            picture:model.picture
+            jid: model.jid
+            picture: model.picture
             contactName: model.name
 			contactShowedName: searchInput.text.length>0 ? replaceText(model.name, searchInput.text) : model.name
-            contactStatus:model.status;
-            contactNumber:model.number
+            contactStatus: model.status? model.status : ""
+            contactNumber: model.number
 
 			onOptionsRequested: {
 				profileUser = model.jid
@@ -261,8 +255,8 @@ WAPage {
 
         Item{
         	anchors.fill: parent
-            visible:false;
-            id:no_data
+            visible: list_view1.count==0
+            id: no_data
 
             Label{
                 anchors.centerIn: parent;

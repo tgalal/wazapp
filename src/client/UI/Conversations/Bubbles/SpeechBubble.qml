@@ -46,7 +46,6 @@ Rectangle {
         return imageSrc;
     }
 
-
 	BorderImage {
 		anchors.top: parent.top
 		anchors.topMargin: from_me==1? 8 : from_me==2? 2 : 1

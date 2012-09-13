@@ -26,11 +26,12 @@ from Models.conversation import *
 from Models.mediatype import Mediatype
 from Models.media import Media
 from constants import WAConstants
+
 from wadebug import SqlDebug
 
 
 class LiteStore(DataStore):
-	db_dir = WAConstants.STORE_PATH
+	db_dir = os.path.expanduser('~/.wazapp');
 	
 	def __init__(self,current_id):
 		self._d = SqlDebug();

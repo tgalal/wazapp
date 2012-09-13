@@ -25,6 +25,6 @@ import com.nokia.meego 1.0
 //import com.nokia.extras 1.0
 
 Page {
-   orientationLock: settingsPage.orientation==2 ? PageOrientation.LockLandscape:
-                settingsPage.orientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+   orientationLock: appWindow.orientation==2 ? PageOrientation.LockLandscape:
+                appWindow.orientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
 }

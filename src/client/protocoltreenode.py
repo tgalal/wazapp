@@ -230,7 +230,7 @@ class BinTreeNodeReader():
 		ret = self.nextTreeInternal();
 		self._d("Incoming")
 		if ret is not None:
-			if 'picture type="' in ret.toString():
+			if '<picture type="' in ret.toString():
 				self._d("<Picture!!!>");
 			else:
 				self._d("\n%s"%ret.toString());
@@ -346,8 +346,6 @@ class BinTreeNodeWriter():
 		self.realOut.write(65);
 		self.realOut.write(1);
 		self.realOut.write(1);
-		#self.realOut.write(1);
-		#self.realOut.write(0);
 		
 		#self.out.write(0); ##HACK FOR WHAT BUFFER FLUSH SENDS IN JAVA
 		#self.out.write(26); ##HACK FOR WHAT BUFFER FLUSH SENDS IN JAVA
@@ -383,7 +381,7 @@ class BinTreeNodeWriter():
 			self.out.write(0);
 		else:
 			self._d("Outgoing");
-			self._d("\n%s"%node.toString());
+			#self._d("\n" + str(node.toString()));
 			self.writeInternal(node);
 		
 		self.flushBuffer(needsFlush);

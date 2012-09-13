@@ -9,6 +9,7 @@ Item {
     property bool rounded: imgsource.indexOf("image://")!=0
 	property string istate: "Loading..."
     property alias  asynchronous: image1.asynchronous
+	property bool showVideo: false
 
 	//signal clicked
 	//signal pressAndHold
@@ -44,6 +45,25 @@ Item {
                 if (image1.status==Image.Ready) istate="Loaded!";
 				if (image1.status==Image.Error) istate=imgsource;
             }
+
+			Rectangle {
+				id: rec
+				color: "black"
+				height: 20
+				width: parent.width
+				anchors.bottom: parent.bottom
+				opacity: 0.4
+				visible: showVideo
+			}
+			Image {
+				anchors.centerIn: rec
+				height: 16
+				width: 16
+				smooth: true
+				source: "../common/images/video-white.png"
+				visible: showVideo
+			}
+
         }
     }
 

@@ -56,7 +56,7 @@ Rectangle{
             PropertyChanges {
 
                 target: current_state
-                text:"Online"
+                text: qsTr("Online")
             }
             PropertyChanges{
                 target:status_indicator
@@ -70,7 +70,7 @@ Rectangle{
             name: "connecting"
             PropertyChanges {
                 target: current_state
-                text:"Connecting..."
+                text: qsTr("Connecting...")
 
             }
 
@@ -99,7 +99,7 @@ Rectangle{
             name: "offline"
             PropertyChanges {
                 target: current_state
-                text:"Offline"
+                text: qsTr("Offline")
 
             }
 

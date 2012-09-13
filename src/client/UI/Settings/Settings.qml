@@ -30,7 +30,7 @@ WAPage {
 	signal syncClicked();
 
     //property int bubbleColor:1
-    property int orientation
+    //property int orientation
 
     Component.onCompleted: {
 		MySettings.initialize()
@@ -268,6 +268,57 @@ WAPage {
 					setResizeImages(resizeImages)
 				}
 			}
+
+			GroupSeparator {
+				title: qsTr("Language")
+			}
+            SelectionItemTr {
+                title: qsTr("Current language")
+                model: ListModel {
+                    ListElement { name: "Albanian (Albania)"; value: "sq_AL" }
+                    ListElement { name: "Arabic"; value: "ar" }
+                    ListElement { name: "Arabic (Saudi Arabia)"; value: "ar_SA" }
+                    ListElement { name: "Basque (Spain)"; value: "eu_ES" }
+                    ListElement { name: "Bulgarian"; value: "bg" }
+                    ListElement { name: "Chinese"; value: "zh" }
+                    ListElement { name: "Chinese (Hong Kong)"; value: "zh_HK" }
+                    ListElement { name: "Chinese (Taiwan)"; value: "zh_TW" }
+                    ListElement { name: "Croatian"; value: "hr" }
+                    ListElement { name: "Czech"; value: "cs" }
+                    ListElement { name: "Dutch"; value: "nl" }
+                    ListElement { name: "English"; value: "en" }
+                    ListElement { name: "English (United Kingdom)"; value: "en_GB" }
+                    ListElement { name: "Finnish"; value: "fi" }
+                    ListElement { name: "French (France)"; value: "fr_FR" }
+                    ListElement { name: "German (Germany)"; value: "de_DE" }
+                    ListElement { name: "Hungarian (Hungary)"; value: "hu_HU" }
+                    ListElement { name: "Italian"; value: "it" }
+                    ListElement { name: "Portuguese (Brazil)"; value: "pt_BR" }
+                    ListElement { name: "Portuguese (Portugal)"; value: "pt_PT" }
+                    ListElement { name: "Romanian"; value: "ro" }
+                    ListElement { name: "Russian"; value: "ru" }
+                    ListElement { name: "Spanish"; value: "es" }
+                    ListElement { name: "Spanish (Argentina)"; value: "es_AR" }
+                    ListElement { name: "Spanish (Mexico)"; value: "es_MX" }
+                    ListElement { name: "Swedish (Finland)"; value: "sv_FI" }
+                    ListElement { name: "Turkish"; value: "tr" }
+                    ListElement { name: "Turkish (Turkey)"; value: "tr_TR" }
+                    ListElement { name: "Vietnamese (Viet Nam)"; value: "vi_VN" }
+                }
+				initialValue: MySettings.getSetting("Language", "en")
+                onValueChosen: { 
+					MySettings.setSetting("Language", value)
+					setLanguage(value)
+				}
+            }
+		    Label {
+		        id: subTitle
+		        color: "gray"
+		        verticalAlignment: Text.AlignVCenter
+		        text: qsTr("*Restart Wazapp to apply the new language")
+		        font.pixelSize: 20
+		    }
+
 
 		}
 

@@ -98,7 +98,7 @@ WAPage {
 			property string defaultPicture:"../common/images/user.png"
 			property string contactPicture: !picture || picture=="none" ? defaultPicture : picture
 			property string contactName: searchInput.text.length>0 ? replaceText(model.name, searchInput.text) : model.name
-			property string contactStatus: model.status;
+			property string contactStatus: model.status? model.status : ""
 			property string contactNumber: model.number
 			property bool isSelected: selectedContacts.indexOf(model.jid)>-1
 

@@ -4,6 +4,16 @@ import com.nokia.meego 1.0
 WAPage {
     id:container
 
+    onStatusChanged: {
+        if(status == PageStatus.Inactive) {
+			bigImage.source = ""
+		}
+        if(status == PageStatus.Activating) {
+			bigImage.source = "/images/video-white.png"
+			bigImage.source = bigProfileImage
+		}
+	}
+
     tools: ToolBarLayout {
         id: toolBar
         ToolIcon {
@@ -25,11 +35,13 @@ WAPage {
 		color: "transparent"
 
 		Image {
+			id: bigImage
 			anchors.centerIn: parent
-			source: bigProfileImage
+			//source: bigProfileImage
 			width: parent.width -10
 			height: parent.height -10
 			fillMode: Image.PreserveAspectFit
+			cache: false
 		}
 
 	}

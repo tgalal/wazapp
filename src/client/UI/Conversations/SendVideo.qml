@@ -45,24 +45,23 @@ WAPage {
 		height: 73
     }
 
-	Component.onCompleted: {
-		//console.log("SELECT DIALOG OPENED")
-		//galleryVideoModel.filter = myFilters
+    onStatusChanged: {
+        if(status == PageStatus.Inactive) {
+			galleryVideoModel.clear()
+		}
+        if(status == PageStatus.Active) {
+			galleryVideoModel.clear()
+			getVideoFiles()
+		}
 	}
 
-	/*GalleryFilterUnion {
-		id: myFilters
-    	filters: [
-			GalleryWildcardFilter {
-				property: "fileName";
-				value: "*.jpg";
-			},
-			GalleryWildcardFilter {
-				property: "fileName";
-				value: "*.png";
-			}
-		]
-	}*/
+    BusyIndicator {
+        id: busyIndicatorGridCollection
+        implicitWidth: 96
+        anchors.centerIn: parent
+        visible: view.count==0
+        running: visible
+    }
 
 	GridView {
 		id: view
@@ -76,14 +75,51 @@ WAPage {
 	    cacheBuffer: 1600
 	    pressDelay: 100
 	    maximumFlickVelocity: 3500
+		x: appWindow.inPortrait? 1 : 27
 
 		model: galleryVideoModel
 
-		delegate: Image {
-			source: "/home/user/.thumbnails/grid/" + Qt.md5(url) + ".jpeg"
+		delegate: Item {
 			width: 158
 			height: 158
-			smooth: true
+
+			Image {
+				id: image
+				source: thumb // "/home/user/.thumbnails/grid/" + Qt.md5(url) + ".jpeg"
+				width: 158
+				height: 158
+				fillMode: Image.PreserveAspectCrop
+				clip: true
+				smooth: true
+				cache: false
+				asynchronous: true
+
+				states: [
+				    State {
+				        name: 'loaded'; when: image.sourceSize.width>1
+				        PropertyChanges { target: image; scale: 1; opacity: 1; }
+				    },
+				    State {
+				        name: 'loading'; when: image.sourceSize.width<1
+				        PropertyChanges { target: image; scale: 1; opacity: 0; }
+				    }
+				]
+
+				transitions: Transition {
+				    NumberAnimation { properties: "scale, opacity"; easing.type: Easing.InOutQuad; duration: 1000 }
+				}
+
+				Connections {
+					target: appWindow
+					onThumbnailUpdated: {
+						if (image.sourceSize.width<1) {
+							image.source = ""
+							image.source = thumb
+						}
+					}
+				}
+
+			}
 
 			Rectangle {
 				id: rec
@@ -109,7 +145,7 @@ WAPage {
 	            id: mouseArea
 	            anchors.fill: parent
 	            onClicked: {
-					sendMediaVideoFile(currentJid, decodeURIComponent(url))
+					sendMediaVideoFile(currentJid, decodeURIComponent(url), thumb)
 					pageStack.pop()
 	            }
 	        }

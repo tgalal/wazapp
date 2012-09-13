@@ -22,7 +22,7 @@ from Models.mediatype import Mediatype
 
 class WAConstants():
 	
-	STORE_PATH = os.path.expanduser('~/.wazapp');
+	STORE_PATH = os.path.expanduser('~/MyDocs/Wazapp');
 	
 	MEDIA_PATH = STORE_PATH+'/media'
 	AUDIO_PATH = MEDIA_PATH+'/audio'

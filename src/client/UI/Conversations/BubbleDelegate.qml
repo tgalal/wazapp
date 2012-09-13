@@ -10,6 +10,7 @@ Item {
     width:bubbleDisplay.width
     height:bubbleDisplay.height;
 
+	property string jid;
     property int mediatype_id:1
     property string message;
     property string picture;
@@ -88,62 +89,95 @@ Item {
            onOptionsRequested: {
                delegateContainer.optionsRequested()
            }
-       }
+
+  		}
     }
 
     Component {
-       id: mediaDelegate
+		id: mediaDelegate
 
-       MediaBubble{
+		MediaBubble{
 
-           id:mediaBubble
+			id:mediaBubble
 
-           transferState:delegateContainer.media.transfer_status == 2?"success":
-                             (delegateContainer.media.transfer_status == 1?"failed":"init")
+			transferState: delegateContainer.media.transfer_status == 2?"success":
+						     (delegateContainer.media.transfer_status == 1?"failed":"init")
 
-           date:Helpers.getDateText(delegateContainer.date).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
-           from_me:delegateContainer.from_me
-           progress:delegateContainer.progress
-           name: delegateContainer.name
-           state_status:delegateContainer.state_status
-           media: delegateContainer.media //.preview?delegateContainer.media.preview:""
-           message: delegateContainer.message
-           bubbleColor:delegateContainer.bubbleColor;
+			date:Helpers.getDateText(delegateContainer.date).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
+			from_me:delegateContainer.from_me
+			progress:delegateContainer.progress
+			name: delegateContainer.name
+			state_status:delegateContainer.state_status
+			media: delegateContainer.media
+			localPath: delegateContainer.media.local_path
+			message: delegateContainer.message
+			bubbleColor:delegateContainer.bubbleColor;
 
-           onOptionsRequested: {
-               delegateContainer.optionsRequested()
-           }
+			Connections {
+				target: appWindow
 
-           onClicked: {
-               if(from_me==0 && delegateContainer.media.transfer_status != 2)
-                   return;
+				onMediaTransferProgressUpdated: {
+					if (media.id == mid) {
+						//consoleDebug("MESSAGE PROGRESS BUBBLE " + media.id + " - " + mprogress)
+						progress = mprogress
+					}
+				}
 
-               var prefix = "";
+				onMediaTransferSuccess: {
+					if (media.id == mid) {
+						consoleDebug("MESSAGE SENT! BUBBLE " + media.id + " - " + filepath)
+						transferState = 2
+						localPath = filepath
+						transferState = "success"
+						progress = 0
+					}
+				}
 
-               switch(delegateContainer.media.mediatype_id){
-                   case 5:prefix = "geo:"; break;
-                   default: prefix = "file://";break;
-               }
+				onMediaTransferError: {
+					if (media.id == mid) {
+						consoleDebug("MESSAGE ERROR BUBBLE " + media.id)
+						media.transfer_status = 1
+						transferState = "failed"
+						progress = 0
+					}
+				}
 
-			   consoleDebug("OPENING: " + prefix + decodeURIComponent(delegateContainer.media.local_path))
-               Qt.openUrlExternally( prefix + decodeURIComponent(delegateContainer.media.local_path) );
-           }
+			}
 
-           onUploadClicked: {
-               if(delegateContainer.isGroup)
-               		appWindow.uploadGroupMedia(delegateContainer.media.id);
-               else
+			onOptionsRequested: {
+		   		delegateContainer.optionsRequested()
+			}
+
+			onClicked: {
+		   		if(from_me==0 && transferState!="success")
+		   			return;
+
+		   		var prefix = "";
+
+	   			switch(delegateContainer.media.mediatype_id) {
+					case 5:prefix = "geo:"; break;
+					default: prefix = "file://"; break;
+		   		}
+
+				consoleDebug("OPENING: " + prefix + decodeURIComponent(localPath))
+				Qt.openUrlExternally( prefix + decodeURIComponent(localPath) );
+			}
+
+			onUploadClicked: {
+	   			if(delegateContainer.isGroup)
+			   		appWindow.uploadGroupMedia(delegateContainer.media.id);
+		   		else
 					appWindow.uploadMedia(delegateContainer.media.id);
-           }
+			}
 
-           onDownloadClicked: {
-               if(delegateContainer.isGroup)
-               		appWindow.fetchGroupMedia(delegateContainer.media.id);
-               else
+			onDownloadClicked: {
+		   		if(delegateContainer.isGroup)
+			   		appWindow.fetchGroupMedia(delegateContainer.media.id);
+		   		else
 					appWindow.fetchMedia(delegateContainer.media.id);
-           }
+			}
 
-       }
+		}
     }
 
     Loader {

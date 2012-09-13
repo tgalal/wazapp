@@ -22,8 +22,9 @@ class Contact(Model):
 	def __init__(self):
 		self.name = "";
 		self.picture = "none";
+		self.pictureid = "";
 		self.alphabet = "";
-		self.pushname = "";
+		self.iscontact = "";
 	
 	def setRealTimeData(self,name,picture):
 		if name == '':
@@ -31,26 +32,28 @@ class Contact(Model):
 		self.name = name;
 		self.picture = picture;
 		self.alphabet = name[0].upper();
-		self.pushname = self.pushname
+		self.iscontact = "yes"
 		
 		self.modelData.append("name");
 		self.modelData.append("picture");
+		self.modelData.append("pictureid");
 		self.modelData.append("alphabet");
-		self.modelData.append("pushname");
+		self.modelData.append("iscontact");
 		
 
-	def setRealTimeDataPush(self,name,pushname):
+	def setRealTimeDataPush(self,name,picture):
 		if name == '':
 			return
 		self.name = name;
-		self.picture = self.picture;
+		self.picture = picture;
 		self.alphabet = name[0].upper();
-		self.pushname = pushname
+		self.iscontact = "no"
 
 		self.modelData.append("name");
 		self.modelData.append("picture");
+		self.modelData.append("pictureid");
 		self.modelData.append("alphabet");
-		self.modelData.append("pushname");
+		self.modelData.append("iscontact");
 
 	def getOrCreateContactByJid(self,jid):
 		
@@ -58,7 +61,7 @@ class Contact(Model):
 		
 		if not contact:
 			contact = self.create()
-			contact.setData({"jid":jid,"number":jid.split('@')[0]})
+			contact.setData({"jid":jid,"number":jid.split('@')[0],"iscontact":"no","pictureid":""})
 			contact.save()
 		
 		return contact

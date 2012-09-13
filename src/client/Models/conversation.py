@@ -52,7 +52,7 @@ class Conversation(Model):
 		self.save();
 		
 		
-	def loadMessages(self,offset = 0,limit=10):
+	def loadMessages(self,offset = 0,limit=1):
 		conditions = {"conversation_id":self.id}
 		
 		if offset:
@@ -105,7 +105,6 @@ class Groupconversation(Model):
 	def getOwner(self):
 		if not self.contact_id:
 			return 0
-			
 		if not self.Contact.id:
 			self.Contact = self.Contact.read(self.contact_id);
 
@@ -123,7 +122,7 @@ class Groupconversation(Model):
 		
 		inter.save()
 		
-	def loadMessages(self,offset = 0,limit=10):
+	def loadMessages(self,offset = 0,limit=1):
 		
 		conditions = {"groupconversation_id":self.id}
 		

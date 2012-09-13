@@ -98,8 +98,21 @@ powervr.path =  /etc/powervr.d
 
 INSTALLS += powervr
 
-translation.files = lang/tr_es.ts \
-                    lang/tr_es.qm
+translation.files = qml/waxmppplugin/i18n/en.qm \
+                    qml/waxmppplugin/i18n/ar.qm \
+                    qml/waxmppplugin/i18n/bg.qm \
+                    qml/waxmppplugin/i18n/de.qm \
+                    qml/waxmppplugin/i18n/es.qm \
+                    qml/waxmppplugin/i18n/eu.qm \
+                    qml/waxmppplugin/i18n/fa.qm \
+                    qml/waxmppplugin/i18n/hr.qm \
+                    qml/waxmppplugin/i18n/it.qm \
+                    qml/waxmppplugin/i18n/nl.qm \
+                    qml/waxmppplugin/i18n/ru.qm \
+                    qml/waxmppplugin/i18n/sq.qm \
+                    qml/waxmppplugin/i18n/tr.qm \
+                    qml/waxmppplugin/i18n/vi.qm
+
 translation.path = /opt/waxmppplugin/qml/waxmppplugin/i18n
 INSTALLS += translation
 
@@ -125,6 +138,14 @@ notificationconf.files = wazapp.message.new.conf
 notificationconf.path = /usr/share/meegotouch/notifications/eventtypes
 
 INSTALLS += notificationconf
+
+
+notificationicons.files = icon-m-low-power-mode-wazapp.png \
+                          icon-s-status-notifier-wazapp.png
+notificationicons.path = /usr/share/themes/blanco/meegotouch/icons
+
+INSTALLS += notificationicons
+
 
 HEADERS += \
     waaccount.h \

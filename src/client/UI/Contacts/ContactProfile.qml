@@ -43,18 +43,22 @@ WAPage {
 	property string contactNumber
 	property string contactPicture: "../common/images/user.png"
 	property string contactStatus
+	property bool inContacts
 
 	Component.onCompleted: {
-		getInfo()
+		getInfo("YES")
 	}
 
-	function getInfo() {
+	function getInfo(updatepicture) {
         for(var i =0; i<contactsModel.count; i++) {
-            if(contactsModel.get(i).jid == profileUser) {
+			if(contactsModel.get(i).jid == profileUser) {
                 contactPicture = contactsModel.get(i).picture
 				contactName = contactsModel.get(i).name
-				contactStatus = contactsModel.get(i).status
+				contactStatus = contactsModel.get(i).status? contactsModel.get(i).status : ""
 				contactNumber = contactsModel.get(i).number
+				inContacts = contactsModel.get(i).iscontact=="yes"
+				bigImage.source = ""
+				bigImage.source = "/home/user/.wazapp/cache/profile/" + profileUser.split('@')[0] + ".jpg"
 				break;
 			}
         }
@@ -62,29 +66,37 @@ WAPage {
 			contactName = qsTr("Unknown contact")
 			contactNumber = profileUser.split('@')[0]
 		}
-		//getPictureIds(profileUser) USELESS!
-		getPicture(profileUser, "image")
+		if (updatepicture=="YES")
+			getPicture(profileUser, "image")
 
 	}
 
 	Connections {
 		target: appWindow
-		onRefreshSuccessed: { getInfo(); statusButton.enabled=true; }
-		onRefreshFailed: { statusButton.enabled=true; }
-		onOnPictureUpdated: {
+		onRefreshSuccessed: statusButton.enabled=true
+		onRefreshFailed: statusButton.enabled=true
+		onOnContactPictureUpdated: {
 			if (profileUser == ujid) {
+				getInfo("NO")
 				picture.imgsource = ""
 				picture.imgsource = contactPicture
 				bigImage.source = ""
-				bigImage.source = contactPicture.replace(".png",".jpg").replace("contacts","profile")
+				bigImage.source = "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
 			}
-		}	
+		}
+		onContactStatusUpdated: {
+			if (contactForStatus == profileUser) {
+				contactStatus = nstatus
+				statuslabel.text = Helpers.emojify(contactStatus)
+			}
+		}
 	}
 
 	Image {
 		id: bigImage
 		visible: false
-		source: contactPicture.replace(".png",".jpg").replace("contacts","profile")
+		//source: contactPicture.replace(".png",".jpg").replace("contacts","profile")
+		cache: false
 	}
 
     Flickable {
@@ -115,10 +127,11 @@ WAPage {
 					width: size
 					imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
 					onClicked: { 
-						if (bigImage.height>0)
-							bigProfileImage = contactPicture.replace(".png",".jpg").replace("contacts","profile")
-							pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-							//Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
+						if (bigImage.width>0) {
+							bigProfileImage = "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
+							//pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
+							Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
+						}
 					}
 				}
 
@@ -135,6 +148,7 @@ WAPage {
 					}
 
 					Label {
+						id: statuslabel
 						font.pixelSize: 22
 						color: "gray"
 						visible: contactStatus!==""
@@ -155,11 +169,12 @@ WAPage {
 				width: parent.width
 				font.pixelSize: 22
 				text: qsTr("Update status")
-				visible: contactStatus!==""
+				visible: profileUser.indexOf("g.us")==-1
 				onClicked: { 
 					updateSingleStatus=true
 					statusButton.enabled=false
-					refreshContacts(contactNumber)
+					contactForStatus = profileUser
+					refreshContacts("STATUS", contactNumber)
 				}
 			}
 
@@ -236,7 +251,7 @@ WAPage {
 				width: parent.width
 				font.pixelSize: 22
 				text: qsTr("Add to contacts")
-				visible: contactName==qsTr("Unknown contact")
+				visible: !inContacts
 		        onClicked: Qt.openUrlExternally("tel:"+contactNumber)
 			}
 

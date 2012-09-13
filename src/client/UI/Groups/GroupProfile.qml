@@ -179,7 +179,7 @@ WAPage {
 			working = false
 		}
 		
-		onOnContactUpdated: {
+		onOnContactPictureUpdated: {
 			if (profileUser == ujid) {
 				picture.imgsource = ""
 				picture.imgsource = groupPicture
@@ -228,10 +228,11 @@ WAPage {
 					width: size
 					imgsource: groupPicture
 					onClicked: { 
-						if (bigImage.height>0) 
+						if (bigImage.height>0) {
 							bigProfileImage = groupPicture.replace(".png",".jpg").replace("contacts","profile")
-							pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-							//Qt.openUrlExternally(groupPicture.replace(".png",".jpg").replace("contacts","profile"))
+							//pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
+							Qt.openUrlExternally(groupPicture.replace(".png",".jpg").replace("contacts","profile"))
+						}
 					}
 				}
 
@@ -343,7 +344,7 @@ WAPage {
 						anchors.fill: parent
 						onClicked: {
 							getCurrentContacts()
-							pageStack.push (Qt.resolvedUrl("AddContacts.qml")) 
+							pageStack.push (addContacts) 
 						}
 					}
 				}				

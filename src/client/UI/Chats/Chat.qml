@@ -41,7 +41,6 @@ Rectangle{
     property string picture;
     property int unreadCount;
 	property bool isOpenend:false
-	property string typing: "<i>" + qsTr("is writting a message...") + "</i>"
 
     signal clicked(string number);
     signal optionsRequested()
@@ -78,19 +77,29 @@ Rectangle{
 		}
 
 		onOnTyping: {
-			if (jid == ujid) 
-				last_msg.text = typing
+			if (jid == ujid) {
+				last_msg.visible = false
+				isWritting.visible = true
+			}
 		}
 
 		onOnPaused: {
-			if (jid == ujid) 
-				last_msg.text = lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
-			  	    (lastMessage.type==20 ? qsTr("%1 has join the group").arg(getAuthor(lastMessage.content)) : 
-				    (lastMessage.type==21 ? qsTr("%1 has left the group").arg(getAuthor(lastMessage.content)) :
-				    (lastMessage.type==22 ? qsTr("%1 has changed the subject to %2").arg(getAuthor(lastMessage.author.jid)).arg(Helpers.emojify(lastMessage.content)) :
-					qsTr("%1 has changed the group picture").arg(getAuthor(lastMessage.content)) )))) :
-					qsTr("(no messages)")
+			if (jid == ujid) {
+				last_msg.visible = true
+				isWritting.visible = false
+			}
 		}
+
+		/*onOnMessageSent: {
+			if (ujid==jid && lastMessage.msg_id==mid)
+				consoleDebug("CHAT WINDOW: MESSAGE SENT")
+				container.state= (!lastMessage)?"":(lastMessage.type==1?(isGroup && lastMessage.status == "pending"?"delivered":lastMessage.status):"received")
+		}
+
+		onOnMessageDelivered: {
+			if (ujid==jid && lastMessage.msg_id==mid)
+				container.state= (!lastMessage)?"":(lastMessage.type==1?(isGroup && lastMessage.status == "pending"?"delivered":lastMessage.status):"received")
+		}*/
 
 
 	}
@@ -264,11 +273,12 @@ Rectangle{
                 Image {
                     id: status
                     height: lastMessage ? 16 : 0
+					visible: !isWritting.visible
 					width: 16
 					smooth: true
                     y: 5
  				}
-                Label{
+                Label {
                     id:last_msg
                     text: lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
 					  	  (lastMessage.type==20 ? qsTr("%1 has join the group").arg(getAuthor(lastMessage.content)) : 
@@ -280,9 +290,19 @@ Rectangle{
                     elide: Text.ElideRight
                     font.pixelSize: 20
                     height: 28
-                    color: text==typing ? "gray" : (unreadCount!=0 ? "#27a01b" : chat_title.color)
+                    color: unreadCount!=0 ? "#27a01b" : chat_title.color
 					clip: true
                 }
+				Label {
+					id: isWritting
+					visible: false
+					text: "<i>" + qsTr("is writting a message...") + "</i>"
+                    elide: Text.ElideRight
+                    font.pixelSize: 20
+                    height: 28
+                    color: "gray"
+					clip: true
+				}
             }
 
             Label{

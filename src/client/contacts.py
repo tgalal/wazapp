@@ -42,14 +42,24 @@ class ContactsSyncer(WARequest):
 	'''
 	Interfaces with whatsapp contacts server to get contact list
 	'''
-	contactsRefreshSuccess = QtCore.Signal();
+	contactsRefreshSuccess = QtCore.Signal(str,str);
 	contactsRefreshFail = QtCore.Signal();
 	contactsSyncStatus = QtCore.Signal(str);
 
-	def __init__(self,store,userid):
+	def __init__(self,store,mode,userid):
 		WADebug.attach(self);
 		self.store = store;
+		self.mode = mode
 		self.uid = userid;
+		self.parts = []
+		self.cn = ""
+		if mode == "SYNC":
+			cn = ""
+			c = WAContacts(self.store);
+			phoneContacts = c.getPhoneContacts();
+			for c in phoneContacts:
+				self.cn = self.cn + str(c[2]) + ","
+			self.parts = self.cn.split(',')
 		self.base_url = "sro.whatsapp.net";
 		self.req_file = "/client/iphone/bbq.php";
 		super(ContactsSyncer,self).__init__();
@@ -59,19 +69,18 @@ class ContactsSyncer(WARequest):
 		self.contactsSyncStatus.emit("GETTING");
 		self.clearParams();
 
-		if self.uid == "ALL":
-			cm = ContactsManager();
-			phoneContacts = cm.getContacts();
-			for c in phoneContacts:
-				self.addParam("u[]",c['number'])
+		if self.mode == "STATUS":
+			if self.uid[:2] == self.store.account.cc:
+				self.uid = "+" + self.uid
+			print "Sync contact for status: " + self.uid
+			self.addParam("u[]", self.uid)
 
-		else:
-			parts = self.uid.split(',')
-			for part in parts:
+		elif self.mode == "SYNC":
+			for part in self.parts:
 				if part != "undefined":
-					self._d("ADDING CONTACT FOR SYNC " + part)
+					#self._d("ADDING CONTACT FOR SYNC " + part)
 					self.addParam("u[]",part)
-		
+
 		self.addParam("me",self.store.account.phoneNumber);
 		self.addParam("cc",self.store.account.cc)
 
@@ -91,27 +100,47 @@ class ContactsSyncer(WARequest):
 		data = minidom.parseString(data);
 		contacts = data.getElementsByTagName("s");
 	
-		for c in contacts:
-			self.contactsSyncStatus.emit("LOADING");
-			contactObj = self.store.Contact.create();
-			is_valid = False;
 
-			for (name, value) in c.attributes.items():
-				if name == "p":
-					contactObj.number = value
-				elif name == "jid":
-					contactObj.jid = value
-				elif name == "t":
-					is_valid = True
+		if self.mode == "STATUS":
+			newStatus = ""
+			for c in contacts:
+				is_valid = False;
+				newSatus = c.firstChild.data.encode('utf-8') if c.firstChild is not None else ""
+				for (name, value) in c.attributes.items():
+					if name == "p":
+						number = value
+					elif name == "jid":
+						jid = value
+					elif name == "t":
+						is_valid = True
 
-			if is_valid:
-				contactObj.status = c.firstChild.data.encode('utf-8') if c.firstChild is not None else ""
-				matchingContact =  self.store.Contact.findFirst({"jid":contactObj.jid});
-				contactObj.id = matchingContact.id if matchingContact else 0;
-				contactObj.save();
+				if is_valid:
+					contact = self.store.Contact.getOrCreateContactByJid(jid)
+					contact.status = newSatus
+					contact.save()
+					self.contactsRefreshSuccess.emit(self.mode, contact.status);	
 
-				
-		self.contactsRefreshSuccess.emit();
+		else:
+			for c in contacts:
+				self.contactsSyncStatus.emit("LOADING");
+				is_valid = False;
+				jid = ""
+				newSatus = c.firstChild.data.encode('utf-8') if c.firstChild is not None else ""
+				for (name, value) in c.attributes.items():
+					if name == "p":
+						number = value
+					elif name == "jid":
+						jid = value
+					elif name == "t":
+						is_valid = True
+
+				if is_valid and number[-8:] in self.cn:
+					contact = self.store.Contact.getOrCreateContactByJid(jid)
+					contact.status = newSatus
+					contact.save()
+
+			self.contactsRefreshSuccess.emit(self.mode, "");	
+
 		
 	def onRefreshing(self):
 		self.start();
@@ -127,10 +156,12 @@ class ContactsSyncer(WARequest):
 class WAContacts(QObject):
 
 	refreshing = QtCore.Signal();
-	contactsRefreshed = QtCore.Signal();
+	contactsRefreshed = QtCore.Signal(str,str);
 	contactsRefreshFailed = QtCore.Signal();
 	contactsSyncStatusChanged = QtCore.Signal(str);
 	contactUpdated = QtCore.Signal(str);
+	contactPictureUpdated = QtCore.Signal(str);
+	contactAdded = QtCore.Signal(str);
 	contactExported = QtCore.Signal(str,str);
 
 	def __init__(self,store):
@@ -142,15 +173,15 @@ class WAContacts(QObject):
 		
 		
 	
-	def initiateSyncer(self, userid):
-		self.syncer = ContactsSyncer(self.store,userid);
+	def initiateSyncer(self, mode, userid):
+		self.syncer = ContactsSyncer(self.store, mode, userid);
 		#self.syncer.done.connect(self.syncer.updateContacts);
 		self.syncer.contactsRefreshSuccess.connect(self.contactsRefreshed);
 		self.syncer.contactsRefreshFail.connect(self.contactsRefreshFailed);
 		self.syncer.contactsSyncStatus.connect(self.contactsSyncStatusChanged);
 
-	def resync(self, userid=None):
-		self.initiateSyncer(userid);
+	def resync(self, mode, userid=None):
+		self.initiateSyncer(mode, userid);
 		self.refreshing.emit();
 		self.syncer.start();
 		
@@ -177,37 +208,18 @@ class WAContacts(QObject):
 		Painter.end()
 		PixmapToBeMasked.save("/home/user/.cache/wazapp/contacts/" + jname + ".png", "PNG")
 		#os.remove("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
-		self.contactUpdated.emit(jid);
+		self.contactPictureUpdated.emit(jid);
 
 
-	def updateContactPushName(self,jid,pushname):
-		jname = jid.replace("@s.whatsapp.net","")
-		contacts = self.store.Contact.fetchAll();
 
-		exists = False
-		for wc in contacts:
-			if wc.jid == jid:
-				exists = True
-
-		contact = self.store.Contact.getOrCreateContactByJid(jid)
-		contact.pushname = pushname
-		contact.save()
-		#self.store.cacheContacts(self.contacts);
-		
-		if exists is True:
-			print "Contact already exists, emitting update signal."
-			self.contactUpdated.emit(jid);
-		else:
-			print "Contact doesn't exists, populating..."
-			self.contactsRefreshed.emit();
-				
 	def checkPicture(self,jname,imagepath):
 		if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
 			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
 			if imagepath is not "":
-				user_img = QImage(QUrl(imagepath).toString().replace("file://",""))
-			if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
-				user_img = QImage("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+				if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
+					user_img = QImage("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+				else:
+					user_img = QImage(QUrl(imagepath).toString().replace("file://",""))
 			mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
 			preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
 			PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
@@ -243,32 +255,34 @@ class WAContacts(QObject):
 		for wc in contacts:
 			jname = wc.jid.replace("@s.whatsapp.net","")
 			founded = False
+			myname = ""
 			for c in phoneContacts:
-				if wc.number == c['number']:
+				if wc.number[-8:] == c['number'][-8:]:
 					founded = True
 					self.checkPicture(jname,c['picture'])
 					c['picture'] = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
-					wc.setRealTimeData(c['name'],c['picture']);
+					myname = c['name']
+					wc.setRealTimeData(myname,c['picture']);
 					break;
 
-			if founded is False:
+			if founded is False and wc.number is not None:
 				self.checkPicture(jname,"")
-				c['name'] = wc.pushname if wc.pushname is not None else ""
-				c['picture'] = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
-				wc.setRealTimeData(c['name'],c['picture']);
+				myname = wc.pushname.decode("utf8") if wc.pushname is not None else ""
+				mypicture = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
+				wc.setRealTimeDataPush(myname,mypicture);
 
 			if wc.status is not None:
 				wc.status = wc.status.decode('utf-8');
 			if wc.pushname is not None:
 				wc.pushname = wc.pushname.decode('utf-8');
 
-			if c['name'] is not "":
+			if myname is not "":
 				tmp.append(wc.getModelData());
 				self.contacts[wc.number] = wc;
 
 					
 		self.store.cacheContacts(self.contacts);
-		return sorted(tmp, key=lambda k: k['name'].upper()) ;
+		return sorted(tmp, key=lambda k: k['name'].upper());
 
 
 
@@ -351,7 +365,6 @@ class ContactsManager(QObject):
 			avatars = contact.details(QContactAvatar.DefinitionName);
 			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else WAConstants.DEFAULT_CONTACT_PICTURE;
 			label =  contact.displayLabel();
-			#cid =  contact.id();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 			allnumbers = []
 

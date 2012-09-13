@@ -74,7 +74,7 @@ WAPage {
             }
         }
  
-        PinchArea {
+        /*PinchArea {
             id: pincharea
             enabled: false
             anchors.fill: parent
@@ -110,7 +110,7 @@ WAPage {
                 }
                 pincharea.enabled = false
             }
-        }
+        }*/
     }
 
 

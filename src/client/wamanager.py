@@ -88,8 +88,8 @@ class WAManager():
 		self.app.focusChanged.connect(gui.focusChanged)
 		gui.quit.connect(self.quit);
 
-		gui.populatePhoneContacts();
-		gui.populateContacts();
+		#gui.populatePhoneContacts();
+		gui.populateContacts("ALL");
 		
 		gui.populateConversations();
 		print "SHOW FULL SCREEN"

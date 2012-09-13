@@ -8,6 +8,8 @@
             <credential name="GRP::metadata-users" />
             <credential name="Cellular" />
             <credential name="Location" />
+            <credential name="GRP::video" />
+            <credential name="GRP::pulse-access" />
             <for path="/opt/waxmppplugin/bin/waxmppplugin" />
             <for path="/opt/waxmppplugin/bin/waxmppaccount" />
             <for path="/opt/waxmppplugin/bin/wazapp/wazapp" />

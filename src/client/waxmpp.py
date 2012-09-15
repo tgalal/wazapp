@@ -481,7 +481,7 @@ class WAEventHandler(WAEventBase):
 
 	def sendVCard(self,jid,contactName):
 		contactName = contactName.encode('utf-8')
-		self._d("Sending vcard: " + "/home/user/MyDocs/Wazapp/media/contacts/" + contactName + ".vcf")
+		self._d("Sending vcard: " + WAConstants.VCARD_PATH + "/" + contactName + ".vcf")
 
 		stream = ""
 		while not "END:VCARD" in stream:
@@ -1994,7 +1994,7 @@ class WAXMPP():
 		contactName = fmsg.content
 		media = fmsg.getMedia()
 		preview = media.preview
-		f = open("/home/user/MyDocs/Wazapp/media/contacts/"+contactName+".vcf", 'r')
+		f = open(WAConstants.VCARD_PATH + "/" + contactName+".vcf", 'r')
 		stream = f.read()
 		f.close()
 		cardNode = ProtocolTreeNode("vcard",{"name":fmsg.content},None,stream);

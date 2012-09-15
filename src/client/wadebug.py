@@ -1,4 +1,5 @@
 from utilities import Utilities
+from constants import WAConstants
 import time
 
 class WADebug():
@@ -38,7 +39,7 @@ class WADebug():
 		if not "Sql:" in logline:
 			try:
 				# This tries to open an existing file but creates a new file if necessary.
-				logfile = open("/home/user/.wazapp/log.txt", "a")
+				logfile = open(WAConstants.STORE_PATH + "/log.txt", "a")
 				try:
 					logfile.write(logline)
 				finally:

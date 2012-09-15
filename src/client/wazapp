@@ -33,10 +33,10 @@ from PySide import QtCore
 	
 if __name__ == "__main__":
 
-	if os.path.isfile("/home/user/.wazapp/log.txt"):
-		os.rename("/home/user/.wazapp/log.txt","/home/user/.wazapp/previows-log.txt")
-	if not os.path.exists("/home/user/MyDocs/Wazapp/media/contacts"):
-		os.makedirs("/home/user/MyDocs/Wazapp/media/contacts")
+	if os.path.isfile(WAConstants.STORE_PATH + "/log.txt"):
+		os.rename(WAConstants.STORE_PATH +"/log.txt",WAConstants.STORE_PATH + "previews-log.txt")
+	if not os.path.exists(WAConstants.VCARD_PATH):
+		os.makedirs(WAConstants.VCARD_PATH)
 
 	linuxCodec = QtCore.QTextCodec.codecForName("UTF-8")
 	QtCore.QTextCodec.setCodecForTr(linuxCodec)
@@ -46,8 +46,8 @@ if __name__ == "__main__":
 	app = QApplication(sys.argv)
 
 	translator = QtCore.QTranslator()
-	if os.path.isfile("/home/user/.wazapp/language.qm"):
-		translator.load("/home/user/.wazapp/language.qm")
+	if os.path.isfile(WAConstants.STORE_PATH + "/language.qm"):
+		translator.load(WAConstants.STORE_PATH + "/language.qm")
 		app.installTranslator(translator)
 
 	#PySide.QtGui.QErrorMessage.qtHandler().show()

@@ -37,6 +37,7 @@ import os, shutil, glob, time, hashlib
 from subprocess import call
 import Image
 from PIL.ExifTags import TAGS
+from constants import WAConstants
 #from QtMobility.MultimediaKit import QCamera, QCameraViewfinder, QCameraImageCapture
 
 class WAUI(QDeclarativeView):
@@ -179,9 +180,9 @@ class WAUI(QDeclarativeView):
 		#reg.start();
 		
 	def setLanguage(self,lang):
-		if os.path.isfile("/home/user/.wazapp/language.qm"):
-			os.remove("/home/user/.wazapp/language.qm")
-		shutil.copyfile("/opt/waxmppplugin/bin/wazapp/i18n/" + lang + ".qm", "/home/user/.wazapp/language.qm")
+		if os.path.isfile(WAConstants.STORE_PATH + "/language.qm"):
+			os.remove(WAConstants.STORE_PATH + "/language.qm")
+		shutil.copyfile("/opt/waxmppplugin/bin/wazapp/i18n/" + lang + ".qm", WAConstants.STORE_PATH + "/language.qm")
 
 
 	def consoleDebug(self,text):

@@ -18,15 +18,20 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 
 from model import Model;
+import os
+
+parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.sys.path.insert(0,parentdir)
+from constants import WAConstants
 
 class Mediatype(Model):
-	
-	TYPE_TEXT	= 1
-	TYPE_IMAGE	= 2
-	TYPE_AUDIO	= 3
-	TYPE_VIDEO	= 4
-	TYPE_LOCATION	= 5
-	TYPE_VCARD	= 6
+
+	TYPE_TEXT	= WAConstants.MEDIA_TYPE_TEXT
+	TYPE_IMAGE	= WAConstants.MEDIA_TYPE_IMAGE
+	TYPE_AUDIO	= WAConstants.MEDIA_TYPE_AUDIO
+	TYPE_VIDEO	= WAConstants.MEDIA_TYPE_VIDEO
+	TYPE_LOCATION	= WAConstants.MEDIA_TYPE_LOCATION
+	TYPE_VCARD	= WAConstants.MEDIA_TYPE_VCARD
 	
 	
 	

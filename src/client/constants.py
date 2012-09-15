@@ -18,11 +18,10 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 
 import os
-from Models.mediatype import Mediatype
 
 class WAConstants():
 	
-	STORE_PATH = os.path.expanduser('~/MyDocs/Wazapp');
+	STORE_PATH = os.path.expanduser('~/.wazapp');
 	
 	MEDIA_PATH = STORE_PATH+'/media'
 	AUDIO_PATH = MEDIA_PATH+'/audio'
@@ -40,9 +39,9 @@ class WAConstants():
 	DEFAULT_BEEP_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_default_beep.wav"
 	NO_SOUND = "/usr/share/sounds/ring-tones/No sound.wav"
 	
-	MEDIA_TYPE_TEXT		= Mediatype.TYPE_TEXT
-	MEDIA_TYPE_IMAGE	= Mediatype.TYPE_IMAGE
-	MEDIA_TYPE_AUDIO	= Mediatype.TYPE_AUDIO
-	MEDIA_TYPE_VIDEO	= Mediatype.TYPE_VIDEO
-	MEDIA_TYPE_LOCATION	= Mediatype.TYPE_LOCATION
-	MEDIA_TYPE_VCARD	= Mediatype.TYPE_VCARD
+	MEDIA_TYPE_TEXT		= 1
+	MEDIA_TYPE_IMAGE	= 2
+	MEDIA_TYPE_AUDIO	= 3
+	MEDIA_TYPE_VIDEO	= 4
+	MEDIA_TYPE_LOCATION	= 5
+	MEDIA_TYPE_VCARD	= 6

@@ -20,15 +20,20 @@ import sqlite3
 import copy
 import time
 
-class Model():
+from wadebug import SqlDebug
+
+class Model(object):
 
 	def setConnection(self,connection):
-		self.table = self.whoami().lower()+"s";
+		_d = SqlDebug();
+		self._d = _d.d;
+		
+		self.table = self.getTableName();
 		self.conn = connection
 		try:
 			self.cursor  = connection.cursor()
 		except sqlite3.ProgrammingError as e:
-			print e
+			self._d(e)
 			self.store.connect()
 			self.conn = self.store.conn
 			self.cursor = self.conn.cursor()
@@ -43,8 +48,24 @@ class Model():
 		for item in res:
 			relattrib = str(item[1]).split('_id')
 			if len(relattrib) == 2 and relattrib[1]=='':
-				foreign = relattrib[0].lower();
-				foreign = foreign[0].upper()+foreign[1:]
+				
+				m2mTest = relattrib[0].split('_')
+				if len(m2mTest) == 2:
+					foreignOne = m2mTest[0].lower()
+					foreignOne = foreignOne[0].upper()+foreignOne[1:]
+					foreignTwo = m2mTest[1].lower()
+					foreignTwo = foreignTwo[0].upper()+foreignTwo[1:]
+					foreign = foreignOne + foreignTwo
+					
+					#foreignInstance = getattr(self.store,foreignOne)
+					#self.setInstanceVariable(foreignOne,foreignInstance.create());
+					
+					#foreignInstance = getattr(self.store,foreignTwo)
+					#self.setInstanceVariable(foreignTwo,foreignInstance.create());
+				else:	
+					foreign = relattrib[0].lower();
+					foreign = foreign[0].upper()+foreign[1:]
+				
 				foreignInstance = getattr(self.store,foreign)
 				self.setInstanceVariable(foreign,foreignInstance.create());
 				
@@ -54,7 +75,17 @@ class Model():
 			
 	
 			
-			
+	def getTableName(self):
+		if vars(self).has_key("table"):
+			return self.table
+
+		table = self.whoami().lower()
+		if table[-2:] == "ia":
+			return table
+		else:
+			return table + "s"
+		
+		
 		
 	def storeConnected(self):
 		''''''
@@ -111,7 +142,6 @@ class Model():
 	
 	def delete(self,conds = None):
 		
-		
 		q = "DELETE FROM %s "%self.table
 			
 		if conds is not None:
@@ -119,13 +149,13 @@ class Model():
 		elif self.id:
 			q+="WHERE id=%d"%self.id
 		else:
-			print "USE deleteAll to delete all, cancelled!"
+			self._d("USE deleteAll to delete all, cancelled!")
 			
 		c = self.conn.cursor();
 		c.execute(q)
 		self.conn.commit()
 		
-				
+
 	
 	def insert(self):
 		data = self._getColumnsWithValues();
@@ -136,6 +166,9 @@ class Model():
 		for k,v in data.items():
 			if k == "id":
 				continue;
+			if v is None:
+				continue
+				
 			fields.append(k);
 			values.append(v);
 		
@@ -147,6 +180,8 @@ class Model():
 		
 		q = "INSERT INTO %s %s VALUES %s" %(self.table,fields,wq);
 		c = self.conn.cursor();
+		self._d(q)
+		self._d(values)
 		c.execute(q,values);
 		self.conn.commit();
 		
@@ -172,6 +207,9 @@ class Model():
 		
 		c = self.conn.cursor();
 		
+		self._d(q);
+		self._d(updateValues);
+		
 		try:
 			c.execute(q,updateValues);
 			self.conn.commit();
@@ -195,10 +233,13 @@ class Model():
 	def createInstance(self,resultItem):
 		#modelInstance = copy.deepcopy(self);
 		modelInstance = self.create();
-		
+
+		if resultItem is None:
+			return modelInstance;
 		
 		for i in range(0,len(resultItem)):
 			modelInstance.setInstanceVariable(self.columns[i],resultItem[i]);
+		
 			
 		return modelInstance;
 	
@@ -235,8 +276,8 @@ class Model():
 			
 		vars(self)[variable] = value
 	
-	def findFirst(self,conditions):
-		res = self.findAll(conditions);
+	def findFirst(self,conditions,fields = []):
+		res = self.findAll(conditions,fields);
 		
 		if len (res):
 			return res[0];
@@ -244,26 +285,70 @@ class Model():
 		return None;
 	
 	
+	def getComparator(self,key):
+		signs = ['<','>','<=','>=','<>','=']
+		signs.sort()
+		key = key.strip()
+		
+		for s in signs:
+			try:
+				index = key.index(s)
+				return s
+			except:
+				continue
+		
+		return False
+			
 	def buildConds(self,conditions):
 		q = [];
 		for k,v in conditions.items():
+			comparator = self.getComparator(k)
+			
+			if comparator:
+				index = k.index(comparator)
+				k = k[:index]
+			else:
+				comparator = '='
+				
 			if type(v) == list:
 			
 				tmp = []
 				for val in v:
-					tmp.append("%s = '%s'" % (k,str(val)))
+					tmp.append("%s %s '%s'" % (k, comparator, str(val)))
 				
 				tmpStr = ' OR '.join(tmp)
 			
 				q.append("(%s)"%(tmpStr))
 			else:
-				q.append("%s = '%s'" % (k,str(v)))
+				q.append("%s %s '%s'" % (k, comparator, str(v)))
 	
 		condsStr = " AND ".join(q);
 		
 		return condsStr;
+		
+	def findCount(self,conditions=""):
+		condsStr = "";
+		if type(conditions) == dict:
+			condsStr = self.buildConds(conditions);
+			
+		elif type(conditions) == str:
+			condsStr = conditions
+		else:
+			raise "UNKNOWN COND TYPE "+ type(conditions)
+			
+		
+		query = "SELECT COUNT(*) FROM %s " % (self.table)
+		
+		if len (condsStr):
+			query = query +"WHERE %s" % condsStr;
+		
+		results = self.runQuery(query);
+		
+		return results[0][0];
+		
 	
-	def findAll(self,conditions="",fields = [],order=[]):
+	def findAll(self, conditions="", fields=[], order=[], first=None, limit=None):
+
 		condsStr = "";
 		if type(conditions) == dict:
 			condsStr = self.buildConds(conditions);
@@ -290,6 +375,15 @@ class Model():
 			orderStr = ",".join(order);
 			query = query + orderStr;
 		
+
+		if limit is not None and type(limit) == int:
+			query=query+" LIMIT %i"%limit
+
+
+		if first is not None and type(first) == int:
+			query=query+" OFFSET %i"%first
+		
+
 		results = self.runQuery(query);
 		
 		data = []
@@ -297,14 +391,11 @@ class Model():
 			data.append(self.createInstance(r));
 		return data
 		
-		
-		
-	
 	def whoami(self):
 		return self.__class__.__name__
 	
 	def runQuery(self,query,whereValues = []):
-		#print query;
+		self._d(query);
 		c = self.conn.cursor();
 		
 		if len(whereValues):
@@ -313,21 +404,4 @@ class Model():
 			c.execute(query)
 		
 		return c.fetchall()
-		
-
-
-class Contacxt(Model):
-	def __init__(self):
-		''''''
-	
-	
-if __name__ =="__main__":
-	conn = sqlite3.connect("/home/tarekg/.wa/000000000000000.db")
-	
-	m = Contact()
-	m.setConnection(conn)
-	m.read(256);
-	print m.getData();
-	c = m.create();
-	print c.getData();
 	

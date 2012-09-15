@@ -39,7 +39,7 @@ Page {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
-        text:"You can only have 1 wazapp account at a time"
+        text:qsTr("You can only have 1 wazapp account at a time")
         wrapMode: Text.WordWrap
         horizontalAlignment: Text.AlignHCenter
         width:parent.width

@@ -20,10 +20,16 @@ from wajsonrequest import WAJsonRequest
 from PySide import QtCore
 from distutils.version import StrictVersion
 from utilities import Utilities
+
+from wadebug import UpdaterDebug;
+
 class WAUpdater(WAJsonRequest):
 	updateAvailable = QtCore.Signal(dict)
 	
 	def __init__(self):
+		_d = UpdaterDebug();
+		self._d = _d.d
+		
 		self.base_url = "wazapp.im"
 		self.req_file = "/whatsup/"
 		
@@ -31,8 +37,8 @@ class WAUpdater(WAJsonRequest):
 		super(WAUpdater,self).__init__();
 	
 	def run(self):
-		print "Checking for updates"
-		res = self.sendRequest()
+		self._d("Checking for updates")
+		res = None #self.sendRequest()
 		if res:
 			#current = self.version.split('.');
 			#latest = res['v'].split('.')
@@ -43,5 +49,5 @@ class WAUpdater(WAJsonRequest):
 				curr = '.'.join(test[:3])
 				
 			if StrictVersion(str(res['l'])) > curr:
-				print "UPDATE AVAILABLE!"
+				self._d("UPDATE AVAILABLE!")
 				self.updateAvailable.emit(res)

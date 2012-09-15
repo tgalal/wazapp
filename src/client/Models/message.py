@@ -18,8 +18,9 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 import time;
 from model import Model;
+from mediatype import Mediatype
 
-class Message(Model):
+class MessageBase(Model):
 	
 	TYPE_RECEIVED = 0
 	TYPE_SENT = 1
@@ -28,39 +29,38 @@ class Message(Model):
 	STATUS_SENT = 1
 	STATUS_DELIVERED = 2
 	
-	PARTY_SINGLE = 0
-	PARTY_GROUP = 1
 	
 	generating_id = 0;
 	generating_header = str(int(time.time()))+"-";
 	
-	def __init__(self, convType= PARTY_SINGLE):
-		self.convType = convType
-			
-			
+	def __init__(self):
 		
 		self.TYPE_RECEIVED = Message.TYPE_RECEIVED
 		self.TYPE_SENT = Message.TYPE_SENT
 		self.STATUS_PENDING = Message.STATUS_PENDING
 		self.STATUS_SENT = Message.STATUS_SENT
 		self.STATUS_DELIVERED = Message.STATUS_DELIVERED
+		self.Media = None
+		self.media_id = None
+		
+		
 	
-	def storeConnected(self):
-		if self.convType == Message.PARTY_SINGLE:
-			self.Conversation = self.store.SingleConversation
-			
-		self.conn.text_factory = str
-			
+	def getMedia(self):
+		if self.media_id is not None:
+			if self.Media.id is not None and self.Media.id != 0:
+				return self.Media
+			else:
+				media = self.store.Media.create()
+				self.Media = media.findFirst({"id":self.media_id})
+				return self.Media
+
+		return None;
 		
-	def getContact(self):
-		if self.getConversation():
-			if not self.Conversation.Contact.id:
-				self.Contact = self.Conversation.getContact();
-		else:
-			return 0
 		
-		return self.Contact	
-			
+	def setConversation(self,conversation):
+		self.conversation_id = conversation.id
+		self.Conversation = conversation
+	
 	def getConversation(self):
 		if not self.conversation_id:
 			return 0;
@@ -68,6 +68,57 @@ class Message(Model):
 		if not self.Conversation.id:
 			self.Conversation = self.Conversation.read(self.conversation_id)
 		
-		return self.Conversation
+		return self.Conversation	
 		
+class Message(MessageBase):
+
+	def storeConnected(self):
+		self.Conversation = self.store.Conversation
+		self.conn.text_factory = str
 			
+	def getContact(self):
+		conversation = self.getConversation();
+		
+		if not conversation.Contact.id:
+			conversation.Contact = conversation.getContact();
+		
+		
+		return conversation.Contact	
+			
+class Groupmessage(MessageBase):
+
+
+	def storeConnected(self):
+		self.Conversation = self.store.Groupconversation
+		self.conn.text_factory = str
+	
+	
+	def setConversation(self,conversation):
+		self.groupconversation_id = conversation.id
+		self.Groupconversation = conversation
+	
+	def setContact(self,contact):
+		self.contact_id = contact.id;
+		self.Contact = contact
+		
+	
+		
+	
+	def getConversation(self):
+		if not self.groupconversation_id:
+			return 0;
+			
+		if not self.Groupconversation.id:
+			self.Groupconversation = self.Groupconversation.read(self.groupconversation_id)
+		
+		return self.Groupconversation	
+	
+	def getContact(self):
+		if not self.contact_id:
+			return 0
+			
+		if not self.Contact.id:
+			self.Contact = self.Contact.read(self.contact_id);
+		
+		return self.Contact
+	

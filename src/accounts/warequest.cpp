@@ -28,7 +28,7 @@ const QString WARequest::userAgent = "WhatsApp/2.8.13 S60Version/5.3 Device/C7-0
 
 WARequest::WARequest()
 {
-    manager =  new QNetworkAccessManager(this);
+    manager = new QNetworkAccessManager(this);
     connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(replyFinished(QNetworkReply*)));
     qDebug()<<"CONNECTED SIGNAL";
 

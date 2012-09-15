@@ -26,22 +26,25 @@ from litestore import LiteStore as DataStore
 from accountsmanager import AccountsManager;
 import dbus
 from utilities import Utilities
+from wadebug import WADebug
 
 class WAManager():
 
 	def __init__(self,app):
 		self.app = app;
-		print "wazapp %s"%Utilities.waversion
+		WADebug.attach(self)
+		
+		self._d("wazapp %s"%Utilities.waversion)
 		
 		
 		try:
 			bus = dbus.SessionBus()
 			remote_object = bus.get_object("com.tgalal.meego.Wazapp.WAService", "/")
-			print "FOUND OBJ"
+			self._d("Found a running instance. I will show it instead of relaunching.")
 			remote_object.show();
 			sys.exit();
 		except dbus.exceptions.DBusException as e:
-			print "CAUGHT EXCEPT"
+			self._d("No running instance found. Proceeding with relaunch")
 			self.proceed()
 			
 		
@@ -51,42 +54,18 @@ class WAManager():
 		sys.exit()
 		
 	def quit(self):
-		print "QUITINGGGGGG"
+		self._d("Quitting")
 		self.app.exit();
 	def proceed(self):
-		
-		
-		
-		
-		
-		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/WASplash.qml')
-		#gui.setSource(url)
-		
-		#check db_state
-	
-	
-		#gui.initConnection();
-		#pixmap = QPixmap("/opt/waxmppplugin/bin/wazapp/UI/pics/wasplash.png");
-     		#splash = QSplashScreen(pixmap);
-     		#splash.show();
-     		
 		account = AccountsManager.getCurrentAccount();
-		
-		
-		print account;
-		
-		
+		self._d(account)
 	
 	
 		if(account is None):
-			Utilities.debug("Forced reg");
+			#self.d("Forced reg");
 			return self.regFallback()
 			#gui.forceRegistration();
 			#self.app.exit();
-			
-		
-		
-			
 			
 		imsi = Utilities.getImsi();
 		store = DataStore(imsi);
@@ -94,6 +73,12 @@ class WAManager():
 		if store.status == False:
 			#or exit
 			store.reset();
+			
+		
+		store.prepareGroupConversations();
+		store.prepareMedia()
+		store.updateDatabase()
+		store.initModels()
 		
 		gui = WAUI();
 		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
@@ -103,21 +88,21 @@ class WAManager():
 		self.app.focusChanged.connect(gui.focusChanged)
 		gui.quit.connect(self.quit);
 
-		gui.populateContacts();
-			
+		#gui.populatePhoneContacts();
+		gui.populateContacts("ALL");
 		
-		
+		gui.populateConversations();
+		print "SHOW FULL SCREEN"
 		gui.showFullScreen();
 		
-		
-		
-		
-		
-
+		print "INIT CONNECTION"
 		gui.initConnection();
 		#splash.finish(gui);
-		
+		gui.setMyAccount(account.jid);
+
 		self.gui = gui;
-		
+		print "INITIAL CONNECTION CHECK"
 		self.gui.whatsapp.eventHandler.initialConnCheck()
+		
+		self.gui.whatsapp.eventHandler.setMyAccount(account.jid)
 		

@@ -18,11 +18,13 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
+import os
 import sys
 from PySide.QtGui import QApplication
 import PySide
 from wamanager import WAManager
-
+from constants import WAConstants
+from PySide import QtCore
 
 #from waxmpp import WAXMPP
 #from utilities import Utilities
@@ -31,9 +33,25 @@ from wamanager import WAManager
 	
 if __name__ == "__main__":
 
+	if os.path.isfile(WAConstants.STORE_PATH + "/log.txt"):
+		os.rename(WAConstants.STORE_PATH +"/log.txt",WAConstants.STORE_PATH + "previews-log.txt")
+	if not os.path.exists(WAConstants.VCARD_PATH):
+		os.makedirs(WAConstants.VCARD_PATH)
+
+	linuxCodec = QtCore.QTextCodec.codecForName("UTF-8")
+	QtCore.QTextCodec.setCodecForTr(linuxCodec)
+	QtCore.QTextCodec.setCodecForCStrings(linuxCodec)
+	QtCore.QTextCodec.setCodecForLocale(linuxCodec)
 	
 	app = QApplication(sys.argv)
+
+	translator = QtCore.QTranslator()
+	if os.path.isfile(WAConstants.STORE_PATH + "/language.qm"):
+		translator.load(WAConstants.STORE_PATH + "/language.qm")
+		app.installTranslator(translator)
+
 	#PySide.QtGui.QErrorMessage.qtHandler().show()
 	wam = WAManager(app)
+
 	
 	sys.exit(app.exec_())

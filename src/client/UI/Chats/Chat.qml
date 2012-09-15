@@ -281,10 +281,10 @@ Rectangle{
                 Label {
                     id:last_msg
                     text: lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
-					  	  (lastMessage.type==20 ? qsTr("%1 has join the group").arg(getAuthor(lastMessage.content)) : 
-						  (lastMessage.type==21 ? qsTr("%1 has left the group").arg(getAuthor(lastMessage.content)) :
-						  (lastMessage.type==22 ? qsTr("%1 has changed the subject to %2").arg(getAuthor(lastMessage.author.jid)).arg(Helpers.emojify(lastMessage.content)) :
-						  qsTr("%1 has changed the group picture").arg(getAuthor(lastMessage.content)) )))) :
+					  	  (lastMessage.type==20 ? qsTr("%1 joined the group").arg(getAuthor(lastMessage.content)) :
+						  (lastMessage.type==21 ? qsTr("%1 left the group").arg(getAuthor(lastMessage.content)) :
+						  (lastMessage.type==22 ? qsTr("%1 changed the subject to %2").arg(getAuthor(lastMessage.author.jid)).arg(Helpers.emojify(lastMessage.content)) :
+						  qsTr("%1 changed the group picture").arg(getAuthor(lastMessage.content)) )))) :
 						  qsTr("(no messages)")
                    	width:parent.width -(status.visible?30:10)
                     elide: Text.ElideRight
@@ -296,7 +296,7 @@ Rectangle{
 				Label {
 					id: isWritting
 					visible: false
-					text: "<i>" + qsTr("is writting a message...") + "</i>"
+					text: "<i>" + qsTr("is writing a message...") + "</i>"
                     elide: Text.ElideRight
                     font.pixelSize: 20
                     height: 28

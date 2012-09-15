@@ -22,10 +22,10 @@ SpeechBubble {
 
 	bubbleContent: Label {
 		id:msg_text
-		text: from_me==20 ? qsTr("<b>%1</b> has join the group").arg(getAuthor(message)) :
-			  from_me==21 ? qsTr("<b>%1</b> has left the group").arg(getAuthor(message)) :
-			  from_me==22 ? qsTr("<b>%1</b> has changed the subject to <b>%2</b>").arg(name).arg(message) : 
-			  from_me==23 ? qsTr("<b>%1</b> has changed the group picture").arg(getAuthor(message)) : message
+		text: from_me==20 ? qsTr("<b>%1</b> joined the group").arg(getAuthor(message)) :
+			  from_me==21 ? qsTr("<b>%1</b> left the group").arg(getAuthor(message)) :
+			  from_me==22 ? qsTr("<b>%1</b> changed the subject to <b>%2</b>").arg(name).arg(message) :
+			  from_me==23 ? qsTr("<b>%1</b> changed the group picture").arg(getAuthor(message)) : message
 		color: from_me==1 ? "black" : from_me==0 ? "white" : "gray"
 		width: (appWindow.inPortrait ? 380 : 754)
 		wrapMode: "WrapAtWordBoundaryOrAnywhere"

@@ -677,16 +677,16 @@ class WAEventHandler(WAEventBase):
 			if contactName is None or contactName == "":
 				contactName = pushName
 			if fmsg.type == 23:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the group picture")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the group picture")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 20:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has join the group")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 joined the group")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 21:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has left the group")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 left the group")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 22:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the subject to %2")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the subject to %2")
 				if contactName == self.account:
 					contactName = QtCore.QCoreApplication.translate("WAEventHandler", "You")
 				newContent = newContent.replace("%1", contactName)

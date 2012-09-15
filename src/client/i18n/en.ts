@@ -113,31 +113,31 @@
     <message>
         <location filename="../UI/Chats/Chat.qml" line="88"/>
         <location filename="../UI/Chats/Chat.qml" line="274"/>
-        <source>%1 has join the group</source>
-        <translation>%1 has join the group</translation>
+        <source>%1 joined the group</source>
+        <translation>%1 joined the group</translation>
     </message>
     <message>
         <location filename="../UI/Chats/Chat.qml" line="44"/>
-        <source>is writting a message...</source>
-        <translation>is writting a message...</translation>
+        <source>is writing a message...</source>
+        <translation>is writing a message...</translation>
     </message>
     <message>
         <location filename="../UI/Chats/Chat.qml" line="89"/>
         <location filename="../UI/Chats/Chat.qml" line="275"/>
-        <source>%1 has left the group</source>
-        <translation>%1 has left the group</translation>
+        <source>%1 left the group</source>
+        <translation>%1 left the group</translation>
     </message>
     <message>
         <location filename="../UI/Chats/Chat.qml" line="90"/>
         <location filename="../UI/Chats/Chat.qml" line="276"/>
-        <source>%1 has changed the subject to %2</source>
-        <translation>%1 has changed the subject to %2</translation>
+        <source>%1 changed the subject to %2</source>
+        <translation>%1 changed the subject to %2</translation>
     </message>
     <message>
         <location filename="../UI/Chats/Chat.qml" line="91"/>
         <location filename="../UI/Chats/Chat.qml" line="277"/>
-        <source>%1 has changed the group picture</source>
-        <translation>%1 has changed the group picture</translation>
+        <source>%1 changed the group picture</source>
+        <translation>%1 changed the group picture</translation>
     </message>
     <message>
         <location filename="../UI/Chats/Chat.qml" line="92"/>
@@ -1035,23 +1035,23 @@
     </message>
     <message>
         <location filename="../UI/Conversations/Bubbles/TextBubble.qml" line="25"/>
-        <source>&lt;b&gt;%1&lt;/b&gt; has join the group</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; has join the group</translation>
+        <source>&lt;b&gt;%1&lt;/b&gt; join the group</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; joined the group</translation>
     </message>
     <message>
         <location filename="../UI/Conversations/Bubbles/TextBubble.qml" line="26"/>
-        <source>&lt;b&gt;%1&lt;/b&gt; has left the group</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; has left the group</translation>
+        <source>&lt;b&gt;%1&lt;/b&gt; left the group</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; left the group</translation>
     </message>
     <message>
         <location filename="../UI/Conversations/Bubbles/TextBubble.qml" line="27"/>
-        <source>&lt;b&gt;%1&lt;/b&gt; has changed the subject to &lt;b&gt;%2&lt;/b&gt;</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; has changed the subject to &lt;b&gt;%2&lt;/b&gt;</translation>
+        <source>&lt;b&gt;%1&lt;/b&gt; changed the subject to &lt;b&gt;%2&lt;/b&gt;</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; changed the subject to &lt;b&gt;%2&lt;/b&gt;</translation>
     </message>
     <message>
         <location filename="../UI/Conversations/Bubbles/TextBubble.qml" line="28"/>
-        <source>&lt;b&gt;%1&lt;/b&gt; has changed the group picture</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; has changed the group picture</translation>
+        <source>&lt;b&gt;%1&lt;/b&gt; changed the group picture</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; changed the group picture</translation>
     </message>
 </context>
 <context>
@@ -1106,23 +1106,23 @@
     </message>
     <message>
         <location filename="../waxmpp.py" line="680"/>
-        <source>%1 has changed the group picture</source>
-        <translation>%1 has changed the group picture</translation>
+        <source>%1 changed the group picture</source>
+        <translation>%1 changed the group picture</translation>
     </message>
     <message>
         <location filename="../waxmpp.py" line="683"/>
-        <source>%1 has join the group</source>
-        <translation>%1 has join the group</translation>
+        <source>%1 join the group</source>
+        <translation>%1 joined the group</translation>
     </message>
     <message>
         <location filename="../waxmpp.py" line="686"/>
-        <source>%1 has left the group</source>
-        <translation>%1 has left the group</translation>
+        <source>%1 left the group</source>
+        <translation>%1 left the group</translation>
     </message>
     <message>
         <location filename="../waxmpp.py" line="689"/>
-        <source>%1 has changed the subject to %2</source>
-        <translation>%1 has changed the subject to %2</translation>
+        <source>%1 changed the subject to %2</source>
+        <translation>%1 changed the subject to %2</translation>
     </message>
     <message>
         <location filename="../waxmpp.py" line="691"/>

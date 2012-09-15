@@ -27,7 +27,6 @@ Rectangle{
     height:100;
    // anchors.top:parent.top
     property alias title:pageTitle.text
-	property int bubbleCount: 0
     color:"transparent"
 	clip: true
 
@@ -50,29 +49,6 @@ Rectangle{
 	    anchors.verticalCenter: parent.verticalCenter
 	    anchors.left: wazapp_icon.right
 	    anchors.leftMargin: 14
-	}
-
-	Rectangle {
-		id: bubble
-		color: theme.inverted? "darkgray" : "lightgray"
-		opacity: theme.inverted? 0.2 : 0.8
-		radius: 14
-		smooth: true
-		width: counter.paintedWidth + 24
-		height: 32
-        visible: bubbleCount!=0
-		anchors.right: parent.right
-		anchors.rightMargin: 16
-		anchors.verticalCenter: parent.verticalCenter
-	}
-
-	Label {
-		id: counter
-		color: theme.inverted? "lightgray" : "gray"
-		font.pixelSize: 18
-		anchors.centerIn: bubble
-        text: bubbleCount
-		visible: bubbleCount!=0
 	}
 
 	Rectangle {

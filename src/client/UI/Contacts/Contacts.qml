@@ -156,7 +156,6 @@ WAPage {
 	WAHeader{
 		id: header
         title: qsTr("Contacts")
-		bubbleCount: contactsModel.count
         anchors.top:parent.top
         width:parent.width
 		height: 73

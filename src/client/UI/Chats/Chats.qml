@@ -154,9 +154,8 @@ WAPage {
 
 
 	WAHeader{
-		id: header
+	id: header
         title: qsTr("Chats")
-		bubbleCount: chatsList.count
         anchors.top:parent.top
         width:parent.width
 		height: 73

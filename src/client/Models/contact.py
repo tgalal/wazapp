@@ -22,38 +22,25 @@ class Contact(Model):
 	def __init__(self):
 		self.name = "";
 		self.picture = "none";
-		self.pictureid = "";
 		self.alphabet = "";
 		self.iscontact = "";
+		self.pushname = "";
+		self.pictureid = "";
 	
-	def setRealTimeData(self,name,picture):
+	def setRealTimeData(self,name,picture,iscontact):
 		if name == '':
 			return
 		self.name = name;
 		self.picture = picture;
 		self.alphabet = name[0].upper();
-		self.iscontact = "yes"
+		self.iscontact = iscontact
 		
 		self.modelData.append("name");
 		self.modelData.append("picture");
-		self.modelData.append("pictureid");
 		self.modelData.append("alphabet");
+		self.modelData.append("pictureid");
 		self.modelData.append("iscontact");
 		
-
-	def setRealTimeDataPush(self,name,picture):
-		if name == '':
-			return
-		self.name = name;
-		self.picture = picture;
-		self.alphabet = name[0].upper();
-		self.iscontact = "no"
-
-		self.modelData.append("name");
-		self.modelData.append("picture");
-		self.modelData.append("pictureid");
-		self.modelData.append("alphabet");
-		self.modelData.append("iscontact");
 
 	def getOrCreateContactByJid(self,jid):
 		
@@ -61,7 +48,7 @@ class Contact(Model):
 		
 		if not contact:
 			contact = self.create()
-			contact.setData({"jid":jid,"number":jid.split('@')[0],"iscontact":"no","pictureid":""})
+			contact.setData({"jid":jid,"number":jid.split('@')[0],"iscontact":"","pushname":""})
 			contact.save()
 		
 		return contact

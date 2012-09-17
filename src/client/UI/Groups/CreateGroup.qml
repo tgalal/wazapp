@@ -30,6 +30,7 @@ WAPage {
 
 	id: content
 
+	property string groupId
 	property bool creatingGroup: false
 	signal emojiSelected(string emojiCode);
 
@@ -158,12 +159,13 @@ WAPage {
 					id: bcArea
 					anchors.fill: parent
 					onClicked: {
+						consoleDebug("ACTUAL PARTICIPANTS: " + selectedContacts)
 						consoleDebug("REMOVING " +contactJid)
 						participantsModel.remove(cindex)
-						var newSelectedContacts = selectedContacts
-						newSelectedContacts = newSelectedContacts.replace(contactJid,"")
-						newSelectedContacts = newSelectedContacts.replace(",,",",")
-						selectedContacts = newSelectedContacts
+						selectedContacts = selectedContacts.replace(contactJid,"")
+						selectedContacts = selectedContacts.replace(",,",",")
+						consoleDebug("NEW PARTICIPANTS: " + selectedContacts)
+						//addContacts.contactRemoved()
 					}
 				}
 			}
@@ -364,15 +366,6 @@ WAPage {
             onClicked: {
 				creatingGroup = true
 				createGroupChat(status_text.text)
-
-				/*var participants;
-				for (var i=0; i<participantsModel.count; ++i) {
-					if (participantsModel.get(i).contactJid)
-						participants = participants + (participants!==""? ",":"") + participantsModel.get(i).contactJid;
-				}
-				consoleDebug("NOW ADD PARTICIPANTS: " + participants)
-				groupId = "5491133302246-1342011766@g.us"
-				addParticipants(groupId,participants)*/
 			}
         }
        
@@ -385,22 +378,18 @@ WAPage {
 	Connections {
 		target: appWindow
 		onGroupCreated: {
-			setPicture(groupId, selectedGroupPicture)
-		}
-		onOnContactPictureUpdated: {
-			if (groupId == ujid) {
-				var participants;
-				for (var i=0; i<participantsModel.count; ++i) {
-					if (participantsModel.get(i).contactJid!="undefined")
-						participants = participants + (participants!==""? ",":"") + participantsModel.get(i).contactJid;
-				}
-				addParticipants(groupId,participants)
+			consoleDebug("GROUP CREATED: " + group_id)
+			groupId = group_id + "@g.us"
+			var participants;
+			for (var i=0; i<participantsModel.count; ++i) {
+				if (participantsModel.get(i).contactJid!="undefined")
+					participants = participants + (participants!==""? ",":"") + participantsModel.get(i).contactJid;
 			}
+			addParticipants(groupId,participants)
 		}
 		onAddedParticipants: {
-			//pageStack.pop()
-            openConversation(groupId);
-			getGroupInfo(groupId)
+			setPicture(groupId, selectedGroupPicture)
+        	openConversation(groupId);
 		}
 	}
 

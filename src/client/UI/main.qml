@@ -51,7 +51,7 @@ WAStackWindow {
 		theme.inverted = MySettings.getSetting("ThemeColor", "White")=="Black"
 		mainBubbleColor = parseInt(MySettings.getSetting("BubbleColor", "1"))
 		sendWithEnterKey = MySettings.getSetting("SendWithEnterKey", "Yes")=="Yes"
-		resizeImages = MySettings.getSetting("ResizeImages", "No")=="Yes"
+		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes"
 		orientation = parseInt(MySettings.getSetting("Orientation", "0"))
 	}
 
@@ -94,9 +94,7 @@ WAStackWindow {
 	signal sendSMS(string num)
 	signal makeCall(string num)
 	signal getGroupInfo(string jid);
-	signal groupInfoUpdated();
 	signal createGroupChat(string subject);
-	signal groupCreated();
 	signal addParticipants(string gjid, string participants);
 	signal addedParticipants();
 	signal removeParticipants(string gjid, string participants);
@@ -117,20 +115,25 @@ WAStackWindow {
 	signal sendLocation(string jid, string latitude, string longitude, string rotate);
     signal sendVCard(string jid, string contact);
 	signal removeSingleContact(string jid);
-	signal updatePushName(string ujid, string npush);
+	signal updateContactName(string ujid, string npush);
 	signal rotateImage(string file);
 	signal imageRotated(string filepath);
+	signal getPicturesFinished();
 	signal removeFile(string file);
 
 	signal openContactPicker(string multi, string title); //TESTING...
 	signal setBlockedContacts(string contacts);
 	signal setResizeImages(bool resize);
 	signal openCamera(string jid, string mode);
+	signal setPersonalRingtone(string value);
+	signal setPersonalVibrate(string value);
+	signal setGroupRingtone(string value);
+	signal setGroupVibrate(string value);
 
 
-	signal openPreviewPicture(string ujid, string picturefile, int rotation, string previewimg)
-	function capturedPreviewPicture(ujid, picturefile, rotation, previewimg) {
-		openPreviewPicture(ujid, picturefile, rotation, previewimg)
+	signal openPreviewPicture(string ujid, string picturefile, int rotation, string previewimg, string capturemode)
+	function capturedPreviewPicture(ujid, picturefile, rotation, previewimg, capturemode) {
+		openPreviewPicture(ujid, picturefile, rotation, previewimg, capturemode)
 	}
 
 	signal mediaTransferProgressUpdated(int mprogress, int mid)
@@ -168,15 +171,7 @@ WAStackWindow {
 	}
 
 
-	property string groupId
-	function onGroupCreated(group_id) {
-		groupId = group_id + "@g.us"
-		groupCreated()
-	}
-
-	function onAddedParticipants() {
-		addedParticipants()
-	}
+	signal groupCreated(string group_id)
 
 	function onRemovedParticipants() {
 		removedParticipants()
@@ -193,12 +188,7 @@ WAStackWindow {
 		groupEnded()
 	}
 
-	property string groupInfoData
-	function onGroupInfoUpdated(data) {
-		consoleDebug("QML: GOT GROUP INFO: " + data)
-		groupInfoData = data
-		groupInfoUpdated()
-	}
+	signal groupInfoUpdated(string gjid, string gdata)
 
 	function onGroupSubjectChanged() {
 		getGroupInfo(profileUser)
@@ -347,6 +337,12 @@ WAStackWindow {
 
 		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
 		setResizeImages(resizeImages)
+
+		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "Message 1"));
+		setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes"));
+		setGroupRingtone(MySettings.getSetting("GroupRingtone", "Message 1"));
+		setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes"));
+
 	}
 
 	function getPictures() {
@@ -382,6 +378,7 @@ WAStackWindow {
 			var add = true
 			for(var j =0; j<contactsModel.count; j++) {
 				if (contactsModel.get(j).jid==contacts[i].jid) {
+					contactsModel.get(j).name = contacts[i].name
 					add = false
 					break
 				}
@@ -392,7 +389,6 @@ WAStackWindow {
 		}
     }
 
-	
     function pushContacts(contacts){
         waContacts.pushContacts(contacts)
     }
@@ -486,6 +482,7 @@ WAStackWindow {
             //to reset unreadCount in frontend and inform backend about
             conversation.open();
         }
+		onPaused(messages.jid)
     }
 
     function onLastSeenUpdated(jid,seconds){
@@ -534,22 +531,24 @@ WAStackWindow {
         }
     }*/
 
-    //signal onMessageSent(int mid, string ujid)
-    function onMessageSent(message_id,jid){
+    signal messageSent(int mid, string ujid)
+    function onMessageSent(message_id,jid) {
         var conversation = waChats.getConversation(jid);
 
         if(conversation){
             conversation.messageSent(message_id);
         }
+		messageSent(message_id,jid)
     }
 
-    //signal onMessageDelivered(int mid, string ujid)
-    function onMessageDelivered(message_id,jid){
+    signal messageDelivered(int mid, string ujid)
+    function onMessageDelivered(message_id,jid) {
         var conversation = waChats.getConversation(jid);
 
         if(conversation){
             conversation.messageDelivered(message_id);
         }
+		messageDelivered(message_id,jid)
     }
 
         /**** Media ****/
@@ -629,7 +628,7 @@ WAStackWindow {
         id:phoneContactsModel
     }
 
-	property variant selectedContacts: ""
+	property string selectedContacts: ""
 	ListModel {
 		id: participantsModel
 	}

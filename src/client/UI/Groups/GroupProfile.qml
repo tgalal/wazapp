@@ -69,6 +69,7 @@ WAPage {
     }
 
 	Component.onCompleted: {
+		selectedContacts = ""
 		participantsModel.clear()
 		partModel.clear()
 		getInfo()
@@ -112,14 +113,14 @@ WAPage {
 		target: appWindow
 	
 		onGroupInfoUpdated: {
-			if (groupInfoData=="ERROR") {
+			if (gdata=="ERROR") {
 				groupOwner = ""
 				groupOwnerJid = ""
 				groupDate = ""
 				groupSubjectOwner = ""
 				partText.text = qsTr("Error reading group information")
 			} else {
-				var data = groupInfoData.split("<<->>")
+				var data = gdata.split("<<->>")
 				groupSubject = data[2] 
 				groupOwner = getAuthor(data[1]).split('@')[0]
 				groupOwnerJid = data[1]

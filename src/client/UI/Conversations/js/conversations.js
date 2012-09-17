@@ -78,7 +78,10 @@ function addMessage(reverse,position,message)
     updateLastMessage();
 
     //conv_data.append({"msg_id":id,"message":message,"type":type, "timestamp":timestamp,"status":msg_status});
-    if (!reverse) conv_items.positionViewAtEnd()
+    if (!reverse) {
+		consoleDebug("MOVING TO BOTTOM OF LIST")
+		conv_items.positionViewAtEnd()
+	}
 
    // else conv_items.positionViewAtIndex(targetIndex);
     // conversation_view.conversationUpdated(id,type,conversation_view.user_id,message,timestamp,formattedDate);

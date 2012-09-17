@@ -35,7 +35,8 @@ class WADebug():
 		
 	def d(self,message):#shorthand
 		self.debug(message)
-		logline = "" #str(self.formatMessage(message))+"\n"
+		message = message
+		logline = "" #self.formatMessage(message)+"\n"
 		if not "Sql:" in logline:
 			try:
 				# This tries to open an existing file but creates a new file if necessary.

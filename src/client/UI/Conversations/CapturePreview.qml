@@ -34,6 +34,7 @@ Page {
 
 	property string imgsource
 	property int oriented
+	property string capturetype
 
 	Rectangle {
 		anchors.centerIn: parent
@@ -96,7 +97,10 @@ Page {
 		        text: qsTr("Send")
 				platformStyle: ToolButtonStyle { inverted: true }
 		        onClicked: { 
-					sendMediaImageFile(currentJid, decodeURIComponent(imgsource))
+					if (capturetype == "image")
+						sendMediaImageFile(currentJid, decodeURIComponent(imgsource))
+					else
+						sendMediaVideoFile(currentJid, decodeURIComponent(imgsource), "NOPREVIEW")
 					pageStack.pop()
 				}
 		    }

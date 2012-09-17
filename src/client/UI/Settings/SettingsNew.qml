@@ -22,6 +22,7 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 import "../common/js/settings.js" as MySettings
+import "../common/js/Global.js" as Helpers
 import "../common"
 
 WAPage {
@@ -73,6 +74,23 @@ WAPage {
 		backgroundDisabled: ""
 		backgroundError: ""
     }
+
+    ButtonStyle {
+        id: myButtonStyleLeft
+        pressedBackground: "image://theme/color3-meegotouch-button-background-pressed-horizontal-left"
+        checkedBackground: "image://theme/color3-meegotouch-button-background-selected-horizontal-left"
+    }
+    ButtonStyle {
+        id: myButtonStyleCenter
+        pressedBackground: "image://theme/color3-meegotouch-button-background-pressed-horizontal-center"
+        checkedBackground: "image://theme/color3-meegotouch-button-background-selected-horizontal-center"
+    }
+    ButtonStyle {
+        id: myButtonStyleRight
+        pressedBackground: "image://theme/color3-meegotouch-button-background-pressed-horizontal-right"
+        checkedBackground: "image://theme/color3-meegotouch-button-background-selected-horizontal-right"
+    }
+
 
     QueryDialog {
         property string phone_number;
@@ -277,6 +295,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Automatic")
 			            checked: orientation==0
+						platformStyle: myButtonStyleLeft
 			            onClicked: {
 							MySettings.setSetting("Orientation", "0")
 			                orientation=0
@@ -285,6 +304,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Portrait")
 			            checked: orientation==1
+						platformStyle: myButtonStyleCenter
 			            onClicked: {
 							MySettings.setSetting("Orientation", "1")
 			                orientation=1
@@ -293,6 +313,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Landscape")
 			            checked: orientation==2
+						platformStyle: myButtonStyleRight
 			            onClicked: {
 							MySettings.setSetting("Orientation", "2")
 			                orientation=2
@@ -310,7 +331,7 @@ WAPage {
 			        Button {
 			            text: qsTr("White")
 			            checked: theme.inverted ? false : true
-			            //platformStyle: myButtonStyleLeft
+			            platformStyle: myButtonStyleLeft
 			            onClicked: {
 							MySettings.setSetting("ThemeColor", "White")
 			                theme.inverted = false
@@ -319,7 +340,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Black")
 			            checked: theme.inverted ? true : false
-			            //platformStyle: myButtonStyleRight
+			            platformStyle: myButtonStyleRight
 			            onClicked: {
 							MySettings.setSetting("ThemeColor", "Black")
 			                theme.inverted = true
@@ -337,6 +358,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Cyan")
 			            checked: mainBubbleColor==1
+						platformStyle: myButtonStyleLeft
 			            onClicked: {
 							MySettings.setSetting("BubbleColor", "1")
 			                mainBubbleColor=1
@@ -345,6 +367,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Green")
 			            checked: mainBubbleColor==4
+						platformStyle: myButtonStyleCenter
 			            onClicked: {
 							MySettings.setSetting("BubbleColor", "4")
 			                mainBubbleColor=4
@@ -353,6 +376,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Pink")
 			            checked: mainBubbleColor==3
+						platformStyle: myButtonStyleCenter
 			            onClicked: {
 							MySettings.setSetting("BubbleColor", "3")
 			                mainBubbleColor=3
@@ -361,6 +385,7 @@ WAPage {
 			        Button {
 			            text: qsTr("Orange")
 			            checked: mainBubbleColor==2
+						platformStyle: myButtonStyleRight
 			            onClicked: {
 							MySettings.setSetting("BubbleColor", "2")
 			                mainBubbleColor=2
@@ -388,6 +413,53 @@ WAPage {
 		width: parent.width -32
 		visible: currentTab=="notifications"
 
+        ListModel {
+			id: ringtoneModel
+            ListElement { name: QT_TR_NOOP("(no sound)"); value: "No sound.wav" }
+            ListElement { name: "Arcade"; value: "Arcade.mp3" }
+            ListElement { name: "Blip"; value: "Blip.mp3" }
+            ListElement { name: "Bubbles"; value: "Bubbles.mp3" }
+            ListElement { name: "Calendar 1"; value: "Calendar 1.mp3" }
+            ListElement { name: "Calendar 2"; value: "Calendar 2.mp3" }
+            ListElement { name: "Calendar 3"; value: "Calendar 3.mp3" }
+            ListElement { name: "Calendar 4"; value: "Calendar 4.mp3" }
+            ListElement { name: "Calendar 5"; value: "Calendar 5.mp3" }
+            ListElement { name: "Chat alert"; value: "Chat alert.mp3" }
+            ListElement { name: "Chuckle"; value: "Chuckle.mp3" }
+            ListElement { name: "Clock 1"; value: "Clock 1.mp3" }
+            ListElement { name: "Clock 2"; value: "Clock 2.mp3" }
+            ListElement { name: "Clock 3"; value: "Clock 3.mp3" }
+            ListElement { name: "Clock 4"; value: "Clock 4.mp3" }
+            ListElement { name: "Clock 5"; value: "Clock 5.mp3" }
+            ListElement { name: "Computer talk"; value: "Computer talk.mp3" }
+            ListElement { name: "Email 1"; value: "Email 1.mp3" }
+            ListElement { name: "Email 2"; value: "Email 2.mp3" }
+            ListElement { name: "Email 3"; value: "Email 3.mp3" }
+            ListElement { name: "Email 4"; value: "Email 4.mp3" }
+            ListElement { name: "Email 5"; value: "Email 5.mp3" }
+            ListElement { name: "Feng shoes"; value: "Feng shoes.mp3" }
+            ListElement { name: "Halcyon"; value: "Halcyon.mp3" }
+            ListElement { name: "Idim"; value: "Idim.mp3" }
+            ListElement { name: "Machines"; value: "Machines.mp3" }
+            ListElement { name: "Marbles"; value: "Marbles.mp3" }
+            ListElement { name: "Message 1"; value: "Message 1.mp3" }
+            ListElement { name: "Message 2"; value: "Message 2.mp3" }
+            ListElement { name: "Message 3"; value: "Message 3.mp3" }
+            ListElement { name: "Message 4"; value: "Message 4.mp3" }
+            ListElement { name: "Message 5"; value: "Message 5.mp3" }
+            ListElement { name: "Noise Experiment"; value: "Noise Experiment.mp3" }
+            ListElement { name: "Nokia tune"; value: "Nokia tune.mp3" }
+            ListElement { name: "Retrobot"; value: "Retrobot.mp3" }
+            ListElement { name: "Roboioioi"; value: "Roboioioi.mp3" }
+            ListElement { name: "Sine step"; value: "Sine step.mp3" }
+            ListElement { name: "Spectros"; value: "Spectros.mp3" }
+            ListElement { name: "Tickle"; value: "Tickle.mp3" }
+            ListElement { name: "Whistling"; value: "Whistling.mp3" }
+            ListElement { name: "Winning"; value: "Winning.mp3" }
+            ListElement { name: "Wolfgang"; value: "Wolfgang.mp3" }
+        }
+
+
 		Flickable {
 			id: flickArea3
 			anchors.fill: parent
@@ -403,105 +475,45 @@ WAPage {
 				GroupSeparator {
 					title: qsTr("Personal messages")
 				}
-				Label {
-					verticalAlignment: Text.AlignBottom
-					text: qsTr("Orientation:")
-					height: 30
-				}
-				ButtonRow {
-			        Button {
-			            text: qsTr("Automatic")
-			            checked: orientation==0
-			            onClicked: {
-							MySettings.setSetting("Orientation", "0")
-			                orientation=0
-			            }
-			        }
-			        Button {
-			            text: qsTr("Portrait")
-			            checked: orientation==1
-			            onClicked: {
-							MySettings.setSetting("Orientation", "1")
-			                orientation=1
-			            }
-			        }
-			        Button {
-			            text: qsTr("Landscape")
-			            checked: orientation==2
-			            onClicked: {
-							MySettings.setSetting("Orientation", "2")
-			                orientation=2
-			            }
-			        }
+			    SelectionItemTr {
+			        title: qsTr("Notification tone")
+			        model: ringtoneModel
+					initialValue: MySettings.getSetting("PersonalRingtone", "Message 1.mp3")
+			        onValueChosen: { 
+						MySettings.setSetting("PersonalRingtone", value)
+						setPersonalRingtone(value)
+					}
 			    }
+				SwitchItem {
+					title: qsTr("Vibrate")
+					check: MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"
+					onCheckChanged: {
+						MySettings.setSetting("PersonalVibrate", value)
+						setPersonalVibrate(value)
+					}
+				}
 
-				Label {
-					verticalAlignment: Text.AlignBottom
-					text: qsTr("Theme color:")
-					height: 50
+				GroupSeparator {
+					title: qsTr("Group messages")
 				}
-				ButtonRow {
-			        id: br1
-			        Button {
-			            text: qsTr("White")
-			            checked: theme.inverted ? false : true
-			            //platformStyle: myButtonStyleLeft
-			            onClicked: {
-							MySettings.setSetting("ThemeColor", "White")
-			                theme.inverted = false
-			            }
-			        }
-			        Button {
-			            text: qsTr("Black")
-			            checked: theme.inverted ? true : false
-			            //platformStyle: myButtonStyleRight
-			            onClicked: {
-							MySettings.setSetting("ThemeColor", "Black")
-			                theme.inverted = true
-			            }
-			        }
+			    SelectionItemTr {
+			        title: qsTr("Notification tone")
+			        model: ringtoneModel
+					initialValue: MySettings.getSetting("GroupRingtone", "Message 1.mp3")
+			        onValueChosen: { 
+						MySettings.setSetting("GroupRingtone", value)
+						setGroupRingtone(value)
+					}
 			    }
-				Label {
-					verticalAlignment: Text.AlignBottom
-					text: qsTr("Bubble color:")
-					height: 50
+				SwitchItem {
+					id: groupVibra
+					title: qsTr("Vibrate")
+					check: MySettings.getSetting("GroupVibrate", "Yes")=="Yes"
+					onCheckChanged: {
+						MySettings.setSetting("GroupVibrate", value)
+						setGroupVibrate(value)
+					}
 				}
-				ButtonRow {
-			        id: br2
-					height: 70
-			        Button {
-			            text: qsTr("Cyan")
-			            checked: mainBubbleColor==1
-			            onClicked: {
-							MySettings.setSetting("BubbleColor", "1")
-			                mainBubbleColor=1
-			            }
-			        }
-			        Button {
-			            text: qsTr("Green")
-			            checked: mainBubbleColor==4
-			            onClicked: {
-							MySettings.setSetting("BubbleColor", "4")
-			                mainBubbleColor=4
-			            }
-			        }
-			        Button {
-			            text: qsTr("Pink")
-			            checked: mainBubbleColor==3
-			            onClicked: {
-							MySettings.setSetting("BubbleColor", "3")
-			                mainBubbleColor=3
-			            }
-			        }
-			        Button {
-			            text: qsTr("Orange")
-			            checked: mainBubbleColor==2
-			            onClicked: {
-							MySettings.setSetting("BubbleColor", "2")
-			                mainBubbleColor=2
-			            }
-			        }
-			    }
 
 			}
 
@@ -581,7 +593,7 @@ WAPage {
 			    SelectionItem {
 					id: statusText
 			        title: qsTr("Change current status")
-			        initialValue: MySettings.getSetting("Status", "Hi there I'm using Wazapp")
+			        initialValue: Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
 			        onClicked: pageStack.push (Qt.resolvedUrl("../ChangeStatus/ChangeStatus.qml"))
 			    }
 
@@ -597,7 +609,7 @@ WAPage {
 						}
 					}
 					onStatusChanged: {
-						statusText.initialValue = MySettings.getSetting("Status", "Hi there I'm using Wazapp")
+						statusText.initialValue = Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
 					}
 				}
 

@@ -35,7 +35,6 @@ WAPage {
 	property string contactNumber
 	property bool contactNumberGroup
 
-    //state:"no_data"
     signal deleteConversation(string jid);
 
     function getOrCreateConversation(jid){
@@ -84,9 +83,6 @@ WAPage {
 
             conversationsModel.remove(chatItemIndex);
 
-            if(conversationsModel.count == 0){
-                //chatsContainer.state="no_data";
-            }
         }
     }
 
@@ -110,16 +106,6 @@ WAPage {
 
         return 0
     }
-
-    states: [
-        State {
-            name: "no_data"
-            PropertyChanges {
-                target: no_data
-                visible:true
-            }
-        }
-    ]
 
     ListModel{id:conversationsModel}
 
@@ -154,7 +140,7 @@ WAPage {
 
 
 	WAHeader{
-	id: header
+		id: header
         title: qsTr("Chats")
         anchors.top:parent.top
         width:parent.width
@@ -173,13 +159,12 @@ WAPage {
         Item{
             width:parent.width
             height:parent.height-wa_notifier.height
-            visible:false;
-            id:no_data
+            visible:chatsList.count==0
 
             Label{
                 anchors.centerIn: parent;
                 text: qsTr("No conversations yet")
-                font.pointSize: 22
+                font.pointSize: 26
 				color: "gray"
                 width:parent.width
                 horizontalAlignment: Text.AlignHCenter
@@ -274,17 +259,14 @@ WAPage {
         message: qsTr("Are you sure you want to delete this conversation and exit this group?")
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
-        onAccepted: {
-			groupId = chatMenu.jid;
-			endGroupChat(groupId)
-        }
+        onAccepted: endGroupChat(chatMenu.jid)
     }
 
 	Connections {
 		target: appWindow
 		onGroupEnded: {
-            deleteConversation(groupId)
-            removeChatItem(groupId)
+            deleteConversation(chatMenu.jid)
+            removeChatItem(chatMenu.jid)
 		}
 	}
 

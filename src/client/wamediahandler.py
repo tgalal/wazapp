@@ -155,7 +155,7 @@ class WAHTTPHandler(QThread):
 		filetype = mimetypes.guess_type(filename)[0]
 		filesize = os.path.getsize(image)
 
-		if self.resizeImages is True and "image" in filetype:
+		if self.resizeImages is True and "image" in filetype and not "image/gif" in filetype:
 			user_img = QImage(image)
 			preimg = user_img
 			if user_img.height() > user_img.width() and user_img.width() > 600:

@@ -58,7 +58,8 @@ class ContactsSyncer(WARequest):
 			c = WAContacts(self.store);
 			phoneContacts = c.getPhoneContacts();
 			for c in phoneContacts:
-				self.cn = self.cn + str(c[2]) + ","
+				for number in c[2]:
+					self.cn = self.cn + str(number) + ","
 			self.parts = self.cn.split(',')
 		self.base_url = "sro.whatsapp.net";
 		self.req_file = "/client/iphone/bbq.php";
@@ -70,9 +71,9 @@ class ContactsSyncer(WARequest):
 		self.clearParams();
 
 		if self.mode == "STATUS":
-			if self.uid[:2] == self.store.account.cc:
-				self.uid = "+" + self.uid
-			print "Sync contact for status: " + self.uid
+			#if self.uid[:2] == self.store.account.cc:
+			self.uid = "+" + self.uid
+			self._d("Sync contact for status: " + self.uid)
 			self.addParam("u[]", self.uid)
 
 		elif self.mode == "SYNC":
@@ -134,9 +135,10 @@ class ContactsSyncer(WARequest):
 					elif name == "t":
 						is_valid = True
 
-				if is_valid and number[-8:] in self.cn:
+				if is_valid: # and number[-8:] in self.cn:
 					contact = self.store.Contact.getOrCreateContactByJid(jid)
 					contact.status = newSatus
+					contact.iscontact = "yes"
 					contact.save()
 
 			self.contactsRefreshSuccess.emit(self.mode, "");	
@@ -238,7 +240,7 @@ class WAContacts(QObject):
 	def getContacts(self):
 		contacts = self.store.Contact.fetchAll();
 		if len(contacts) == 0:
-			#print "RESYNCING";
+			print "NO CONTACTS FOUNDED IN DATABASE"
 			#self.resync();
 			return contacts;		
 		#O(n2) matching, need to change that
@@ -262,25 +264,31 @@ class WAContacts(QObject):
 					self.checkPicture(jname,c['picture'])
 					c['picture'] = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
 					myname = c['name']
-					wc.setRealTimeData(myname,c['picture']);
+					wc.setRealTimeData(myname,c['picture'],"yes");
 					break;
 
 			if founded is False and wc.number is not None:
 				self.checkPicture(jname,"")
 				myname = wc.pushname.decode("utf8") if wc.pushname is not None else ""
 				mypicture = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
-				wc.setRealTimeDataPush(myname,mypicture);
+				wc.setRealTimeData(myname,mypicture,"no");
 
 			if wc.status is not None:
 				wc.status = wc.status.decode('utf-8');
 			if wc.pushname is not None:
 				wc.pushname = wc.pushname.decode('utf-8');
 
-			if myname is not "":
+			if wc.name is not "" and wc.name is not None:
+				#print "ADDING CONTACT : " + myname
 				tmp.append(wc.getModelData());
 				self.contacts[wc.number] = wc;
 
-					
+
+		if len(tmp) == 0:
+			print "NO CONTACTS ADDED!"
+			return []
+
+		print "TOTAL CONTACTS ADDED FROM DATABASE: " + str(len(tmp))
 		self.store.cacheContacts(self.contacts);
 		return sorted(tmp, key=lambda k: k['name'].upper());
 

@@ -145,7 +145,7 @@ WAPage {
 	            id: mouseArea
 	            anchors.fill: parent
 	            onClicked: {
-					sendMediaVideoFile(currentJid, decodeURIComponent(url), thumb)
+					sendMediaVideoFile(currentJid, decodeURIComponent(url), image.source)
 					pageStack.pop()
 	            }
 	        }

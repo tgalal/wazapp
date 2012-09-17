@@ -17,7 +17,7 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
-import time, threading, select, os, urllib;
+import time, threading, select, os, urllib, hashlib;
 from utilities import Utilities, S40MD5Digest
 from protocoltreenode import BinTreeNodeWriter,BinTreeNodeReader,ProtocolTreeNode
 from connengine import MySocketConnection
@@ -77,7 +77,7 @@ class WAEventHandler(WAEventBase):
 	getGroupInfo = QtCore.Signal(str);
 	createGroupChat = QtCore.Signal(str);
 	groupCreated = QtCore.Signal(str);
-	groupInfoUpdated = QtCore.Signal(str)
+	groupInfoUpdated = QtCore.Signal(str,str)
 	addParticipants = QtCore.Signal(str, str);
 	addedParticipants = QtCore.Signal();
 	removeParticipants = QtCore.Signal(str, str);
@@ -94,6 +94,7 @@ class WAEventHandler(WAEventBase):
 	setPicture = QtCore.Signal(str, str);
 	setPushName = QtCore.Signal(str, str);
 	imageRotated = QtCore.Signal(str);
+	getPicturesFinished = QtCore.Signal();
 	doQuit = QtCore.Signal();
 
 
@@ -114,6 +115,10 @@ class WAEventHandler(WAEventBase):
 		self.blockedContacts = "";
 
 		self.resizeImages = False;
+		self.personalRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
+		self.personalVibrate = "Yes";
+		self.groupRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
+		self.groupVibrate = "Yes";
 		
 		#self.connMonitor.sleeping.connect(self.networkUnavailable);
 		#self.connMonitor.checked.connect(self.checkConnection);
@@ -478,10 +483,26 @@ class WAEventHandler(WAEventBase):
 		self._d("Resize images: " + str(resize))
 		self.resizeImages = resize;
 
+	def setPersonalRingtone(self,value):
+		self._d("Personal Ringtone: " + str(value))
+		self.personalRingtone = "/usr/share/sounds/ring-tones/" + value;
+
+	def setPersonalVibrate(self,value):
+		self._d("Personal Vibrate: " + str(value))
+		self.personalVibrate = value;
+
+	def setGroupRingtone(self,value):
+		self._d("Group Ringtone: " + str(value))
+		self.groupRingtone = "/usr/share/sounds/ring-tones/" + value;
+
+	def setGroupVibrate(self,value):
+		self._d("Group Vibrate: " + str(value))
+		self.groupVibrate = value;
+
 
 	def sendVCard(self,jid,contactName):
 		contactName = contactName.encode('utf-8')
-		self._d("Sending vcard: " + WAConstants.VCARD_PATH + "/" + contactName + ".vcf")
+		self._d("Sending vcard: " + "/home/user/MyDocs/Wazapp/media/contacts/" + contactName + ".vcf")
 
 		stream = ""
 		while not "END:VCARD" in stream:
@@ -561,7 +582,7 @@ class WAEventHandler(WAEventBase):
 		stream = base64.b64encode(f.read())
 		f.close()
 
-		self._d("creating MMS for " +jid + " - file: " + image)
+		self._d("creating PICTURE MMS for " +jid + " - file: " + image)
 		fmsg = WAXMPP.message_store.createMessage(jid);
 		
 		mediaItem = WAXMPP.message_store.store.Media.create()
@@ -581,12 +602,28 @@ class WAEventHandler(WAEventBase):
 		WAXMPP.message_store.pushMessage(jid,fmsg)
 		
 
-	def sendMediaVideoFile(self,jid,video,preview):
-		self._d("creating MMS for " +jid + " - file: " + video)
+	def sendMediaVideoFile(self,jid,video,image):
+		self._d("creating VIDEO MMS for " +jid + " - file: " + video)
 		fmsg = WAXMPP.message_store.createMessage(jid);
-		
-		preview = preview.replace("file://","")
-		f = open(preview, 'r')
+
+		if image == "NOPREVIEW":
+			m = hashlib.md5()
+			url = QtCore.QUrl(video).toEncoded()
+			m.update(url)
+			image = "/home/user/.thumbnails/screen/" + m.hexdigest() + ".jpeg"
+		else:
+			image = image.replace("file://","")
+
+		user_img = QImage(image)
+		if user_img.height() > user_img.width():
+			preimg = QPixmap.fromImage(QImage(user_img.scaledToWidth(64, Qt.SmoothTransformation)))
+		elif user_img.height() < user_img.width():
+			preimg = QPixmap.fromImage(QImage(user_img.scaledToHeight(64, Qt.SmoothTransformation)))
+		else:
+			preimg = QPixmap.fromImage(QImage(user_img.scaled(64, 64, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)))
+		preimg.save("/home/user/.cache/wazapp/temp2.png", "PNG")
+
+		f = open("/home/user/.cache/wazapp/temp2.png", 'r')
 		stream = base64.b64encode(f.read())
 		f.close()
 
@@ -677,16 +714,19 @@ class WAEventHandler(WAEventBase):
 			if contactName is None or contactName == "":
 				contactName = pushName
 			if fmsg.type == 23:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the group picture")
+				if contactName == self.account:
+					newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 have changed the group picture")
+				else:
+					newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the group picture")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 20:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 joined the group")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has joined the group")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 21:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 left the group")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has left the group")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 22:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the subject to %2")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the subject to %2")
 				if contactName == self.account:
 					contactName = QtCore.QCoreApplication.translate("WAEventHandler", "You")
 				newContent = newContent.replace("%1", contactName)
@@ -699,7 +739,7 @@ class WAEventHandler(WAEventBase):
 				else:
 					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png"
 
-				self.notifier.newMessage(msg_contact.jid, contactName, newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newMessage(msg_contact.jid, contactName, newContent,self.personalRingtone, self.personalVibrate, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 
 			else:
 				conversation = fmsg.getConversation();
@@ -709,7 +749,7 @@ class WAEventHandler(WAEventBase):
 				else:
 					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
 
-				self.notifier.newMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject.decode("utf8")), newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject.decode("utf8")), newContent, self.groupRingtone, self.groupVibrate, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			
 
 			self._d("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
@@ -721,6 +761,7 @@ class WAEventHandler(WAEventBase):
 		#	self.conn.sendGetPicture(conversation.jid,"image")
 
 		if(fmsg.wantsReceipt):
+			print "MESSAGE WANTS RECEIPT!!!"
 			self.conn.sendMessageReceived(fmsg.key.remote_jid,mtype,fmsg.key.id);
 
 	
@@ -790,9 +831,9 @@ class WAEventHandler(WAEventBase):
 	def onGroupInfo(self,jid,ownerJid,subject,subjectOwnerJid,subjectT,creation):
 		self._d("Got group info")
 		if jid == "ERROR":
-			self.groupInfoUpdated.emit("ERROR")
+			self.groupInfoUpdated.emit(jid,"ERROR")
 		else:
-			self.groupInfoUpdated.emit(jid+"<<->>"+str(ownerJid)+"<<->>"+subject+"<<->>"+subjectOwnerJid+"<<->>"+str(subjectT)+"<<->>"+str(creation))
+			self.groupInfoUpdated.emit(jid,jid+"<<->>"+str(ownerJid)+"<<->>"+subject+"<<->>"+subjectOwnerJid+"<<->>"+str(subjectT)+"<<->>"+str(creation))
 			WAXMPP.message_store.updateGroupInfo(jid,ownerJid,subject,subjectOwnerJid,subjectT,creation)
 		#self.conn.sendGetPicture("g.us",jid,"group")
 		
@@ -821,6 +862,8 @@ class WAEventHandler(WAEventBase):
 		self.listJids = jids
 		if len(self.listJids)>0:
 			self.conn.sendGetPicture(self.listJids[0],"image")
+		else:
+			self.getPicturesFinished.emit()
 
 	def onGetPictureDone(self, jid):
 		self.profilePictureUpdated.emit(jid);
@@ -1101,7 +1144,7 @@ class StanzaReader(QThread):
 		
 	def handleGetPictureIds(self,node,jid=None):
 		groupNode = node.getChild("list")
-		self._d(groupNode.toString())
+		#self._d(groupNode.toString())
 		children = groupNode.getAllChildren("user");
 		jids = []
 		for c in children:
@@ -1398,6 +1441,8 @@ class StanzaReader(QThread):
 				self.checkPushName(author,pushName)
 
 			for childNode in messageChildren:
+				if ProtocolTreeNode.tagEquals(childNode,"request"):
+					fmsg.wantsReceipt = True;
 				if ProtocolTreeNode.tagEquals(childNode,"composing"):
 						if self.eventHandler is not None:
 							self.eventHandler.typing_received(fromAttribute);
@@ -1501,15 +1546,23 @@ class StanzaReader(QThread):
 				
 				elif ProtocolTreeNode.tagEquals(childNode,"body") and msg_id is not None:
 					msgdata = childNode.data;
-					
-					#mediaItem = WAXMPP.message_store.store.Media.create()
-					#mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_TEXT
-					#fmsg.Media = mediaItem
 					fmsg.Media = None
 					
 					key = Key(fromAttribute,False,msg_id);
 					fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
 					
+				elif ProtocolTreeNode.tagEquals(childNode,"received") and fromAttribute is not None and msg_id is not None:
+					print "NEW MESSAGE RECEIVED NOTIFICATION!!!"
+					self.connection.sendDeliveredReceiptAck(fromAttribute,msg_id); 
+					key = Key(fromAttribute,True,msg_id);
+					message = WAXMPP.message_store.get(key)
+					if message is not None:
+						WAXMPP.message_store.updateStatus(message,WAXMPP.message_store.store.Message.STATUS_DELIVERED)
+						
+						if self.eventHandler is not None:
+							self.eventHandler.message_status_update(message);
+					return #I didn't test if return is needed
+
 				
 				elif not (ProtocolTreeNode.tagEquals(childNode,"active")):
 					if ProtocolTreeNode.tagEquals(childNode,"request"):

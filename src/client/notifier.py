@@ -28,7 +28,7 @@ from QtMobility.MultimediaKit import QMediaPlayer
 from wadebug import NotifierDebug
 
 class Notifier():
-	def __init__(self,audio=False,vibra=False):
+	def __init__(self,audio=True,vibra=True):
 		_d = NotifierDebug();
 		self._d = _d.d;
 		
@@ -37,7 +37,7 @@ class Notifier():
 		
 		
 		
-		self.newMessageSound = WAConstants.DEFAULT_SOUND_NOTIFICATION #fetch from settings
+		#self.newMessageSound = WAConstants.DEFAULT_SOUND_NOTIFICATION #fetch from settings
 		self.devInfo = QSystemDeviceInfo();
 		
 		self.devInfo.currentProfileChanged.connect(self.profileChanged);
@@ -72,12 +72,12 @@ class Notifier():
 		self.notifications[jid] = data;
 		
 	
-	def getCurrentSoundPath(self):
+	def getCurrentSoundPath(self,ringtone):
 		activeProfile = self.devInfo.currentProfile();
 		
 		if activeProfile in (QSystemDeviceInfo.Profile.NormalProfile,QSystemDeviceInfo.Profile.LoudProfile):
 			if self.enabled:
-				return self.newMessageSound;
+				return ringtone #self.newMessageSound;
 			else:
 				return WAConstants.FOCUSED_SOUND_NOTIFICATION
 				
@@ -109,8 +109,10 @@ class Notifier():
 			#self.manager.removeNotification(nId);
 		
 				
-	def newMessage(self,jid,contactName,message,picture=None,callback=False):
+	def newMessage(self,jid,contactName,message,ringtone,vibration,picture=None,callback=False):
 		
+		self._d("NEW NOTIFICATION! Ringtone: " + ringtone + " - Vibrate: " + vibration)
+
 		activeConvJId = self.ui.getActiveConversation()
 		
 		max_len = min(len(message),20)
@@ -119,8 +121,15 @@ class Notifier():
 			
 			
 			if(activeConvJId == jid or activeConvJId == ""):
-				if self.vibra:
+				if self.audio and ringtone!="/usr/share/sounds/ring-tones/No sound.wav":
+					soundPath = "/usr/share/sounds/ui-tones/snd_chat_fg.wav";
+					self._d(soundPath)
+					self.audio.setMedia(QUrl.fromLocalFile(soundPath));
+					self.audio.play();
+
+				if self.vibra and vibration=="Yes":
 					self.vibra.start()
+
 				return
 			
 			n = MNotification("wazapp.message.new",contactName, message);
@@ -155,10 +164,13 @@ class Notifier():
 		#	self.vibra.start()
 		
 		if self.audio:
-			soundPath = self.getCurrentSoundPath();
+			soundPath = ringtone;
 			self._d(soundPath)
 			self.audio.setMedia(QUrl.fromLocalFile(soundPath));
 			self.audio.play();
+		
+		if vibration == "Yes":
+			self.vibra.start()
 			
 			
 	

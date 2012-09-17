@@ -88,6 +88,7 @@ class WAUI(QDeclarativeView):
 		self.c = WAContacts(self.store);
 		self.c.contactsRefreshed.connect(self.populateContacts);
 		self.c.contactsRefreshed.connect(self.rootObject().onRefreshSuccess);
+		#self.c.contactsRefreshed.connect(self.updateContactsData); NUEVO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		self.c.contactsRefreshFailed.connect(self.rootObject().onRefreshFail);
 		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
 		self.c.contactPictureUpdated.connect(self.rootObject().onContactPictureUpdated);
@@ -182,7 +183,7 @@ class WAUI(QDeclarativeView):
 	def setLanguage(self,lang):
 		if os.path.isfile(WAConstants.STORE_PATH + "/language.qm"):
 			os.remove(WAConstants.STORE_PATH + "/language.qm")
-		shutil.copyfile("/opt/waxmppplugin/bin/wazapp/i18n/" + lang + ".qm", WAConstants.STORE_PATH + "/language.qm")
+		shutil.copyfile("/opt/waxmppplugin/bin/wazapp/i18n/" + lang + ".qm", "/home/user/.wazapp/language.qm")
 
 
 	def consoleDebug(self,text):
@@ -228,11 +229,22 @@ class WAUI(QDeclarativeView):
 		self.c.updateContact(jid);
 	
 	def updatePushName(self, jid, push):
-		#self.c.updateContactPushName(jid,push);
 		self._d("UPDATING CONTACTS");
 		contacts = self.c.getContacts();
 		self.rootObject().updateContactsData(contacts);
-		self.rootObject().updatePushName.emit(jid,push);
+		self.rootObject().updateContactName.emit(jid,push);
+
+
+	def updateContactsData(self):
+		contacts = self.c.getContacts();
+		position = 0
+		for contact in contacts:
+			print "CONTACT DATA: " + str(contact)
+			if contact.iscontact=="no" and contact.pushname=="":
+				self.rootObject().insertNewContact(position,contact);
+			position = position +1
+
+
 		
 
 	def populateContacts(self, mode, status=""):
@@ -287,7 +299,7 @@ class WAUI(QDeclarativeView):
 		return activeConvJId
 		
 
-	def processFiles(self, folder, data, ignored):
+	def processFiles(self, folder, data): #, ignored):
 		#print "Processing " + folder
 		currentDir = os.path.abspath(folder)
 		filesInCurDir = os.listdir(currentDir)
@@ -300,15 +312,15 @@ class WAUI(QDeclarativeView):
 				if curFileExtention in data and not curFile in self.filelist:
 					self.filelist.append(curFile)
 			elif not "." in curFile: #Don't process hidden folders
-				if not curFile in ignored:
-					self.processFiles(curFile, data, ignored)
+				#if not curFile in ignored:
+				self.processFiles(curFile, data) #, ignored)
 
 
 	def getImageFiles(self):
 		print "GETTING IMAGE FILES..."
 		self.filelist = []
 		data = ["jpg","jpeg","png","gif","JPG","JPEG","PNG","GIF"]
-		ignored = ["/home/user/MyDocs/ANDROID","/home/user/MyDocs/openfeint"]
+		'''ignored = ["/home/user/MyDocs/ANDROID","/home/user/MyDocs/openfeint"]
 		f = open("/home/user/.config/tracker/tracker-miner-fs.cfg", 'r')
 		for line in f:
 			if "IgnoredDirectories=" in line:
@@ -316,9 +328,12 @@ class WAUI(QDeclarativeView):
 				break
 		f.close()
 		for val in values:
-			ignored.append(val.replace("$HOME","/home/user"))
+			ignored.append(val.replace("$HOME","/home/user"))'''
 
-		self.processFiles("/home/user/MyDocs", data, ignored)
+		self.processFiles("/home/user/MyDocs/DCIM", data) #, ignored)
+		self.processFiles("/home/user/MyDocs/Pictures", data) #, ignored)
+		self.processFiles("/home/user/MyDocs/Wazapp", data) #, ignored)
+
 
 		myfiles = []
 		for f in self.filelist:
@@ -347,7 +362,7 @@ class WAUI(QDeclarativeView):
 		print "GETTING VIDEO FILES..."
 		self.filelist = []
 		data = ["mov","3gp","mp4","MOV","3GP","MP4"]
-		ignored = ["/home/user/MyDocs/ANDROID","/home/user/MyDocs/openfeint"]
+		'''ignored = ["/home/user/MyDocs/ANDROID","/home/user/MyDocs/openfeint"]
 		f = open("/home/user/.config/tracker/tracker-miner-fs.cfg", 'r')
 		for line in f:
 			if "IgnoredDirectories=" in line:
@@ -355,9 +370,11 @@ class WAUI(QDeclarativeView):
 				break
 		f.close()
 		for val in values:
-			ignored.append(val.replace("$HOME","/home/user"))
+			ignored.append(val.replace("$HOME","/home/user"))'''
 
-		self.processFiles("/home/user/MyDocs", data, ignored)
+		self.processFiles("/home/user/MyDocs/DCIM", data) #, ignored)
+		self.processFiles("/home/user/MyDocs/Movies", data) #, ignored)
+		self.processFiles("/home/user/MyDocs/Wazapp", data) #, ignored)
 
 		myfiles = []
 		for f in self.filelist:
@@ -410,6 +427,7 @@ class WAUI(QDeclarativeView):
 
 		print "CAPTURE COMPLETED! Mode: " + mode
 		rotation = 0
+		capturemode = "image"
 		if filepath.split(".")[-1] == "jpg":
 			crypto = ""
 			rotation = 0
@@ -420,6 +438,7 @@ class WAUI(QDeclarativeView):
 			except:
 				rotation = 0
 		else:
+			capturemode = "video"
 			m = hashlib.md5()
 			url = QtCore.QUrl("file://"+filepath).toEncoded()
 			m.update(url)
@@ -427,7 +446,7 @@ class WAUI(QDeclarativeView):
 			self.iface.Queue(str(url),"video/mp4","screen", True)
 
 		print "CAPTURE COMPLETED! File: " + filepath
-		self.rootObject().capturedPreviewPicture(self.selectedJid, filepath, rotation, crypto)
+		self.rootObject().capturedPreviewPicture(self.selectedJid, filepath, rotation, crypto, capturemode)
 		self.selectedJid = ""
 
 
@@ -474,9 +493,9 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.lastSeenUpdated.connect(self.rootObject().onLastSeenUpdated);
 		whatsapp.eventHandler.updateAvailable.connect(self.rootObject().onUpdateAvailable)
 		
-		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().onGroupInfoUpdated);
-		whatsapp.eventHandler.groupCreated.connect(self.rootObject().onGroupCreated);
-		whatsapp.eventHandler.addedParticipants.connect(self.rootObject().onAddedParticipants);
+		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().groupInfoUpdated);
+		whatsapp.eventHandler.groupCreated.connect(self.rootObject().groupCreated);
+		whatsapp.eventHandler.addedParticipants.connect(self.rootObject().addedParticipants);
 		whatsapp.eventHandler.removedParticipants.connect(self.rootObject().onRemovedParticipants);
 		whatsapp.eventHandler.groupParticipants.connect(self.rootObject().onGroupParticipants);
 		whatsapp.eventHandler.groupEnded.connect(self.rootObject().onGroupEnded);
@@ -489,6 +508,7 @@ class WAUI(QDeclarativeView):
 		#whatsapp.eventHandler.profilePictureUpdated.connect(self.rootObject().onPictureUpdated);
 
 		whatsapp.eventHandler.imageRotated.connect(self.rootObject().imageRotated);
+		whatsapp.eventHandler.getPicturesFinished.connect(self.rootObject().getPicturesFinished);
 
 		whatsapp.eventHandler.mediaTransferSuccess.connect(self.rootObject().mediaTransferSuccess);
 		whatsapp.eventHandler.mediaTransferError.connect(self.rootObject().mediaTransferError);
@@ -533,6 +553,11 @@ class WAUI(QDeclarativeView):
 
 		self.rootObject().setBlockedContacts.connect(whatsapp.eventHandler.setBlockedContacts)
 		self.rootObject().setResizeImages.connect(whatsapp.eventHandler.setResizeImages)
+		self.rootObject().setPersonalRingtone.connect(whatsapp.eventHandler.setPersonalRingtone)
+		self.rootObject().setPersonalVibrate.connect(whatsapp.eventHandler.setPersonalVibrate)
+		self.rootObject().setGroupRingtone.connect(whatsapp.eventHandler.setGroupRingtone)
+		self.rootObject().setGroupVibrate.connect(whatsapp.eventHandler.setGroupVibrate)
+
 		self.rootObject().openCamera.connect(self.openCamera)
 
 		self.rootObject().getImageFiles.connect(self.getImageFiles)

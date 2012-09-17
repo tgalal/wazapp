@@ -46,7 +46,7 @@ WAPage {
 
     onStatusChanged: {
         if(status == PageStatus.Activating){
-			list_view1.positionViewAtBeginning()
+			//list_view1.positionViewAtBeginning()
 		}
 	}
 
@@ -161,6 +161,37 @@ WAPage {
 		height: 73
     }
 
+	Image {
+		id: refreshPics
+		anchors.right: header.right
+		anchors.rightMargin: 16
+		anchors.verticalCenter: header.verticalCenter 
+		source: "../common/images/refresh.png"
+		MouseArea {
+			anchors.fill: parent
+			onClicked: {
+				refreshPics.visible = false
+				getPictures()
+			}
+		}
+	}
+
+    BusyIndicator {
+		anchors.right: header.right
+		anchors.rightMargin: 16
+		anchors.verticalCenter: header.verticalCenter 
+        implicitWidth: 32
+        visible: !refreshPics.visible
+        running: visible
+    }
+
+	Connections {
+		target: appWindow
+		onGetPicturesFinished: {
+			refreshPics.visible = true
+		}	
+	}
+
     WANotify{
 		anchors.top: header.bottom
         id:wa_notifier
@@ -260,7 +291,7 @@ WAPage {
             Label{
                 anchors.centerIn: parent;
                 text: qsTr("No contacts yet. Try to resync")
-                font.pointSize: 20
+                font.pointSize: 26
                 width:parent.width
                 horizontalAlignment: Text.AlignHCenter
 				color: "gray"

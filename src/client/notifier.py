@@ -24,39 +24,43 @@ from QtMobility.SystemInfo import QSystemDeviceInfo
 from constants import WAConstants
 from utilities import Utilities
 from QtMobility.MultimediaKit import QMediaPlayer
-
+from PySide.phonon import Phonon
 from wadebug import NotifierDebug
 
 class Notifier():
-	def __init__(self,audio=True,vibra=True):
+	def __init__(self,audio=True,vibra=False):
 		_d = NotifierDebug();
 		self._d = _d.d;
 		
 		self.manager = MNotificationManager('wazappnotify','WazappNotify');
 		self.vibra = vibra
 		
-		
+		self.audioOutput = Phonon.AudioOutput(Phonon.MusicCategory, None)
+		self.mediaObject = Phonon.MediaObject(None)
+		Phonon.createPath(self.mediaObject, self.audioOutput)		
 		
 		#self.newMessageSound = WAConstants.DEFAULT_SOUND_NOTIFICATION #fetch from settings
 		self.devInfo = QSystemDeviceInfo();
 		
 		self.devInfo.currentProfileChanged.connect(self.profileChanged);
 		
-		
-		if audio:
-			self.audio = QMediaPlayer(); 
+		self.audio = True
+		'''if audio:
+			self.audio = QMediaPlayer(None,QMediaPlayer.LowLatency); 
 			self.audio.setVolume(100);
 		else:
-			self.audio = False
+			self.audio = False'''
 			
 		self.enabled = True
 		self.notifications = {}
 		
+
+		# vibration comes too early here, now handled by ui.py when the message is already added in QML
+		# well, the truth is that sound comes too late... :D
 		if self.vibra:
 			self.vibra = QFeedbackHapticsEffect();
 			self.vibra.setIntensity(1.0);
 			self.vibra.setDuration(200);
-	
 	
 	
 	def profileChanged(self):
@@ -76,13 +80,13 @@ class Notifier():
 		activeProfile = self.devInfo.currentProfile();
 		
 		if activeProfile in (QSystemDeviceInfo.Profile.NormalProfile,QSystemDeviceInfo.Profile.LoudProfile):
-			if self.enabled:
-				return ringtone #self.newMessageSound;
-			else:
-				return WAConstants.FOCUSED_SOUND_NOTIFICATION
+			#if self.enabled:
+			return ringtone #self.newMessageSound;
+			#else:
+			#	return WAConstants.FOCUSED_SOUND_NOTIFICATION
 				
-		elif activeProfile  == QSystemDeviceInfo.Profile.BeepProfile:
-			return WAConstants.DEFAULT_BEEP_NOTIFICATION 
+		elif activeProfile == QSystemDeviceInfo.Profile.BeepProfile:
+			return WAConstants.FOCUSED_SOUND_NOTIFICATION
 		else:
 			return WAConstants.NO_SOUND
 		
@@ -121,16 +125,29 @@ class Notifier():
 			
 			
 			if(activeConvJId == jid or activeConvJId == ""):
-				if self.audio and ringtone!="/usr/share/sounds/ring-tones/No sound.wav":
-					soundPath = "/usr/share/sounds/ui-tones/snd_chat_fg.wav";
+				if self.audio and ringtone!= WAConstants.NO_SOUND:
+					soundPath = WAConstants.DEFAULT_BEEP_NOTIFICATION;
 					self._d(soundPath)
-					self.audio.setMedia(QUrl.fromLocalFile(soundPath));
-					self.audio.play();
+					#self.audio.setMedia(QUrl.fromLocalFile(soundPath));
+					#self.audio.play();
+					self.mediaObject.setCurrentSource(Phonon.MediaSource(soundPath))
+					self.mediaObject.play()
+
 
 				if self.vibra and vibration=="Yes":
 					self.vibra.start()
 
 				return
+
+
+			if self.audio and ringtone!=WAConstants.NO_SOUND:
+				soundPath = self.getCurrentSoundPath(ringtone);
+				self._d(soundPath)
+				#self.audio.setMedia(QUrl.fromLocalFile(soundPath));
+				#self.audio.play();
+				self.mediaObject.setCurrentSource(Phonon.MediaSource(soundPath))
+				self.mediaObject.play()
+
 			
 			n = MNotification("wazapp.message.new",contactName, message);
 			n.image = picture
@@ -141,10 +158,8 @@ class Notifier():
 		
 			notifications = n.notifications();
 			
-			
 			if self.notifications.has_key(jid):
 				nId = self.notifications[jid]['id'];
-				
 				
 				for notify in notifications:
 					if int(notify[0]) == nId:
@@ -160,17 +175,8 @@ class Notifier():
 				self.saveNotification(jid,{"id":nId,"callback":callback});
 		
 		
-		#if self.vibra:
-		#	self.vibra.start()
-		
-		if self.audio:
-			soundPath = ringtone;
-			self._d(soundPath)
-			self.audio.setMedia(QUrl.fromLocalFile(soundPath));
-			self.audio.play();
-		
-		if vibration == "Yes":
-			self.vibra.start()
+			if self.vibra and vibration=="Yes":
+				self.vibra.start()
 			
 			
 	

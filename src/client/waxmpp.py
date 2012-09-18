@@ -1154,8 +1154,10 @@ class StanzaReader(QThread):
 					jids.append(c.getAttributeValue("jid"))
 					contact.setData({"pictureid":c.getAttributeValue("id")})
 					contact.save()
-		self.eventHandler.onGetPictureIds(jids)
-				
+		if len(jids)>0:
+			self.eventHandler.onGetPictureIds(jids)
+		else:
+			self.eventHandler.getPicturesFinished.emit()
 
 	def handleSetPicture(self,node,jid=None):
 		picNode = node.getChild("picture")

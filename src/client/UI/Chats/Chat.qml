@@ -240,7 +240,7 @@ Rectangle{
                     verticalAlignment: Text.AlignVCenter
 					height: 30
                 }
-				Rectangle {
+				/*Rectangle {
 					color: "gray"
 					radius: 10
 					smooth: true
@@ -253,6 +253,10 @@ Rectangle{
 						anchors.centerIn: parent
                         text:unreadCount
 					}
+				}*/
+				CountBubble {
+					title: unreadCount? unreadCount : ""
+					anchors.right: parent.right
 				}
             }
             Row{

@@ -19,6 +19,7 @@ WAPage {
         }
         else if(status == PageStatus.Activating){
             chat_text.visible = true
+			ustatus.state = "default"
         }
         else if(status == PageStatus.Active){
             appWindow.conversationActive(jid);
@@ -190,6 +191,7 @@ WAPage {
 		consoleDebug("END ADDING MESSAGES")
 		positionToAdd = conv_data.count
 		loadReverse = false
+		appWindow.checkUnreadMessages()
     }
 
     function getContacts(){return ConversationHelper.contacts;}
@@ -381,9 +383,15 @@ WAPage {
     function addMessage(message){
 		//if (!opened && conv_data.count==2)
 		//	conv_data.remove(0)
+
+		if (!loadReverse && myAccount!="" && message.type!="1") {
+			if (isGroup() && vibraForGroup=="Yes") appWindow.vibrateNow()
+			else if (!isGroup() && vibraForPersonal=="Yes") appWindow.vibrateNow()
+		}
 		ConvScript.addMessage(loadReverse,positionToAdd,message);
 		positionToAdd = positionToAdd+1
 		updateLastMessage()
+		if (!loadReverse) appWindow.checkUnreadMessages();
 	}
 
     function getNameForBubble(uname)

@@ -82,7 +82,7 @@ WAPage {
             delete conversation;
 
             conversationsModel.remove(chatItemIndex);
-
+			checkUnreadMessages()
         }
     }
 
@@ -107,7 +107,7 @@ WAPage {
         return 0
     }
 
-    ListModel{id:conversationsModel}
+    //ListModel{id:conversationsModel}
 
 
     Component{

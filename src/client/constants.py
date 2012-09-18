@@ -36,7 +36,7 @@ class WAConstants():
 	
 	DEFAULT_SOUND_NOTIFICATION = "/usr/share/sounds/ring-tones/Message 1.mp3"
 	FOCUSED_SOUND_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_default_beep.wav"
-	DEFAULT_BEEP_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_default_beep.wav"
+	DEFAULT_BEEP_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_chat_fg.wav"
 	NO_SOUND = "/usr/share/sounds/ring-tones/No sound.wav"
 	
 	MEDIA_TYPE_TEXT		= 1

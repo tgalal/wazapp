@@ -53,6 +53,8 @@ WAStackWindow {
 		sendWithEnterKey = MySettings.getSetting("SendWithEnterKey", "Yes")=="Yes"
 		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes"
 		orientation = parseInt(MySettings.getSetting("Orientation", "0"))
+		vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")
+		vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")
 	}
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
@@ -68,6 +70,8 @@ WAStackWindow {
 	property string selectedGroupPicture
 	property string bigProfileImage
     property int orientation
+	property string vibraForPersonal
+	property string vibraForGroup
 
     /****** Signal and Slot definitions *******/
 
@@ -120,6 +124,7 @@ WAStackWindow {
 	signal imageRotated(string filepath);
 	signal getPicturesFinished();
 	signal removeFile(string file);
+	signal vibrateNow();
 
 	signal openContactPicker(string multi, string title); //TESTING...
 	signal setBlockedContacts(string contacts);
@@ -328,7 +333,7 @@ WAStackWindow {
 	}
 	
 	
-	property string myAccount
+	property string myAccount: ""
 	function setMyAccount(account) {
 		myAccount = account
 
@@ -338,9 +343,9 @@ WAStackWindow {
 		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
 		setResizeImages(resizeImages)
 
-		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "Message 1"));
+		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "Message 1.mp3"));
 		setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes"));
-		setGroupRingtone(MySettings.getSetting("GroupRingtone", "Message 1"));
+		setGroupRingtone(MySettings.getSetting("GroupRingtone", "Message 1.mp3"));
 		setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes"));
 
 	}
@@ -483,7 +488,17 @@ WAStackWindow {
             conversation.open();
         }
 		onPaused(messages.jid)
+
     }
+
+	function checkUnreadMessages() {
+		var num = 0
+        for(var i =0; i<conversationsModel.count; i++) {
+			var nconv = conversationsModel.get(i).conversation.unreadCount
+			num = num + (nconv? nconv : 0)
+		}
+		unreadChatMessages.title = num.toString() 
+	}
 
     function onLastSeenUpdated(jid,seconds){
 
@@ -621,6 +636,10 @@ WAStackWindow {
     }
 
     ListModel{
+		id:conversationsModel
+	}
+
+    ListModel{
         id:contactsModel
     }
 
@@ -672,7 +691,7 @@ WAStackWindow {
             Chats{
                 id:waChats
                 height: parent.height
-                onDeleteConversation: appWindow.deleteConversation(jid);
+                onDeleteConversation: appWindow.deleteConversation(jid)
             }
 
             Contacts {
@@ -696,15 +715,22 @@ WAStackWindow {
                 TabButton {
 					id: chatsTabButton
                     platformStyle: TabButtonStyle{inverted:theme.inverted}
-                    text: qsTr("Chats")
-                    //iconSource: "../images/icon-m-toolbar-home.png"
+                    //text: qsTr("Chats")
+                    iconSource: "image://theme/icon-m-toolbar-new-chat" + (theme.inverted ? "-white" : "") 
                     tab: waChats
+					CountBubble {
+						id: unreadChatMessages
+						anchors.right: parent.right
+						anchors.rightMargin: 16
+						y: -8 // Yes, I like it this way!
+						//title: "0"
+					}
                 }
                 TabButton {
 					id: contactsTabButton
                     platformStyle: TabButtonStyle{inverted: theme.inverted}
-                    text: qsTr("Contacts")
-                    // iconSource: "../images/icon-m-toolbar-list.png"
+                    //text: qsTr("Contacts")
+                    iconSource: "common/images/book" + (theme.inverted ? "-white" : "") + ".png";
                     tab: waContacts
                 }
             }

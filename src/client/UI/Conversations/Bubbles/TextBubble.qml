@@ -7,7 +7,7 @@ SpeechBubble {
 	childrenWidth: msg_text.paintedWidth
 
     function getAuthor(inputText) {
-		if (message==myAccount)
+		if (inputText==myAccount)
 			return qsTr("You")
         var resp = inputText;
         for(var i =0; i<contactsModel.count; i++)

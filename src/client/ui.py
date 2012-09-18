@@ -38,7 +38,7 @@ from subprocess import call
 import Image
 from PIL.ExifTags import TAGS
 from constants import WAConstants
-#from QtMobility.MultimediaKit import QCamera, QCameraViewfinder, QCameraImageCapture
+from QtMobility.Feedback import QFeedbackHapticsEffect
 
 class WAUI(QDeclarativeView):
 	quit = QtCore.Signal()
@@ -68,6 +68,10 @@ class WAUI(QDeclarativeView):
 
 		self.filelist = []
 		
+		self.vibra = QFeedbackHapticsEffect();
+		self.vibra.setIntensity(1.0);
+		self.vibra.setDuration(200);
+
 		self.rootContext().setContextProperty("waversion", Utilities.waversion);
 		self.setSource(url);
 		self.focus = False
@@ -104,6 +108,7 @@ class WAUI(QDeclarativeView):
 
 		self.rootObject().openContactPicker.connect(self.openContactPicker)
 
+		self.rootObject().vibrateNow.connect(self.vibrateNow)
 				
 		#Changed by Tarek: connected directly to QContactManager living inside contacts manager
 		#self.c.manager.manager.contactsChanged.connect(self.rootObject().onContactsChanged);
@@ -459,6 +464,9 @@ class WAUI(QDeclarativeView):
 		print "REMOVING FILE: " + filepath
 		filepath = filepath.replace("file://","")
 		os.remove(filepath)
+
+	def vibrateNow(self):
+		self.vibra.start()
 
 
 	def initConnection(self):

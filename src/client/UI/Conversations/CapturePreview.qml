@@ -58,7 +58,7 @@ Page {
 		onThumbnailUpdated: {
 			if (preview.sourceSize.width<1) {
 				preview.source = ""
-				preview.source = "/home/user/.thumbnails/screen/" + Qt.md5(imgsource) + ".jpeg"
+                preview.source = WAConstants.THUMBS_PATH + "/screen/" + Qt.md5(imgsource) + ".jpeg"
 			}
 		}
 	}

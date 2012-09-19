@@ -211,7 +211,7 @@ WAPage {
         var pic="";
 
         if(isGroup())
-            pic = "/home/user/.cache/wazapp/contacts/" + jid.split('@')[0] + ".png"
+            pic = WAConstants.CACHE_CONTACTS + "/" + jid.split('@')[0] + ".png"
         else if(contacts && contacts.length)
             pic = getAuthorPicture(jid) //contacts[0].contactPicture;
 

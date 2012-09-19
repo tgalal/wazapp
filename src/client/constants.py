@@ -23,14 +23,18 @@ class WAConstants():
 	
 	STORE_PATH = os.path.expanduser('~/.wazapp');
 	
-	MEDIA_PATH = STORE_PATH+'/media'
+	#MEDIA_PATH = STORE_PATH+'/media'
+	MEDIA_PATH = "/home/user/MyDocs/Wazapp/media"
 	AUDIO_PATH = MEDIA_PATH+'/audio'
 	IMAGE_PATH = MEDIA_PATH+'/images'
 	VIDEO_PATH = MEDIA_PATH+'/videos'
 	VCARD_PATH = MEDIA_PATH+'/contacts'
 
 	CACHE_PATH = os.path.expanduser('~/.cache/wazapp');
-	THUMB_PATH = os.path.expanduser('~/.thumbnails');
+	CACHE_CONTACTS = CACHE_PATH+"/contacts"
+	CACHE_PROFILE = CACHE_PATH+"/profile"
+
+	THUMBS_PATH = os.path.expanduser('/home/user/.thumbnails');
 		
 	CLIENT_INSTALL_PATH = '/opt/waxmppplugin/bin/wazapp'
 	
@@ -48,3 +52,8 @@ class WAConstants():
 	MEDIA_TYPE_VIDEO	= 4
 	MEDIA_TYPE_LOCATION	= 5
 	MEDIA_TYPE_VCARD	= 6
+
+
+	@staticmethod
+	def getAllProperties():
+		return vars(WAConstants)

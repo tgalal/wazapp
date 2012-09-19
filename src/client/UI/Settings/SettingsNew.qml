@@ -30,7 +30,7 @@ WAPage {
 
 	signal syncClicked();
 
-	property string contactPicture: "/home/user/.cache/wazapp/profile/" + myAccount.split("@")[0] + ".jpg"
+    property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
 
 	property string message: qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
 							 qsTr("You are trying it at your own risk.") + "\n" + 
@@ -567,7 +567,7 @@ WAPage {
 						target: appWindow
 						onOnContactPictureUpdated: {
 							if (myAccount == ujid) {
-								contactPicture = "/home/user/.cache/wazapp/contacts/" + myAccount.split("@")[0] + ".jpg"
+                                contactPicture = WAConstants.CACHE_CONTACTS + "/" + myAccount.split("@")[0] + ".jpg"
 								picture.imgsource = ""
 								picture.imgsource = contactPicture
 								bigImage.source = ""

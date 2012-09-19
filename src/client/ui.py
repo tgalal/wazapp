@@ -69,6 +69,7 @@ class WAUI(QDeclarativeView):
 		
 
 		self.rootContext().setContextProperty("waversion", Utilities.waversion);
+		self.rootContext().setContextProperty("WAConstants", WAConstants.getAllProperties());
 		self.setSource(url);
 		self.focus = False
 		self.whatsapp = None
@@ -345,7 +346,7 @@ class WAUI(QDeclarativeView):
 			m = hashlib.md5()
 			url = QtCore.QUrl("file://"+f).toEncoded()
 			m.update(url)
-			crypto = "/.thumbnails/grid/" + m.hexdigest() + ".jpeg"
+			crypto = WAConstants.THUMBS_PATH + "/grid/" + m.hexdigest() + ".jpeg"
 			if not os.path.exists(crypto):
 				# Thumbnail does'n exist --> Generating...
 				if f.split(".")[-1] == "jpg" or f.split(".")[-1] == "JPG":

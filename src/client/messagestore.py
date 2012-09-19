@@ -23,6 +23,7 @@ import time
 import datetime
 from wadebug import MessageStoreDebug
 import os
+from constants import WAConstants
 
 class MessageStore(QObject):
 
@@ -104,9 +105,9 @@ class MessageStore(QObject):
 			
 				if "@g.us" in jid:
 					jname = jid.replace("@g.us","")
-					if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
+					if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
 						img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-						img.save("/home/user/.cache/wazapp/contacts/" + jname + ".png")
+						img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
 			
 				self.sendConversationReady(jid);
 				self.sendMessagesReady(jid,c.messages);
@@ -218,9 +219,9 @@ class MessageStore(QObject):
 				conv.setData({"jid":jid})
 				conv.save()
 				jname = jid.replace("@g.us","")
-				if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
+				if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
 					img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-					img.save("/home/user/.cache/wazapp/contacts/" + jname + ".png")
+					img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
 			
 		else:
 			contact = self.store.Contact.getOrCreateContactByJid(jid)

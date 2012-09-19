@@ -58,7 +58,7 @@ WAPage {
 				contactNumber = contactsModel.get(i).number
 				inContacts = contactsModel.get(i).iscontact=="yes"
 				bigImage.source = ""
-				bigImage.source = "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
+                bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
 				break;
 			}
         }
@@ -81,7 +81,7 @@ WAPage {
 				picture.imgsource = ""
 				picture.imgsource = contactPicture
 				bigImage.source = ""
-				bigImage.source = "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
+                bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
 			}
 		}
 		onContactStatusUpdated: {
@@ -95,7 +95,7 @@ WAPage {
 	Image {
 		id: bigImage
 		visible: false
-		source: "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
+        source: WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
 		cache: false
 	}
 
@@ -128,7 +128,7 @@ WAPage {
 					imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
 					onClicked: { 
 						if (bigImage.width>0) {
-							//bigProfileImage = "/home/user/.cache/wazapp/profile/" + profileUser.split('@')[0] + ".jpg"
+                            //bigProfileImage = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
 							//pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
 							Qt.openUrlExternally(bigImage.source)
 						}

@@ -195,10 +195,10 @@ class WAContacts(QObject):
 			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
 
 		jname = jid.replace("@s.whatsapp.net","").replace("@g.us","")
-		user_img.save("/home/user/.cache/wazapp/contacts/" + jname + ".png", "PNG")
-		if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
-			user_img = QImage("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
-			user_img.save("/home/user/.cache/wazapp/profile/" + jname + ".jpg", "JPEG")
+		user_img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
+		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/contacts/" + jname + ".jpg"):
+			user_img = QImage(WAConstants.CACHE_CONTACTS + "/contacts/" + jname + ".jpg")
+			user_img.save(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg", "JPEG")
 		mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
 		preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
 		PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
@@ -208,18 +208,18 @@ class WAContacts(QObject):
 		Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
 		Painter.drawPixmap(0, 0, 96, 96, Mask);
 		Painter.end()
-		PixmapToBeMasked.save("/home/user/.cache/wazapp/contacts/" + jname + ".png", "PNG")
-		#os.remove("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+		PixmapToBeMasked.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
+		#os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 		self.contactPictureUpdated.emit(jid);
 
 
 
 	def checkPicture(self,jname,imagepath):
-		if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
+		if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
 			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
 			if imagepath is not "":
-				if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
-					user_img = QImage("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+				if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+					user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 				else:
 					user_img = QImage(QUrl(imagepath).toString().replace("file://",""))
 			mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
@@ -231,9 +231,9 @@ class WAContacts(QObject):
 			Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
 			Painter.drawPixmap(0, 0, 96, 96, Mask);
 			Painter.end()
-			PixmapToBeMasked.save("/home/user/.cache/wazapp/contacts/" + jname + ".png", "PNG")
-			if os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".jpg"):
-				os.remove("/home/user/.cache/wazapp/contacts/" + jname + ".jpg")
+			PixmapToBeMasked.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
+			if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+				os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 
 
 
@@ -249,10 +249,10 @@ class WAContacts(QObject):
 		tmp = []
 		self.contacts = {};
 		
-		if not os.path.exists("/home/user/.cache/wazapp/contacts"):
-			os.makedirs("/home/user/.cache/wazapp/contacts")
-		if not os.path.exists("/home/user/.cache/wazapp/profile"):
-			os.makedirs("/home/user/.cache/wazapp/profile")
+		if not os.path.exists(WAConstants.CACHE_CONTACTS):
+			os.makedirs(WAConstants.CACHE_CONTACTS)
+		if not os.path.exists(WAConstants.CACHE_PROFILE):
+			os.makedirs(WAConstants.CACHE_PROFILE)
 
 		for wc in contacts:
 			jname = wc.jid.replace("@s.whatsapp.net","")
@@ -262,7 +262,7 @@ class WAContacts(QObject):
 				if wc.number[-8:] == c['number'][-8:]:
 					founded = True
 					self.checkPicture(jname,c['picture'])
-					c['picture'] = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
+					c['picture'] = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
 					myname = c['name']
 					wc.setRealTimeData(myname,c['picture'],"yes");
 					break;
@@ -270,7 +270,7 @@ class WAContacts(QObject):
 			if founded is False and wc.number is not None:
 				self.checkPicture(jname,"")
 				myname = wc.pushname.decode("utf8") if wc.pushname is not None else ""
-				mypicture = "/home/user/.cache/wazapp/contacts/" + jname + ".png";
+				mypicture = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
 				wc.setRealTimeData(myname,mypicture,"no");
 
 			if wc.status is not None:
@@ -319,8 +319,8 @@ class WAContacts(QObject):
 
 		for c in phoneContacts:
 			if name == c.displayLabel():
-				if os.path.isfile("/home/user/.cache/wazapp/contacts/" + name + ".vcf"):
-					os.remove("/home/user/.cache/wazapp/contacts/" + name + ".vcf")
+				if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + name + ".vcf"):
+					os.remove(WAConstants.CACHE_CONTACTS + "/" + name + ".vcf")
 				print "founded contact: " + c.displayLabel()
 				contacts.append(c)
 				openfile = QFile(WAConstants.VCARD_PATH + "/" + name + ".vcf")

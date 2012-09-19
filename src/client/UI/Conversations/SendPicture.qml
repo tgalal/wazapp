@@ -85,7 +85,7 @@ WAPage {
 
 			Image {
 				id: image
-				source: thumb // "/home/user/.thumbnails/grid/" + Qt.md5(url) + ".jpeg"
+                source: thumb // WAConstants.THUMBS_PATH + "/grid/" + Qt.md5(url) + ".jpeg"
 				width: 158
 				height: 158
 				fillMode: Image.PreserveAspectCrop

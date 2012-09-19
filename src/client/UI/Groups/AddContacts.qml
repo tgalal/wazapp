@@ -30,8 +30,17 @@ import "../Contacts"
 WAPage {
     id: contactsContainer
 
+	function contactRemoved() {
+		consoleDebug("CALLED CONTACT REMOVED FUNCTION")
+		for (var i=0; i<list_view1.count; ++i) {
+			list_view1.currentIndex = i
+			list_view1.currentItem.isSelected = selectedContacts.indexOf(list_view1.currentItem.myData.jid)>-1
+		}
+	}
+
     onStatusChanged: {
         if(status == PageStatus.Activating){
+			contactRemoved()
 			list_view1.positionViewAtBeginning()
 		}
 		if(status == PageStatus.Active){
@@ -331,45 +340,20 @@ WAPage {
 			width: 300
             text: qsTr("Done")
             onClicked: {
-				//participantsModel.clear()
-				
-				/*for (var i=0; i<contactsModel.count; ++i) {
-					var data = myList.getItem(i)
-					if (myList.isSelected(i)) {
-						if (selectedContacts.indexOf(contactsModel.get(i).jid)<0) {
-							selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + contactsModel.get(i).jid;
-							participantsModel.append({"contactPicture":contactsModel.get(i).picture,
-								"contactName":contactsModel.get(i).name,
-								"contactStatus":contactsModel.get(i).status,
-								"contactJid":contactsModel.get(i).jid})
-						}
-					} else {
-						for (var j=0; j<participantsModel.count; ++j) {
-							if (participantsModel.get(j).contactJid==contactsModel.get(i).jid)
-								participantsModel.remove(j)
-						}
-						var newSelectedContacts = selectedContacts
-						newSelectedContacts = newSelectedContacts.replace(contactsModel.get(i).jid,"")
-						newSelectedContacts = newSelectedContacts.replace(",,",",")
-						selectedContacts = newSelectedContacts
-
-					}
-				}*/
-
+				selectedContacts = ""
+				participantsModel.clear()
 
 				for (var i=0; i<list_view1.count; ++i) {
 					list_view1.currentIndex = i
 					if (list_view1.currentItem.isSelected) {
 						consoleDebug("ADDING CONTACT: "+list_view1.currentItem.jid)
 
-						if (selectedContacts.indexOf(contactsModel.get(i).jid)<0) {
-							selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + contactsModel.get(i).jid;
-							participantsModel.append({"contactPicture":contactsModel.get(i).picture,
-								"contactName":contactsModel.get(i).name,
-								"contactStatus":contactsModel.get(i).status,
-								"contactJid":contactsModel.get(i).jid})
-						}
-					} else {
+						selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + contactsModel.get(i).jid;
+						participantsModel.append({"contactPicture":contactsModel.get(i).picture,
+							"contactName":contactsModel.get(i).name,
+							"contactStatus":contactsModel.get(i).status,
+							"contactJid":contactsModel.get(i).jid})
+					} /*else {
 						for (var j=0; j<participantsModel.count; ++j) {
 							if (participantsModel.get(j).contactJid==contactsModel.get(i).jid)
 								participantsModel.remove(j)
@@ -378,9 +362,9 @@ WAPage {
 						newSelectedContacts = newSelectedContacts.replace(contactsModel.get(i).jid,"")
 						newSelectedContacts = newSelectedContacts.replace(",,",",")
 						selectedContacts = newSelectedContacts
-
-					}
+					}*/
 				}
+				consoleDebug("PARTICIPANTS RESULT: " + selectedContacts)
 				pageStack.pop()
 			}
         }

@@ -155,7 +155,7 @@ class WAHTTPHandler(QThread):
 		filetype = mimetypes.guess_type(filename)[0]
 		filesize = os.path.getsize(image)
 
-		if self.resizeImages is True and "image" in filetype:
+		if self.resizeImages is True and "image" in filetype and not "image/gif" in filetype:
 			user_img = QImage(image)
 			preimg = user_img
 			if user_img.height() > user_img.width() and user_img.width() > 600:
@@ -164,8 +164,8 @@ class WAHTTPHandler(QThread):
 				preimg = user_img.scaledToHeight(800, Qt.SmoothTransformation)
 			elif user_img.height() == user_img.width() and user_img.height() > 600:
 				preimg = user_img.scaled(600, 600, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-			preimg.save("/home/user/.cache/wazapp/" + os.path.basename(image))
-			image = "/home/user/.cache/wazapp/" + os.path.basename(image)
+			preimg.save(WAConstants.CACHE_PATH+"/" + os.path.basename(image))
+			image = WAConstants.CACHE_PATH+"/" + os.path.basename(image)
 
 			filename = os.path.basename(image)
 			filetype = mimetypes.guess_type(filename)[0]
@@ -235,7 +235,7 @@ class WAHTTPHandler(QThread):
 		ssl_sock.write(str(fBAOS))
 
 		if self.resizeImages is True and "image" in filetype:
-			os.remove("/home/user/.cache/wazapp/" + os.path.basename(image))
+			os.remove(WAConstants.CACHE_PATH+"/" + os.path.basename(image))
 
 		sleep(1)
 		print "Done!"

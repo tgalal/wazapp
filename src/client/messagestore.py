@@ -23,6 +23,7 @@ import time
 import datetime
 from wadebug import MessageStoreDebug
 import os
+from constants import WAConstants
 
 class MessageStore(QObject):
 
@@ -95,18 +96,24 @@ class MessageStore(QObject):
 			self._d("loading messages")
 			jid = c.getJid();
 			c.loadMessages();
+
 			self.conversations[jid] = c
 			
-			print "loaded messages"
+			print "loaded messages: " + str(len(c.messages))
+
+			if len(c.messages) > 0: # Prevent chats with no messages
 			
-			if "@g.us" in jid:
-				jname = jid.replace("@g.us","")
-				if not os.path.isfile("/home/user/.cache/wazapp/contacts/" + jname + ".png"):
-					img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-					img.save("/home/user/.cache/wazapp/contacts/" + jname + ".png")
+				if "@g.us" in jid:
+					jname = jid.replace("@g.us","")
+					if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
+						img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+						img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
 			
-			self.sendConversationReady(jid);
-			self.sendMessagesReady(jid,c.messages);
+				self.sendConversationReady(jid);
+				self.sendMessagesReady(jid,c.messages);
+
+			else:
+				self.deleteConversation(jid)
 		
 
 	def loadMessages(self,jid,offset=0, limit=1):
@@ -211,6 +218,10 @@ class MessageStore(QObject):
 				conv = self.store.Groupconversation.create()
 				conv.setData({"jid":jid})
 				conv.save()
+				jname = jid.replace("@g.us","")
+				if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
+					img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+					img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
 			
 		else:
 			contact = self.store.Contact.getOrCreateContactByJid(jid)

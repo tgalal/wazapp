@@ -23,11 +23,18 @@ class WAConstants():
 	
 	STORE_PATH = os.path.expanduser('~/.wazapp');
 	
-	MEDIA_PATH = STORE_PATH+'/media'
+	#MEDIA_PATH = STORE_PATH+'/media'
+	MEDIA_PATH = "/home/user/MyDocs/Wazapp/media"
 	AUDIO_PATH = MEDIA_PATH+'/audio'
 	IMAGE_PATH = MEDIA_PATH+'/images'
 	VIDEO_PATH = MEDIA_PATH+'/videos'
 	VCARD_PATH = MEDIA_PATH+'/contacts'
+
+	CACHE_PATH = os.path.expanduser('~/.cache/wazapp');
+	CACHE_CONTACTS = CACHE_PATH+"/contacts"
+	CACHE_PROFILE = CACHE_PATH+"/profile"
+
+	THUMBS_PATH = os.path.expanduser('/home/user/.thumbnails');
 		
 	CLIENT_INSTALL_PATH = '/opt/waxmppplugin/bin/wazapp'
 	
@@ -36,7 +43,7 @@ class WAConstants():
 	
 	DEFAULT_SOUND_NOTIFICATION = "/usr/share/sounds/ring-tones/Message 1.mp3"
 	FOCUSED_SOUND_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_default_beep.wav"
-	DEFAULT_BEEP_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_default_beep.wav"
+	DEFAULT_BEEP_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_chat_fg.wav"
 	NO_SOUND = "/usr/share/sounds/ring-tones/No sound.wav"
 	
 	MEDIA_TYPE_TEXT		= 1
@@ -45,3 +52,8 @@ class WAConstants():
 	MEDIA_TYPE_VIDEO	= 4
 	MEDIA_TYPE_LOCATION	= 5
 	MEDIA_TYPE_VCARD	= 6
+
+
+	@staticmethod
+	def getAllProperties():
+		return vars(WAConstants)

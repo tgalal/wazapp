@@ -21,7 +21,8 @@
 ****************************************************************************/
 #include "wacoderequest.h"
 #include "QDebug"
-#include "utilities.h";
+#include "utilities.h"
+#include <QCryptographicHash>
 
 using namespace WA_UTILITIES::Utilities;
 
@@ -29,15 +30,25 @@ using namespace WA_UTILITIES::Utilities;
 
 WACodeRequest::WACodeRequest(QString cc, QString in, QString method)
 {
+    QString mytoken = "k7Iy3bWARdNeSL8gYgY6WveX12A1g4uTNXrRzt1H";
+    mytoken.append("c0d4db538579a3016902bf699c16d490acf91ff4");
+    mytoken.append(in);
+
+    QCryptographicHash md(QCryptographicHash::Md5);
+    QByteArray ba = mytoken.toUtf8();
+    md.addData(ba);
+    QString token = QString(md.result().toHex().constData());
+
     this->addParam("cc",cc);
     this->addParam("in",in);
-    this->addParam("to",cc+in);
+    //this->addParam("to",cc+in);
     this->addParam("lc","US");
     this->addParam("lg","en");
     this->addParam("mcc",Utilities::getMcc());
     this->addParam("mnc",Utilities::getMnc());
     this->addParam("imsi",Utilities::getImsi());
     this->addParam("method",method);
+    this->addParam("token",token);
 
 
     connect(this,SIGNAL(trigger(QString)),this,SLOT(sendRequest(QString)));
@@ -62,6 +73,8 @@ void WACodeRequest::onDone(QString data)
 
     if(status == "success-sent")
         emit success();
+    else if (status == "success-attached")
+        emit success(result);
     else
         emit fail(status +"::"+result);
 

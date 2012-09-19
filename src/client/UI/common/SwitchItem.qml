@@ -7,6 +7,11 @@ Item {
     property bool check
     signal checkChanged(string value)
 
+    SwitchStyle {
+        id: mySwitchStyle
+        switchOn: "image://theme/color3-meegotouch-switch-on"+__invertedString
+    }
+
     width: parent.width
     height: 50
 
@@ -24,6 +29,7 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         checked: check
+		platformStyle: mySwitchStyle
         onCheckedChanged: {
             itemcontainer.checkChanged(sw.checked? "Yes" : "No")
         }

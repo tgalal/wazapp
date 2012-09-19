@@ -171,6 +171,8 @@ class LiteStore(DataStore):
 		media_id = self.columnExists("messages","media_id");
 		created = self.columnExists("messages","created");
 		pushname = self.columnExists("contacts","pushname");
+		pictureid = self.columnExists("contacts","pictureid");
+		iscontact = self.columnExists("contacts","iscontact");
 		
 		if not media_id:
 			self._d.d("media_id Not found, altering table")
@@ -186,6 +188,14 @@ class LiteStore(DataStore):
 		if not pushname:
 			self._d.d("pushname in contacts Not found, altering table")
 			c.execute("Alter TABLE contacts add column 'pushname' TEXT")
+
+		if not pictureid:
+			self._d.d("iscontact in contacts Not found, altering table")
+			c.execute("Alter TABLE contacts add column 'pictureid' TEXT")
+
+		if not iscontact:
+			self._d.d("iscontact in contacts Not found, altering table")
+			c.execute("Alter TABLE contacts add column 'iscontact' TEXT")
 			
 			
 		self._d.d("Checking addition of 'new' column to conversation")
@@ -199,7 +209,7 @@ class LiteStore(DataStore):
 		
 
 	def prepareBase(self):
-		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR, "pushname" TEXT)'
+		contacts_q = 'CREATE  TABLE "main"."contacts" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "number" VARCHAR NOT NULL  UNIQUE , "jid" VARCHAR NOT NULL, "last_seen_on" DATETIME, "status" VARCHAR, "pushname" TEXT, "pictureid" TEXT, "iscontact" TEXT)'
 		
 		
 		messages_q = 'CREATE  TABLE "main"."messages" ("id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "conversation_id" INTEGER NOT NULL, "timestamp" INTEGER NOT NULL, "status" INTEGER NOT NULL DEFAULT 0, "content" TEXT NOT NULL,"key" VARCHAR NOT NULL,"type" INTEGER NOT NULL DEFAULT 0,"media_id" INTEGER,"created" INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP)'

@@ -19,30 +19,36 @@
 ** along with Wazapp. If not, see http://www.gnu.org/licenses/.
 **
 ****************************************************************************/
-#ifndef WACODEREQUEST_H
-#define WACODEREQUEST_H
+// import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
+import QtQuick 1.1
+import com.nokia.meego 1.0
 
-#include "warequest.h"
-#include <QDomDocument>
+Rectangle {
 
-class WACodeRequest : public WARequest
-{
-   Q_OBJECT
-public:
-    WACodeRequest(QString cc, QString in, QString method = "sms");
+	property string title
 
-    void run();
-    void runTests();
+	color: "#27a01b" //"gray"
+	radius: 12
+	smooth: true
+	width: text.paintedWidth + 22
+	height: 26
+	//scale: title=="0" || title==""? 0 : 1
+	//border.color: "gray"
+	//border.width: 1
+	visible: parseInt(title)>0
 
-signals:
-    void success(QString);
-    void success();
-    void fail(QString);
+	//Fucking animation! It breaks the chats when app is unfocused
+	//Behavior on scale {
+	//    NumberAnimation { duration: 200 }
+	//}
 
-public slots:
-    void launched();
-    void onDone(QString);
+	Label {
+		id: text
+		color: "white"
+		font.pixelSize: 15
+		anchors.centerIn: parent
+        text: title
+	}
 
-};
+}
 
-#endif // WACODEREQUEST_H

@@ -43,11 +43,11 @@ Menu {
 			}
         }
 
-		MenuItem {
+		/*MenuItem {
             text: qsTr("My profile");
 			//enabled: connectionStatus=="online"
             onClicked: pageStack.push (Qt.resolvedUrl("../Profile/Profile.qml"))
-        }
+        }*/
 
         MenuItem {
             id:sync_item
@@ -64,14 +64,14 @@ Menu {
 
         MenuItem{
             text: qsTr("Settings")
-            onClicked:  pageStack.push( Qt.resolvedUrl("../Settings/Settings.qml") );
+            onClicked:  pageStack.push( Qt.resolvedUrl("../Settings/SettingsNew.qml") );
         }
 
 
-        MenuItem {
+        /*MenuItem {
            text: qsTr("About")
            onClicked: appWindow.aboutInit();
- 	   }
+		}*/
 
 
         MenuItem{

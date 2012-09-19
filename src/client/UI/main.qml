@@ -51,8 +51,10 @@ WAStackWindow {
 		theme.inverted = MySettings.getSetting("ThemeColor", "White")=="Black"
 		mainBubbleColor = parseInt(MySettings.getSetting("BubbleColor", "1"))
 		sendWithEnterKey = MySettings.getSetting("SendWithEnterKey", "Yes")=="Yes"
-		resizeImages = MySettings.getSetting("ResizeImages", "No")=="Yes"
+		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes"
 		orientation = parseInt(MySettings.getSetting("Orientation", "0"))
+		vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")
+		vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")
 	}
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
@@ -68,6 +70,8 @@ WAStackWindow {
 	property string selectedGroupPicture
 	property string bigProfileImage
     property int orientation
+	property string vibraForPersonal
+	property string vibraForGroup
 
     /****** Signal and Slot definitions *******/
 
@@ -94,9 +98,7 @@ WAStackWindow {
 	signal sendSMS(string num)
 	signal makeCall(string num)
 	signal getGroupInfo(string jid);
-	signal groupInfoUpdated();
 	signal createGroupChat(string subject);
-	signal groupCreated();
 	signal addParticipants(string gjid, string participants);
 	signal addedParticipants();
 	signal removeParticipants(string gjid, string participants);
@@ -117,20 +119,26 @@ WAStackWindow {
 	signal sendLocation(string jid, string latitude, string longitude, string rotate);
     signal sendVCard(string jid, string contact);
 	signal removeSingleContact(string jid);
-	signal updatePushName(string ujid, string npush);
+	signal updateContactName(string ujid, string npush);
 	signal rotateImage(string file);
 	signal imageRotated(string filepath);
+	signal getPicturesFinished();
 	signal removeFile(string file);
+	signal vibrateNow();
 
 	signal openContactPicker(string multi, string title); //TESTING...
 	signal setBlockedContacts(string contacts);
 	signal setResizeImages(bool resize);
 	signal openCamera(string jid, string mode);
+    signal setPersonalRingtone(string value);
+    signal setPersonalVibrate(bool value);
+	signal setGroupRingtone(string value);
+    signal setGroupVibrate(bool value);
 
 
-	signal openPreviewPicture(string ujid, string picturefile, int rotation, string previewimg)
-	function capturedPreviewPicture(ujid, picturefile, rotation, previewimg) {
-		openPreviewPicture(ujid, picturefile, rotation, previewimg)
+	signal openPreviewPicture(string ujid, string picturefile, int rotation, string previewimg, string capturemode)
+	function capturedPreviewPicture(ujid, picturefile, rotation, previewimg, capturemode) {
+		openPreviewPicture(ujid, picturefile, rotation, previewimg, capturemode)
 	}
 
 	signal mediaTransferProgressUpdated(int mprogress, int mid)
@@ -168,15 +176,7 @@ WAStackWindow {
 	}
 
 
-	property string groupId
-	function onGroupCreated(group_id) {
-		groupId = group_id + "@g.us"
-		groupCreated()
-	}
-
-	function onAddedParticipants() {
-		addedParticipants()
-	}
+	signal groupCreated(string group_id)
 
 	function onRemovedParticipants() {
 		removedParticipants()
@@ -193,12 +193,7 @@ WAStackWindow {
 		groupEnded()
 	}
 
-	property string groupInfoData
-	function onGroupInfoUpdated(data) {
-		consoleDebug("QML: GOT GROUP INFO: " + data)
-		groupInfoData = data
-		groupInfoUpdated()
-	}
+	signal groupInfoUpdated(string gjid, string gdata)
 
 	function onGroupSubjectChanged() {
 		getGroupInfo(profileUser)
@@ -338,7 +333,7 @@ WAStackWindow {
 	}
 	
 	
-	property string myAccount
+	property string myAccount: ""
 	function setMyAccount(account) {
 		myAccount = account
 
@@ -347,6 +342,12 @@ WAStackWindow {
 
 		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
 		setResizeImages(resizeImages)
+
+		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "Message 1.mp3"));
+        setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"); //changed to be passed as boolean
+		setGroupRingtone(MySettings.getSetting("GroupRingtone", "Message 1.mp3"));
+        setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes")=="Yes");
+
 	}
 
 	function getPictures() {
@@ -382,6 +383,7 @@ WAStackWindow {
 			var add = true
 			for(var j =0; j<contactsModel.count; j++) {
 				if (contactsModel.get(j).jid==contacts[i].jid) {
+					contactsModel.get(j).name = contacts[i].name
 					add = false
 					break
 				}
@@ -392,7 +394,6 @@ WAStackWindow {
 		}
     }
 
-	
     function pushContacts(contacts){
         waContacts.pushContacts(contacts)
     }
@@ -486,7 +487,18 @@ WAStackWindow {
             //to reset unreadCount in frontend and inform backend about
             conversation.open();
         }
+		onPaused(messages.jid)
+
     }
+
+	function checkUnreadMessages() {
+		var num = 0
+        for(var i =0; i<conversationsModel.count; i++) {
+			var nconv = conversationsModel.get(i).conversation.unreadCount
+			num = num + (nconv? nconv : 0)
+		}
+		unreadChatMessages.title = num.toString() 
+	}
 
     function onLastSeenUpdated(jid,seconds){
 
@@ -534,22 +546,24 @@ WAStackWindow {
         }
     }*/
 
-    //signal onMessageSent(int mid, string ujid)
-    function onMessageSent(message_id,jid){
+    signal messageSent(int mid, string ujid)
+    function onMessageSent(message_id,jid) {
         var conversation = waChats.getConversation(jid);
 
         if(conversation){
             conversation.messageSent(message_id);
         }
+		messageSent(message_id,jid)
     }
 
-    //signal onMessageDelivered(int mid, string ujid)
-    function onMessageDelivered(message_id,jid){
+    signal messageDelivered(int mid, string ujid)
+    function onMessageDelivered(message_id,jid) {
         var conversation = waChats.getConversation(jid);
 
         if(conversation){
             conversation.messageDelivered(message_id);
         }
+		messageDelivered(message_id,jid)
     }
 
         /**** Media ****/
@@ -622,6 +636,10 @@ WAStackWindow {
     }
 
     ListModel{
+		id:conversationsModel
+	}
+
+    ListModel{
         id:contactsModel
     }
 
@@ -629,7 +647,7 @@ WAStackWindow {
         id:phoneContactsModel
     }
 
-	property variant selectedContacts: ""
+	property string selectedContacts: ""
 	ListModel {
 		id: participantsModel
 	}
@@ -673,7 +691,7 @@ WAStackWindow {
             Chats{
                 id:waChats
                 height: parent.height
-                onDeleteConversation: appWindow.deleteConversation(jid);
+                onDeleteConversation: appWindow.deleteConversation(jid)
             }
 
             Contacts {
@@ -697,15 +715,22 @@ WAStackWindow {
                 TabButton {
 					id: chatsTabButton
                     platformStyle: TabButtonStyle{inverted:theme.inverted}
-                    text: qsTr("Chats")
-                    //iconSource: "../images/icon-m-toolbar-home.png"
+                    //text: qsTr("Chats")
+                    iconSource: "image://theme/icon-m-toolbar-new-chat" + (theme.inverted ? "-white" : "") 
                     tab: waChats
+					CountBubble {
+						id: unreadChatMessages
+						anchors.right: parent.right
+						anchors.rightMargin: 16
+						y: -8 // Yes, I like it this way!
+						//title: "0"
+					}
                 }
                 TabButton {
 					id: contactsTabButton
                     platformStyle: TabButtonStyle{inverted: theme.inverted}
-                    text: qsTr("Contacts")
-                    // iconSource: "../images/icon-m-toolbar-list.png"
+                    //text: qsTr("Contacts")
+                    iconSource: "common/images/book" + (theme.inverted ? "-white" : "") + ".png";
                     tab: waContacts
                 }
             }

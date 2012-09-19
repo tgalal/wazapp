@@ -40,6 +40,21 @@ Item {
 		}
 	}
 
+	Connections {
+		target: appWindow
+
+		onMessageSent: {
+			if (ujid==jid && msg_id==mid)
+				state_status = isGroup ? "delivered" : "pending"
+		}
+
+		onMessageDelivered: {
+			if (ujid==jid && msg_id==mid)
+				state_status = "delivered"
+		}
+
+	}
+
     function getBubble(){
 
 		if (from_me==20 || from_me==21 || from_me==22 || from_me==23) 

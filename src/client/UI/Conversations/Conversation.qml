@@ -19,6 +19,7 @@ WAPage {
         }
         else if(status == PageStatus.Activating){
             chat_text.visible = true
+			ustatus.state = "default"
         }
         else if(status == PageStatus.Active){
             appWindow.conversationActive(jid);
@@ -85,9 +86,11 @@ WAPage {
 	Connections {
 		target: appWindow
 		onGroupInfoUpdated: {
-			var data = groupInfoData.split("<<->>")
-			if (jid==data[0]) {
+			if (jid==gjid) {
+				var data = gdata.split("<<->>")
+				subject = data[2]
 				owner = data[1]
+				title = getTitle()
 			}
 		}
 		onOnContactPictureUpdated: {
@@ -133,7 +136,7 @@ WAPage {
 			}
 		}*/
 
-		onUpdatePushName: {
+		onUpdateContactName: {
 			if (jid == ujid) {
 				if (title = jid.split('@')[0]) {
 					consoleDebug("Update push name in Conversation")
@@ -158,6 +161,7 @@ WAPage {
 			if (jid == ujid) {
 				capturePreview.imgsource = "file://" + picturefile
 				capturePreview.oriented = rotation
+				capturePreview.capturetype = capturemode
 				pageStack.push(capturePreview)
 			}
 		}
@@ -187,6 +191,7 @@ WAPage {
 		consoleDebug("END ADDING MESSAGES")
 		positionToAdd = conv_data.count
 		loadReverse = false
+		appWindow.checkUnreadMessages()
     }
 
     function getContacts(){return ConversationHelper.contacts;}
@@ -206,7 +211,7 @@ WAPage {
         var pic="";
 
         if(isGroup())
-            pic = "/home/user/.cache/wazapp/contacts/" + jid.split('@')[0] + ".png"
+            pic = WAConstants.CACHE_CONTACTS + "/" + jid.split('@')[0] + ".png"
         else if(contacts && contacts.length)
             pic = getAuthorPicture(jid) //contacts[0].contactPicture;
 
@@ -378,9 +383,16 @@ WAPage {
     function addMessage(message){
 		//if (!opened && conv_data.count==2)
 		//	conv_data.remove(0)
+
+        /*if (!loadReverse && myAccount!="" && message.type!="1") {
+			if (isGroup() && vibraForGroup=="Yes") appWindow.vibrateNow()
+			else if (!isGroup() && vibraForPersonal=="Yes") appWindow.vibrateNow()
+        }*/
+
 		ConvScript.addMessage(loadReverse,positionToAdd,message);
 		positionToAdd = positionToAdd+1
 		updateLastMessage()
+		if (!loadReverse) appWindow.checkUnreadMessages();
 	}
 
     function getNameForBubble(uname)
@@ -567,14 +579,15 @@ WAPage {
         id:myDelegate
 
         BubbleDelegate{
-			jid: jid
+			jid: conversation_view.jid
             mediatype_id: model.mediatype_id
             message: model.type==20 || model.type==21 ? getAuthor(model.content) : model.content
             media: model.media
             date: model.timestamp
             from_me: model.type
             progress: model.progress
-            name: mediatype_id==10 || from_me==1 || !isGroup ? "" : getAuthor(model.author.jid).split('@')[0]
+			msg_id: model.msg_id
+            name: mediatype_id==10 || from_me==1 || !isGroup? "" : model.type==22? model.author.jid : getAuthor(model.author.jid)
             author: model.author
 		 	state_status: isGroup && model.status == "pending"? "delivered" : model.status
 			isGroup: conversation_view.isGroup()
@@ -593,7 +606,7 @@ WAPage {
 			Connections {
 				target: appWindow
 
-				onUpdatePushName: {
+				onUpdateContactName: {
 					if (model.author.jid == ujid) {
 						if (model.author.jid = ujid.split('@')[0] && isGroup && from_me==0) {
 							consoleDebug("Update push name in Conversation bubbles")
@@ -601,17 +614,6 @@ WAPage {
 						}
 					}
 				}
-
-				/*onOnMessageSent: {
-					if (ujid==conversation_view.jid && model.msg_id==mid)
-						state_status = "pending"
-				}
-
-				onOnMessageDelivered: {
-					if (ujid==conversation_view.jid && model.msg_id==mid)
-						state_status = "delivered"
-				}*/
-
 			}
 			
         }
@@ -1076,7 +1078,7 @@ WAPage {
 
             WAMenuItem{
 				id: profileMenuItem
-				visible: conversation_view.isGroup() // && showContactDetails
+				visible: conversation_view.isGroup() && selectedMessage.author.jid!=myAccount
 				height: visible ? 80 : 0
                 text: qsTr("View contact profile")
                 onClicked:{

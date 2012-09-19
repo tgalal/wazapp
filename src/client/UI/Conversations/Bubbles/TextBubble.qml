@@ -22,14 +22,14 @@ SpeechBubble {
 
 	bubbleContent: Label {
 		id:msg_text
-		text: from_me==20 ? qsTr("<b>%1</b> has joined the group").arg(getAuthor(message)) :
-			  from_me==21 ? qsTr("<b>%1</b> has left the group").arg(getAuthor(message)) :
+        text: from_me==20 ? qsTr("<b>%1</b> joined the group").arg(getAuthor(message)) :
+              from_me==21 ? qsTr("<b>%1</b> left the group").arg(getAuthor(message)) :
 			  from_me==22 ?  name==myAccount ?
-					qsTr("<b>%1</b> have changed the subject to <b>%2</b>").arg(getAuthor(name)).arg(message) :
-					qsTr("<b>%1</b> has changed the subject to <b>%2</b>").arg(getAuthor(name)).arg(message) :  
+                    qsTr("<b>%1</b> changed the subject to <b>%2</b>").arg(getAuthor(name)).arg(message) :
+                    qsTr("<b>%1</b> changed the subject to <b>%2</b>").arg(getAuthor(name)).arg(message) :
 			  from_me==23 ? message==myAccount ?
-					qsTr("<b>%1</b> have changed the group picture").arg(getAuthor(message)) : 
-					qsTr("<b>%1</b> has changed the group picture").arg(getAuthor(message)) : message
+                    qsTr("<b>%1</b> changed the group picture").arg(getAuthor(message)) :
+                    qsTr("<b>%1</b> changed the group picture").arg(getAuthor(message)) : message
 		color: from_me==1 ? "black" : from_me==0 ? "white" : "gray"
 		width: (appWindow.inPortrait ? 380 : 754)
 		wrapMode: "WrapAtWordBoundaryOrAnywhere"

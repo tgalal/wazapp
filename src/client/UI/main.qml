@@ -130,10 +130,10 @@ WAStackWindow {
 	signal setBlockedContacts(string contacts);
 	signal setResizeImages(bool resize);
 	signal openCamera(string jid, string mode);
-	signal setPersonalRingtone(string value);
-	signal setPersonalVibrate(string value);
+    signal setPersonalRingtone(string value);
+    signal setPersonalVibrate(bool value);
 	signal setGroupRingtone(string value);
-	signal setGroupVibrate(string value);
+    signal setGroupVibrate(bool value);
 
 
 	signal openPreviewPicture(string ujid, string picturefile, int rotation, string previewimg, string capturemode)
@@ -344,9 +344,9 @@ WAStackWindow {
 		setResizeImages(resizeImages)
 
 		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "Message 1.mp3"));
-		setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes"));
+        setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"); //changed to be passed as boolean
 		setGroupRingtone(MySettings.getSetting("GroupRingtone", "Message 1.mp3"));
-		setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes"));
+        setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes")=="Yes");
 
 	}
 

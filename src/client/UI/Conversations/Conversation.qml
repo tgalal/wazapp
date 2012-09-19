@@ -384,10 +384,11 @@ WAPage {
 		//if (!opened && conv_data.count==2)
 		//	conv_data.remove(0)
 
-		if (!loadReverse && myAccount!="" && message.type!="1") {
+        /*if (!loadReverse && myAccount!="" && message.type!="1") {
 			if (isGroup() && vibraForGroup=="Yes") appWindow.vibrateNow()
 			else if (!isGroup() && vibraForPersonal=="Yes") appWindow.vibrateNow()
-		}
+        }*/
+
 		ConvScript.addMessage(loadReverse,positionToAdd,message);
 		positionToAdd = positionToAdd+1
 		updateLastMessage()

@@ -313,6 +313,7 @@ void QmlApplicationViewer::registerAccount(QVariant cc, QVariant phoneNumber)
     WACodeRequest *wcr;
     wcr = new WACodeRequest(curr_cc,phoneNumber.toString());
     connect(wcr,SIGNAL(success()),this,SLOT(codeRequested()));
+    connect(wcr,SIGNAL(success(QString)), this, SLOT(codeReceived(QString)));
     connect(wcr,SIGNAL(fail(QString)),this,SLOT(onFail(QString)));
     connect(this,SIGNAL(codeRequestCancelled()),wcr,SLOT(quit()));
 
@@ -321,6 +322,7 @@ void QmlApplicationViewer::registerAccount(QVariant cc, QVariant phoneNumber)
     WARegRequest *wrr;
     wrr = new WARegRequest(curr_cc,phoneNumber.toString());
     connect (handler,SIGNAL(gotCode(QString)),wrr,SLOT(go(QString)));
+    connect(wcr,SIGNAL(success(QString)), wrr, SLOT(go(QString)));
     connect(wrr,SIGNAL(success(QString)),this,SLOT(onSuccess(QString)));
     connect(wrr,SIGNAL(fail(QString)),this,SLOT(onFail(QString)));
     connect(this,SIGNAL(codeRequestCancelled()),wcr,SLOT(quit()));

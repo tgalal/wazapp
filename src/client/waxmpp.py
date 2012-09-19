@@ -115,10 +115,7 @@ class WAEventHandler(WAEventBase):
 		self.blockedContacts = "";
 
 		self.resizeImages = False;
-		self.personalRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
-		self.personalVibrate = "Yes";
-		self.groupRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
-		self.groupVibrate = "Yes";
+
 		
 		#self.connMonitor.sleeping.connect(self.networkUnavailable);
 		#self.connMonitor.checked.connect(self.checkConnection);
@@ -426,8 +423,8 @@ class WAEventHandler(WAEventBase):
 		longitude = longitude[:10]
 
 		self._d("Capturing preview...")
-		QPixmap.grabWindow(QApplication.desktop().winId()).save("/home/user/.cache/wazapp/tempimg.png", "PNG")
-		img = QImage("/home/user/.cache/wazapp/tempimg.png")
+		QPixmap.grabWindow(QApplication.desktop().winId()).save(WAConstants.CACHE_PATH+"/tempimg.png", "PNG")
+		img = QImage(WAConstants.CACHE_PATH+"/tempimg.png")
 
 		if rotate == "true":
 			rot = QTransform()
@@ -442,15 +439,15 @@ class WAEventHandler(WAEventBase):
 			result = result.copy(result.width()/2-50,result.height()/2-50,100,100);
 		#result = img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation);
 
-		result.save( "/home/user/.cache/wazapp/tempimg2.jpg", "JPG" );
+		result.save( WAConstants.CACHE_PATH+"/tempimg2.jpg", "JPG" );
 
-		f = open("/home/user/.cache/wazapp/tempimg2.jpg", 'r')
+		f = open(WAConstants.CACHE_PATH+"/tempimg2.jpg", 'r')
 		stream = base64.b64encode(f.read())
 		f.close()
 
 
-		os.remove("/home/user/.cache/wazapp/tempimg.png")
-		os.remove("/home/user/.cache/wazapp/tempimg2.jpg")
+		os.remove(WAConstants.CACHE_PATH+"/tempimg.png")
+		os.remove(WAConstants.CACHE_PATH+"/tempimg2.jpg")
 
 		fmsg = WAXMPP.message_store.createMessage(jid);
 		
@@ -485,24 +482,24 @@ class WAEventHandler(WAEventBase):
 
 	def setPersonalRingtone(self,value):
 		self._d("Personal Ringtone: " + str(value))
-		self.personalRingtone = "/usr/share/sounds/ring-tones/" + value;
+		self.notifier.personalRingtone = "/usr/share/sounds/ring-tones/" + value;
 
 	def setPersonalVibrate(self,value):
 		self._d("Personal Vibrate: " + str(value))
-		self.personalVibrate = value;
+		self.notifier.personalVibrate = value;
 
 	def setGroupRingtone(self,value):
 		self._d("Group Ringtone: " + str(value))
-		self.groupRingtone = "/usr/share/sounds/ring-tones/" + value;
+		self.notifier.groupRingtone = "/usr/share/sounds/ring-tones/" + value;
 
 	def setGroupVibrate(self,value):
 		self._d("Group Vibrate: " + str(value))
-		self.groupVibrate = value;
+		self.notifier.groupVibrate = value;
 
 
 	def sendVCard(self,jid,contactName):
 		contactName = contactName.encode('utf-8')
-		self._d("Sending vcard: " + "/home/user/MyDocs/Wazapp/media/contacts/" + contactName + ".vcf")
+		self._d("Sending vcard: " + WAConstants.VCARD_PATH + "/" + contactName + ".vcf")
 
 		stream = ""
 		while not "END:VCARD" in stream:
@@ -577,8 +574,8 @@ class WAEventHandler(WAEventBase):
 		else:
 			preimg = QPixmap.fromImage(QImage(user_img.scaled(64, 64, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)))
 
-		preimg.save("/home/user/.cache/wazapp/temp2.png", "PNG")
-		f = open("/home/user/.cache/wazapp/temp2.png", 'r')
+		preimg.save(WAConstants.CACHE_PATH+"/temp2.png", "PNG")
+		f = open(WAConstants.CACHE_PATH+"/temp2.png", 'r')
 		stream = base64.b64encode(f.read())
 		f.close()
 
@@ -610,7 +607,7 @@ class WAEventHandler(WAEventBase):
 			m = hashlib.md5()
 			url = QtCore.QUrl(video).toEncoded()
 			m.update(url)
-			image = "/home/user/.thumbnails/screen/" + m.hexdigest() + ".jpeg"
+			image = WAConstants.THUMBS_PATH + "/screen/" + m.hexdigest() + ".jpeg"
 		else:
 			image = image.replace("file://","")
 
@@ -621,9 +618,9 @@ class WAEventHandler(WAEventBase):
 			preimg = QPixmap.fromImage(QImage(user_img.scaledToHeight(64, Qt.SmoothTransformation)))
 		else:
 			preimg = QPixmap.fromImage(QImage(user_img.scaled(64, 64, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)))
-		preimg.save("/home/user/.cache/wazapp/temp2.png", "PNG")
+		preimg.save(WAConstants.CACHE_PATH+"/temp2.png", "PNG")
 
-		f = open("/home/user/.cache/wazapp/temp2.png", 'r')
+		f = open(WAConstants.CACHE_PATH+"/temp2.png", 'r')
 		stream = base64.b64encode(f.read())
 		f.close()
 
@@ -715,18 +712,18 @@ class WAEventHandler(WAEventBase):
 				contactName = pushName
 			if fmsg.type == 23:
 				if contactName == self.account:
-					newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 have changed the group picture")
+					newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the group picture")
 				else:
-					newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the group picture")
+					newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the group picture")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 20:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has joined the group")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 joined the group")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 21:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has left the group")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 left the group")
 				newContent = newContent.replace("%1", contactName)
 			elif fmsg.type == 22:
-				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 has changed the subject to %2")
+				newContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the subject to %2")
 				if contactName == self.account:
 					contactName = QtCore.QCoreApplication.translate("WAEventHandler", "You")
 				newContent = newContent.replace("%1", contactName)
@@ -735,21 +732,21 @@ class WAEventHandler(WAEventBase):
 						
 			if fmsg.Conversation.type == "single":
 				if msg_contact.jid is not None:
-					msgPicture = "/home/user/.cache/wazapp/contacts/" + msg_contact.jid.replace("@s.whatsapp.net","") + ".png"
+					msgPicture = WAConstants.CACHE_PATH+"/contacts/" + msg_contact.jid.replace("@s.whatsapp.net","") + ".png"
 				else:
 					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png"
 
-				self.notifier.newMessage(msg_contact.jid, contactName, newContent,self.personalRingtone, self.personalVibrate, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newSingleMessage(msg_contact.jid, contactName, newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 
 			else:
 				conversation = fmsg.getConversation();
 				jjid = conversation.jid.replace("@g.us","")
-				if msg_contact.jid is not None and os.path.isfile("/home/user/.cache/wazapp/contacts/" + jjid + ".png"):
-					msgPicture = "/home/user/.cache/wazapp/contacts/" + jjid + ".png"
+				if msg_contact.jid is not None and os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + jjid + ".png"):
+					msgPicture = WAConstants.CACHE_PATH+"/contacts/" + jjid + ".png"
 				else:
 					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
 
-				self.notifier.newMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject.decode("utf8")), newContent, self.groupRingtone, self.groupVibrate, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newGroupMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject.decode("utf8")), newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			
 
 			self._d("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
@@ -809,7 +806,7 @@ class WAEventHandler(WAEventBase):
 		self._d("Got group created " + group_id)
 		jname = jid.replace("@g.us","")
 		img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-		img.save("/home/user/.cache/wazapp/contacts/" + jname + ".png")
+		img.save(WAConstants.CACHE_PATH+"/contacts/" + jname + ".png")
 		self.groupCreated.emit(group_id);
 
 	def onAddedParticipants(self):
@@ -1134,11 +1131,11 @@ class StanzaReader(QThread):
 			data = data[n:]
 			data = data.replace("</picture>","")
 			cjid = self.currentPictureJid.replace("@s.whatsapp.net","").replace("@g.us","")
-			text_file = open("/home/user/.cache/wazapp/contacts/" + cjid + ".jpg", "w")
+			text_file = open(WAConstants.CACHE_PATH+"/contacts/" + cjid + ".jpg", "w")
 			text_file.write(data)
 			text_file.close()
-			if os.path.isfile("/home/user/.cache/wazapp/contacts/" + cjid + ".png"):
-				os.remove("/home/user/.cache/wazapp/contacts/" + cjid + ".png")
+			if os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + cjid + ".png"):
+				os.remove(WAConstants.CACHE_PATH+"/contacts/" + cjid + ".png")
 			self.eventHandler.onGetPictureDone(self.currentPictureJid)
 
 		
@@ -2227,19 +2224,19 @@ class WAXMPP():
 		else:
 			preimg = user_img.scaled(480, 480, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
 
-		preimg.save("/home/user/.cache/wazapp/temp.jpg", "JPG")
+		preimg.save(WAConstants.CACHE_PATH+"/temp.jpg", "JPG")
 
 		preview = preimg.scaled(51, 51, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-		preview.save("/home/user/.cache/wazapp/temp2.jpg", "JPG")
+		preview.save(WAConstants.CACHE_PATH+"/temp2.jpg", "JPG")
 
 		self.stanzaReader.currentPictureJid = jid;
 
-		f = open("/home/user/.cache/wazapp/temp.jpg", 'r')
+		f = open(WAConstants.CACHE_PATH+"/temp.jpg", 'r')
 		stream = f.read()
 		stream = bytearray(stream)
 		f.close()
 
-		f = open("/home/user/.cache/wazapp/temp2.jpg", 'r')
+		f = open(WAConstants.CACHE_PATH+"/temp2.jpg", 'r')
 		stream2 = f.read()
 		stream2 = bytearray(stream2)
 		f.close()

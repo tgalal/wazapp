@@ -38,7 +38,6 @@ from subprocess import call
 import Image
 from PIL.ExifTags import TAGS
 from constants import WAConstants
-from QtMobility.Feedback import QFeedbackHapticsEffect
 
 class WAUI(QDeclarativeView):
 	quit = QtCore.Signal()
@@ -68,9 +67,6 @@ class WAUI(QDeclarativeView):
 
 		self.filelist = []
 		
-		self.vibra = QFeedbackHapticsEffect();
-		self.vibra.setIntensity(1.0);
-		self.vibra.setDuration(200);
 
 		self.rootContext().setContextProperty("waversion", Utilities.waversion);
 		self.setSource(url);
@@ -108,7 +104,7 @@ class WAUI(QDeclarativeView):
 
 		self.rootObject().openContactPicker.connect(self.openContactPicker)
 
-		self.rootObject().vibrateNow.connect(self.vibrateNow)
+		#self.rootObject().vibrateNow.connect(self.vibrateNow)
 				
 		#Changed by Tarek: connected directly to QContactManager living inside contacts manager
 		#self.c.manager.manager.contactsChanged.connect(self.rootObject().onContactsChanged);
@@ -188,7 +184,7 @@ class WAUI(QDeclarativeView):
 	def setLanguage(self,lang):
 		if os.path.isfile(WAConstants.STORE_PATH + "/language.qm"):
 			os.remove(WAConstants.STORE_PATH + "/language.qm")
-		shutil.copyfile("/opt/waxmppplugin/bin/wazapp/i18n/" + lang + ".qm", "/home/user/.wazapp/language.qm")
+		shutil.copyfile("/opt/waxmppplugin/bin/wazapp/i18n/" + lang + ".qm", WAConstants.STORE_PATH + "/language.qm")
 
 
 	def consoleDebug(self,text):
@@ -337,7 +333,8 @@ class WAUI(QDeclarativeView):
 
 		self.processFiles("/home/user/MyDocs/DCIM", data) #, ignored)
 		self.processFiles("/home/user/MyDocs/Pictures", data) #, ignored)
-		self.processFiles("/home/user/MyDocs/Wazapp", data) #, ignored)
+		self.processFiles("/home/user/MyDocs/Wazapp", data) #, ignored) @@Remove since using STORE_PATH as well?
+		self.processFiles(WAConstants.STORE_PATH, data)
 
 
 		myfiles = []
@@ -348,7 +345,7 @@ class WAUI(QDeclarativeView):
 			m = hashlib.md5()
 			url = QtCore.QUrl("file://"+f).toEncoded()
 			m.update(url)
-			crypto = "/home/user/.thumbnails/grid/" + m.hexdigest() + ".jpeg"
+			crypto = "/.thumbnails/grid/" + m.hexdigest() + ".jpeg"
 			if not os.path.exists(crypto):
 				# Thumbnail does'n exist --> Generating...
 				if f.split(".")[-1] == "jpg" or f.split(".")[-1] == "JPG":
@@ -380,6 +377,7 @@ class WAUI(QDeclarativeView):
 		self.processFiles("/home/user/MyDocs/DCIM", data) #, ignored)
 		self.processFiles("/home/user/MyDocs/Movies", data) #, ignored)
 		self.processFiles("/home/user/MyDocs/Wazapp", data) #, ignored)
+		self.processFiles(WAConstants.STORE_PATH, data)
 
 		myfiles = []
 		for f in self.filelist:
@@ -389,7 +387,7 @@ class WAUI(QDeclarativeView):
 			m = hashlib.md5()
 			url = QtCore.QUrl("file://"+f).toEncoded()
 			m.update(url)
-			crypto = "/home/user/.thumbnails/grid/" + m.hexdigest() + ".jpeg"
+			crypto = WAConstants.THUMBS_PATH + "/grid/" + m.hexdigest() + ".jpeg"
 			if not os.path.exists(crypto):
 				# Thumbnail does'n exist --> Generating...
 				if f.split(".")[-1] == "mp4" or f.split(".")[-1] == "MP4":
@@ -447,7 +445,7 @@ class WAUI(QDeclarativeView):
 			m = hashlib.md5()
 			url = QtCore.QUrl("file://"+filepath).toEncoded()
 			m.update(url)
-			crypto = "/home/user/.thumbnails/screen/" + m.hexdigest() + ".jpeg"
+			crypto = WAConstants.THUMBS_PATH + "/screen/" + m.hexdigest() + ".jpeg"
 			self.iface.Queue(str(url),"video/mp4","screen", True)
 
 		print "CAPTURE COMPLETED! File: " + filepath
@@ -464,10 +462,6 @@ class WAUI(QDeclarativeView):
 		print "REMOVING FILE: " + filepath
 		filepath = filepath.replace("file://","")
 		os.remove(filepath)
-
-	def vibrateNow(self):
-		self.vibra.start()
-
 
 	def initConnection(self):
 		

@@ -28,12 +28,18 @@ from PySide.phonon import Phonon
 from wadebug import NotifierDebug
 
 class Notifier():
-	def __init__(self,audio=True,vibra=False):
+	def __init__(self,audio=True,vibra=True):
 		_d = NotifierDebug();
 		self._d = _d.d;
 		
 		self.manager = MNotificationManager('wazappnotify','WazappNotify');
 		self.vibra = vibra
+
+
+		self.personalRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
+		self.personalVibrate = True;
+		self.groupRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
+		self.groupVibrate = True;
 		
 		self.audioOutput = Phonon.AudioOutput(Phonon.MusicCategory, None)
 		self.mediaObject = Phonon.MediaObject(None)
@@ -57,6 +63,8 @@ class Notifier():
 
 		# vibration comes too early here, now handled by ui.py when the message is already added in QML
 		# well, the truth is that sound comes too late... :D
+		#>> Any notification should be handler by the notifier, not UI :P I don't feel it's too early though,
+		# but if necessary connect to a signal and vibrate from here.
 		if self.vibra:
 			self.vibra = QFeedbackHapticsEffect();
 			self.vibra.setIntensity(1.0);
@@ -112,10 +120,16 @@ class Notifier():
 			del self.notifications[jid]
 			#self.manager.removeNotification(nId);
 		
-				
+
+	def newGroupMessage(self,jid,contactName,message,picture=None,callback=False):
+		self.newMessage(jid,contactName,message,self.groupRingtone, self.groupVibrate, picture, callback)
+
+	def newSingleMessage(self,jid,contactName,message,picture=None,callback=False):
+		self.newMessage(jid,contactName,message,self.personalRingtone, self.personalVibrate, picture, callback)
+	
 	def newMessage(self,jid,contactName,message,ringtone,vibration,picture=None,callback=False):
 		
-		self._d("NEW NOTIFICATION! Ringtone: " + ringtone + " - Vibrate: " + vibration)
+		self._d("NEW NOTIFICATION! Ringtone: " + ringtone + " - Vibrate: " + str(vibration))
 
 		activeConvJId = self.ui.getActiveConversation()
 		
@@ -134,7 +148,7 @@ class Notifier():
 					self.mediaObject.play()
 
 
-				if self.vibra and vibration=="Yes":
+				if self.vibra and vibration:
 					self.vibra.start()
 
 				return
@@ -175,7 +189,7 @@ class Notifier():
 				self.saveNotification(jid,{"id":nId,"callback":callback});
 		
 		
-			if self.vibra and vibration=="Yes":
+			if self.vibra and vibration:
 				self.vibra.start()
 			
 			

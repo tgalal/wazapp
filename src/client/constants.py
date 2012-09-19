@@ -28,6 +28,9 @@ class WAConstants():
 	IMAGE_PATH = MEDIA_PATH+'/images'
 	VIDEO_PATH = MEDIA_PATH+'/videos'
 	VCARD_PATH = MEDIA_PATH+'/contacts'
+
+	CACHE_PATH = os.path.expanduser('~/.cache/wazapp');
+	THUMB_PATH = os.path.expanduser('~/.thumbnails');
 		
 	CLIENT_INSTALL_PATH = '/opt/waxmppplugin/bin/wazapp'
 	

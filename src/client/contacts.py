@@ -196,8 +196,8 @@ class WAContacts(QObject):
 
 		jname = jid.replace("@s.whatsapp.net","").replace("@g.us","")
 		user_img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
-		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/contacts/" + jname + ".jpg"):
-			user_img = QImage(WAConstants.CACHE_CONTACTS + "/contacts/" + jname + ".jpg")
+		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+			user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 			user_img.save(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg", "JPEG")
 		mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
 		preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));

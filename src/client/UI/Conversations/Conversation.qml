@@ -19,7 +19,9 @@ WAPage {
         }
         else if(status == PageStatus.Activating){
             chat_text.visible = true
-			ustatus.state = "default"
+
+            if(!ustatus.lastSeenOn) //display last fetched one until new one is there, instead of blank
+                ustatus.state = "default"
         }
         else if(status == PageStatus.Active){
             appWindow.conversationActive(jid);
@@ -389,10 +391,10 @@ WAPage {
 			else if (!isGroup() && vibraForPersonal=="Yes") appWindow.vibrateNow()
         }*/
 
-		ConvScript.addMessage(loadReverse,positionToAdd,message);
-		positionToAdd = positionToAdd+1
-		updateLastMessage()
-		if (!loadReverse) appWindow.checkUnreadMessages();
+        ConvScript.addMessage(loadReverse,positionToAdd,message);
+        positionToAdd = positionToAdd+1
+        updateLastMessage()
+        if (!loadReverse) appWindow.checkUnreadMessages();
 	}
 
     function getNameForBubble(uname)
@@ -727,7 +729,7 @@ WAPage {
 
                     onSendButtonClicked:{
                         //consoleDebug("SEND CLICKED");
-						sendMediaWindow.opacity = 0
+                        sendMediaWindow.opacity = 0
 
                         showSendButton=true;
                         forceFocusToChatText()

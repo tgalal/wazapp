@@ -1274,6 +1274,9 @@ class StanzaReader(QThread):
 				self.checkPushName(author,pushName)
 
 
+			
+
+
 			if fromAttribute is not None and msg_id is not None:
 				key = Key(fromAttribute,True,msg_id);
 				ret = WAXMPP.message_store.get(key);
@@ -1294,13 +1297,13 @@ class StanzaReader(QThread):
 				self.connection.sendMessageReceived(fromAttribute,"notification",msg_id);
 
 			if pictureUpdated == "picture":
-				print "GROUP PICTURE UPDATED!"
+				print "PICTURE UPDATED!"
 				bodyNode = messageNode.getChild("notification").getChild("set");
-				author = bodyNode.getAttributeValue("author");
+				author = bodyNode.getAttributeValue("author") if conversation.isGroup() else bodyNode.getAttributeValue("jid")
 				fmsg.Media = None
 				fmsg.setData({"status":0,"key":key.toString(),"content":author,"type":23});
 				self.connection.sendGetPicture(fromAttribute, "image")
-				cont = True
+				cont = "@g.us" in fromAttribute
 
 			else:
 				addSubject = None

@@ -53,6 +53,11 @@ Rectangle{
 
 	Connections {
 		target: appWindow
+
+		onReorderConversation: {
+			waChats.moveToCorrectIndex(cjid);
+		}
+
 		onGroupInfoUpdated: {
 			var data = gdata.split("<<->>")
 			if (jid==gjid) {
@@ -129,8 +134,8 @@ Rectangle{
         lastMessage = c.lastMessage;
         unreadCount = c.unreadCount;
 		isOpenend = c.opened;
-		if(lastMessage)
-            waChats.moveToCorrectIndex(jid);
+		//if(lastMessage) 
+        //    waChats.moveToCorrectIndex(jid);
     }
 
     states: [
@@ -226,8 +231,9 @@ Rectangle{
 		    width:parent.width - 90
 			spacing: 0
 
-			Row{
-                spacing:5
+			Item{
+                //spacing:5
+				height: 30
                 width:parent.width -6
 
                 Label{
@@ -257,6 +263,7 @@ Rectangle{
 				CountBubble {
 					title: unreadCount? unreadCount : ""
 					anchors.right: parent.right
+					anchors.verticalCenter: parent.verticalCenter
 				}
             }
             Row{

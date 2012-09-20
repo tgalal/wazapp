@@ -54,15 +54,23 @@ WAPage {
 			visible: myAccount==groupOwnerJid
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
-			enabled: !working && partModel.count!=participantsModel.count
+			enabled: !working
             onClicked: {
 				working = true
 				var participants;
-				for (var i=0; i<partModel.count; ++i) {
-					if (partModel.get(i).contactJid!="undefined" && partModel.get(i).contactJid!=myAccount)
-						participants = participants + (participants!==""? ",":"") + partModel.get(i).contactJid;
+				var removeparticipants;
+				for (var i=0; i<participantsModel.count; ++i) {
+					if (participantsModel.get(i).contactJid!="undefined" && participantsModel.get(i).contactJid!=myAccount)
+						participants = participants + (participants!==""? ",":"") + participantsModel.get(i).contactJid;
 				}
-				removeParticipants(profileUser,participants)
+				consoleDebug("CURRENT PARTICIPANTS: "+participants)
+				for (var i=0; i<partModel.count; ++i) {
+					if ( participants.indexOf(partModel.get(i).contactJid)==-1 && partModel.get(i).contactJid!=myAccount )
+						removeparticipants = removeparticipants + (removeparticipants!==""? ",":"") + partModel.get(i).contactJid;
+				}
+				consoleDebug("REMOVING PARTICIPANTS: "+removeparticipants)
+
+				removeParticipants(profileUser,removeparticipants)
 			}
         }
 

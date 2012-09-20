@@ -29,7 +29,7 @@ class MessageStore(QObject):
 
 
 	messageStatusUpdated = QtCore.Signal(str,int,int);
-	messagesReady = QtCore.Signal(dict);
+	messagesReady = QtCore.Signal(dict,bool);
 	conversationReady = QtCore.Signal(dict);
 	
 	currKeyId = 0
@@ -92,28 +92,36 @@ class MessageStore(QObject):
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();
 		self._d("init load convs")
+		convList = []
 		for c in conversations:
 			self._d("loading messages")
 			jid = c.getJid();
 			c.loadMessages();
 
 			self.conversations[jid] = c
-			
-			print "loaded messages: " + str(len(c.messages))
 
-			if len(c.messages) > 0: # Prevent chats with no messages
-			
+			if len(c.messages) > 0:
+
+				singleList = []
 				if "@g.us" in jid:
 					jname = jid.replace("@g.us","")
 					if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
 						img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
 						img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
-			
-				self.sendConversationReady(jid);
-				self.sendMessagesReady(jid,c.messages);
 
-			else:
-				self.deleteConversation(jid)
+				convList.append({"jid":jid,"message":c.messages[0],"lastdate":c.messages[0].created})
+
+		convList = sorted(convList, key=lambda k: k['lastdate']);
+		convList.reverse();
+
+		for ci in convList:
+			messages = []
+			self.sendConversationReady(ci['jid']);
+			messages.append(ci['message']);
+			self.sendMessagesReady(ci['jid'],messages,False);
+
+			#elif len(c.messages) == 0:
+			#	self.deleteConversation(jid)
 		
 
 	def loadMessages(self,jid,offset=0, limit=1):
@@ -151,7 +159,7 @@ class MessageStore(QObject):
 		self._d("emitting ready ")
 		self.conversationReady.emit(tmp);
 	
-	def sendMessagesReady(self,jid,messages):
+	def sendMessagesReady(self,jid,messages,reorder=True):
 		if not len(messages):
 			return
 			
@@ -176,7 +184,7 @@ class MessageStore(QObject):
 			msg['msg_id'] = msg['id']
 			tmp["data"].append(msg)
 			
-		self.messagesReady.emit(tmp);
+		self.messagesReady.emit(tmp,reorder);
 			
 	
 	

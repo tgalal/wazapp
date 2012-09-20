@@ -19,9 +19,8 @@ WAPage {
         }
         else if(status == PageStatus.Activating){
             chat_text.visible = true
-
-            if(!ustatus.lastSeenOn) //display last fetched one until new one is there, instead of blank
-                ustatus.state = "default"
+			if(!ustatus.lastSeenOn) //display last fetched one until new one is there, instead of blank
+				ustatus.state = "default"
         }
         else if(status == PageStatus.Active){
             appWindow.conversationActive(jid);
@@ -87,6 +86,7 @@ WAPage {
 
 	Connections {
 		target: appWindow
+
 		onGroupInfoUpdated: {
 			if (jid==gjid) {
 				var data = gdata.split("<<->>")
@@ -106,38 +106,6 @@ WAPage {
 				sendMediaMessage(jid, url)
 		}
 
-		/*onMediaTransferProgressUpdated: {
-			if (jid == mjid) {
-				var bubble = getBubble(mid);
-				if (bubble) {
-					//consoleDebug("UPDATING BUBBLE " + mjid + " - Progress: " + mprogress)
-					bubble.progress = mprogress
-				}
-			}
-		}
-
-		onMediaTransferSuccess: {
-			if (jid == mjid) {
-				var bubble = getBubble(mid);
-		        if(bubble) {
-					consoleDebug("MESSAGE SENT BUBBLE " + mjid)
-					bubble.media = mobject
-				    bubble.progress = 0
-				}
-			}
-		}
-
-		onMediaTransferError: {
-			if (jid == mjid) {
-				var bubble = getBubble(mid);
-		        if(bubble) {
-					consoleDebug("MESSAGE ERROR BUBBLE " + mjid)
-					bubble.media = mobject
-				    bubble.progress = 0
-				}
-			}
-		}*/
-
 		onUpdateContactName: {
 			if (jid == ujid) {
 				if (title = jid.split('@')[0]) {
@@ -154,10 +122,6 @@ WAPage {
 		onOnPaused: {
 			if (jid == ujid) setPaused()
 		}
-
-		/*onPictureCaptured: {
-			pageStack.push(Qt.resolvedUrl("PicturePreview.qml"))
-		}*/
 
 		onOpenPreviewPicture: {
 			if (jid == ujid) {
@@ -391,10 +355,10 @@ WAPage {
 			else if (!isGroup() && vibraForPersonal=="Yes") appWindow.vibrateNow()
         }*/
 
-        ConvScript.addMessage(loadReverse,positionToAdd,message);
-        positionToAdd = positionToAdd+1
-        updateLastMessage()
-        if (!loadReverse) appWindow.checkUnreadMessages();
+		ConvScript.addMessage(loadReverse,positionToAdd,message);
+		positionToAdd = positionToAdd+1
+		updateLastMessage()
+		if (!loadReverse) appWindow.checkUnreadMessages();
 	}
 
     function getNameForBubble(uname)
@@ -425,15 +389,17 @@ WAPage {
 		
         Item {
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 32
+            width: parent.width
             anchors.left: parent.left
-            anchors.leftMargin: 16
+            anchors.leftMargin: 0
 			height: 50
 
 			BorderImage {
 				width: 86
 				height: 42
 				anchors.verticalCenter: parent.verticalCenter
+				anchors.left: parent.left
+				anchors.leftMargin: 16
 				source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
 						"background" + (bcArea.pressed? "-pressed" : "")
 				border { left: 22; right: 22; bottom: 22; top: 22; }
@@ -443,26 +409,30 @@ WAPage {
 					font.pixelSize: 22; font.bold: true
                     text: qsTr("Back")
 				}
-				MouseArea {
-					id: bcArea
-					anchors.fill: parent
-					onClicked: { 
-                        //chatsTabButton.clicked()
-						appWindow.setActiveConv("")
-						appWindow.pageStack.pop(1)
-						if (conv_data.count==0 && !isGroup()) {
-							// EMPTY CONVERSATION. REMOVING
-							deleteConversation(jid)
-							removeChatItem(jid)
-						}
-                    }
-				}
+			}
+
+			MouseArea {
+				id: bcArea
+				anchors.top: parent.top
+				anchors.left: parent.left
+				height: 73
+				width: 130
+				onClicked: { 
+                    //chatsTabButton.clicked()
+					appWindow.setActiveConv("")
+					appWindow.pageStack.pop(1)
+					if (conv_data.count==0 && !isGroup()) {
+						// EMPTY CONVERSATION. REMOVING
+						deleteConversation(jid)
+						removeChatItem(jid)
+					}
+                }
 			}
 
 	        Label {
                 id: conversationTitle
                 text: title
-				width: parent.width - 62
+				width: parent.width - 74
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
 	            font.bold: true
@@ -473,7 +443,7 @@ WAPage {
 			UserStatus {
 		        id:ustatus
 		        height:30
-		        itemwidth: parent.width -62
+		        itemwidth: parent.width -74
                 anchors.top: conversationTitle.bottom
 				visible: !isGroup()
 		    }
@@ -483,20 +453,23 @@ WAPage {
                 imgsource:picture
                 anchors.verticalCenter: parent.verticalCenter
 				anchors.right: parent.right
-				MouseArea {
-					anchors.fill: parent
-					// User Profile window. Not finished yet
-					onClicked: { 
-						if (!conversation_view.isGroup()) {
-							profileUser = jid
-							pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
-						} else {
-							profileUser = jid
-							pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
-						}
+				anchors.rightMargin: 16
+            }
+			MouseArea {
+				anchors.right: parent.right
+				anchors.top: parent.top
+				height: 73
+				width: 84
+				onClicked: { 
+					if (!conversation_view.isGroup()) {
+						profileUser = jid
+						pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+					} else {
+						profileUser = jid
+						pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
 					}
 				}
-            }
+			}
         }
 
 		Rectangle {
@@ -729,7 +702,7 @@ WAPage {
 
                     onSendButtonClicked:{
                         //consoleDebug("SEND CLICKED");
-                        sendMediaWindow.opacity = 0
+						sendMediaWindow.opacity = 0
 
                         showSendButton=true;
                         forceFocusToChatText()

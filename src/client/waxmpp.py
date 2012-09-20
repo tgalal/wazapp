@@ -868,6 +868,8 @@ class WAEventHandler(WAEventBase):
 			self.listJids.pop(0);
 			if len(self.listJids)>0:
 				self.conn.sendGetPicture(self.listJids[0],"image")
+			else:
+				self.getPicturesFinished.emit()
 
 	def onSetPicture(self,jid,res):
 		self._d("Getting Picture "+res +" for "+jid)
@@ -1272,9 +1274,6 @@ class StanzaReader(QThread):
 
 			if fromAttribute is not None and "@g.us" in fromAttribute and author is not None and pushName is not None:
 				self.checkPushName(author,pushName)
-
-
-			
 
 
 			if fromAttribute is not None and msg_id is not None:

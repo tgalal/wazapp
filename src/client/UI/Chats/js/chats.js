@@ -28,6 +28,8 @@ function moveToCorrectIndex(jid){
      */
     //console.log("---/.[[][][][][][][][][][][][][][][][][][][][][][][][][][][]]");
     //console.log("SORTING")
+
+	consoleDebug("Moving conversation: " + jid)
     var index=0;
     var chatItem;
     for (var i=0; i< conversationsModel.count;i++)
@@ -39,7 +41,7 @@ function moveToCorrectIndex(jid){
             break;
          }
     }
-    //console.log("go the object and its index at"+index)
+    //console.log("go the object and its index at "+index)
 
     var lastMessage = chatItem.conversation.lastMessage;
      //got the object and its index
@@ -59,15 +61,16 @@ function moveToCorrectIndex(jid){
         //console.log(compItem);
 
         if(compItem && lastMessage.created > compItem.created){
-            //console.log("found target at "+i);
+             //console.log("found target at "+i);
              targetIndex = i;
              break
         }
     }
-    //console.log("moving")
+    consoleDebug("moving from " + index + " to " + targetIndex)
     //console.log(conversationsModel.count);
     //console.log(index);
     //console.log(targetIndex);
     conversationsModel.move(index,targetIndex,1);
-    //console.log("MOVED!!")
+    //console.log("MOVED!! - Total convs = " + conversationsModel.count)
+	updateChatItemList()
 }

@@ -48,14 +48,17 @@ WAPage {
         conversation = new Components.Conversation(appWindow).view;
         conversation.jid = jid;
 
-        //consoleDebug("APPENDING");
+        consoleDebug("APPENDING");
         conversationsModel.append({conversation:conversation})
 
-        //consoleDebug("RETURNING")
+        consoleDebug("RETURNING")
         return conversation;
     }
 
-    function moveToCorrectIndex(jid){ChatScript.moveToCorrectIndex(jid);}
+    function moveToCorrectIndex(jid) { 
+		ChatScript.moveToCorrectIndex(jid);
+		//chatsList.positionViewAtBeginning()
+	}
 
     function getConversation(jid){
 
@@ -181,6 +184,7 @@ WAPage {
             spacing: 1
             clip:true
             cacheBuffer: 10000
+			//onCountChanged: chatsList.positionViewAtBeginning()
         }
     }
 
@@ -267,6 +271,9 @@ WAPage {
 		onGroupEnded: {
             deleteConversation(chatMenu.jid)
             removeChatItem(chatMenu.jid)
+		}
+		onUpdateChatItemList: {
+			chatsList.positionViewAtBeginning()
 		}
 	}
 

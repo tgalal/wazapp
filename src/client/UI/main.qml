@@ -390,12 +390,33 @@ WAStackWindow {
 			}
 			if (add) {
 				contactsModel.insert(i, contacts[i]);
+				currentContacts = currentContacts + "," + contacts[i].jid
+				newContacts = newContacts +1
+				contactsAdded.title = newContacts
 			}
 		}
     }
 
-    function pushContacts(contacts){
+	property string currentContacts: ""
+	property int newContacts: 0
+
+    function pushContacts(mode,contacts){
         waContacts.pushContacts(contacts)
+		var newc = 0
+		if (mode=="SYNC") {
+			for(var j =0; j<contactsModel.count; j++) {
+				if (currentContacts.indexOf(contactsModel.get(j).jid)==-1 ) {
+					currentContacts = currentContacts + "," + contactsModel.get(j).jid
+					newContacts = newContacts +1
+					newc = newc +1
+				}
+			}
+			contactsAdded.title = newc
+		} else {
+			for(var j =0; j<contactsModel.count; j++) {
+				currentContacts = currentContacts + "," + contactsModel.get(j).jid
+			}
+		}
     }
 
     function pushPhoneContacts(contacts){
@@ -459,12 +480,12 @@ WAStackWindow {
 
         }
 
-
-
-
     }
 
-    function messagesReady(messages){
+	signal reorderConversation(string cjid)
+	signal updateChatItemList()
+
+    function messagesReady(messages,reorder){
         consoleDebug("GOT MESSAGES SIGNAL");
         var conversation = waChats.getConversation(messages.jid);
         consoleDebug("proceed to check validity of conv")
@@ -479,7 +500,7 @@ WAStackWindow {
         consoleDebug("Adding messages to conv")
         for (var i =0; i< messages.data.length; i++)
         {
-            //consoleDebug("adding a message");
+            consoleDebug("adding message: " + messages.data[i].content );
             conversation.addMessage(messages.data[i]);
         }
 
@@ -487,6 +508,9 @@ WAStackWindow {
             //to reset unreadCount in frontend and inform backend about
             conversation.open();
         }
+
+		if (reorder) reorderConversation(messages.jid)
+
 		onPaused(messages.jid)
 
     }
@@ -723,7 +747,6 @@ WAStackWindow {
 						anchors.right: parent.right
 						anchors.rightMargin: 16
 						y: -8 // Yes, I like it this way!
-						//title: "0"
 					}
                 }
                 TabButton {
@@ -732,6 +755,12 @@ WAStackWindow {
                     //text: qsTr("Contacts")
                     iconSource: "common/images/book" + (theme.inverted ? "-white" : "") + ".png";
                     tab: waContacts
+					CountBubble {
+						id: contactsAdded
+						anchors.right: parent.right
+						anchors.rightMargin: 16
+						y: -8 // Yes, I like it this way!
+					}
                 }
             }
 

@@ -23,7 +23,6 @@ from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView,QDeclarativeProperty
 from QtMobility.Messaging import *
 from contacts import WAContacts
-from status import WAChangeStatus
 from waxmpp import WAXMPP
 from utilities import Utilities
 #from registration import Registration
@@ -507,6 +506,7 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.profilePictureUpdated.connect(self.updateContact);
 
 		whatsapp.eventHandler.setPushName.connect(self.updatePushName);
+		whatsapp.eventHandler.statusChanged.connect(self.rootObject().statusChanged);
 		#whatsapp.eventHandler.setPushName.connect(self.rootObject().updatePushName);
 		#whatsapp.eventHandler.profilePictureUpdated.connect(self.rootObject().onPictureUpdated);
 
@@ -549,6 +549,7 @@ class WAUI(QDeclarativeView):
 		self.rootObject().sendMediaMessage.connect(whatsapp.eventHandler.sendMediaMessage)
 		self.rootObject().sendLocation.connect(whatsapp.eventHandler.sendLocation)
 		self.rootObject().rotateImage.connect(whatsapp.eventHandler.rotateImage)
+		self.rootObject().changeStatus.connect(whatsapp.eventHandler.changeStatus)
 
 
 		#self.rootObject().sendVCard.connect(whatsapp.eventHandler.sendVCard)
@@ -572,10 +573,6 @@ class WAUI(QDeclarativeView):
 		#self.reg = Registration();
 		self.whatsapp = whatsapp;
 		
-		#change whatsapp status
-		self.cs = WAChangeStatus(self.store);
-		self.rootObject().changeStatus.connect(self.cs.sync)
-
 		
 		#print "el acks:"
 		#print whatsapp.supports_receipt_acks

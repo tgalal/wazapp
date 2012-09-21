@@ -55,7 +55,8 @@ Rectangle{
 		target: appWindow
 
 		onReorderConversation: {
-			waChats.moveToCorrectIndex(cjid);
+			if (jid==cjid)
+				waChats.moveToCorrectIndex(cjid);
 		}
 
 		onGroupInfoUpdated: {

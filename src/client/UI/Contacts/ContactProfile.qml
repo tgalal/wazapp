@@ -117,7 +117,7 @@ WAPage {
 
 			Row {
 				width: parent.width
-				height: 80
+				height: col1.heigth + 48
 				spacing: 10
 
 				ProfileImage {
@@ -125,6 +125,7 @@ WAPage {
 					size: 80
 					height: size
 					width: size
+					y: 0
 					imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
 					onClicked: { 
 						if (bigImage.width>0) {
@@ -136,8 +137,9 @@ WAPage {
 				}
 
 				Column {
+					id: col1
 					width: parent.width - picture.size -10
-					anchors.verticalCenter: picture.verticalCenter
+					anchors.verticalCenter: parent.verticalCenter
 
 					Label {
 						text: contactName
@@ -154,7 +156,7 @@ WAPage {
 						visible: contactStatus!==""
 						text: Helpers.emojify(contactStatus)
 						width: parent.width
-						elide: Text.ElideRight
+						//elide: Text.ElideRight
 					}
 				}
 			}

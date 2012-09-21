@@ -95,6 +95,8 @@ class WAEventHandler(WAEventBase):
 	setPushName = QtCore.Signal(str, str);
 	imageRotated = QtCore.Signal(str);
 	getPicturesFinished = QtCore.Signal();
+	changeStatus = QtCore.Signal(str);
+	statusChanged = QtCore.Signal();
 	doQuit = QtCore.Signal();
 
 
@@ -136,6 +138,7 @@ class WAEventHandler(WAEventBase):
 		self.getPictureIds.connect(self.conn.sendGetPictureIds);
 		self.getPicture.connect(self.conn.sendGetPicture);
 		self.setPicture.connect(self.conn.sendSetPicture);
+		self.changeStatus.connect(self.conn.sendChangeStatus);
 
 		self.connected.connect(self.conn.resendUnsent);
 		
@@ -1553,6 +1556,12 @@ class StanzaReader(QThread):
 					fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
 					
 				elif ProtocolTreeNode.tagEquals(childNode,"received") and fromAttribute is not None and msg_id is not None:
+
+					if fromAttribute == "s.us":
+						print "STATUS CHANGED NOTIFICATION!!!"
+						self.eventHandler.statusChanged.emit()
+						return;
+
 					print "NEW MESSAGE RECEIVED NOTIFICATION!!!"
 					self.connection.sendDeliveredReceiptAck(fromAttribute,msg_id); 
 					key = Key(fromAttribute,True,msg_id);
@@ -2252,6 +2261,14 @@ class WAXMPP():
 		
 		self.out.write(iqNode)
 
+	def sendChangeStatus(self,status):
+		self._d("updating status to: %s"%(status))
+
+		fmsg = WAXMPP.message_store.createMessage(self.eventHandler.account);
+		key = Key("s.us",True,"00000000");
+		fmsg.setData({"key":key.toString()});
+		bodyNode = ProtocolTreeNode("body",None,None,status.encode('utf-8'));
+		self.out.write(self.getMessageNode(fmsg,bodyNode));
 
 	
 	def getMessageNode(self,fmsg,child):

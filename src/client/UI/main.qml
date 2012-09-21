@@ -389,10 +389,11 @@ WAStackWindow {
 				}
 			}
 			if (add) {
+				//contacts[i].newContact = true;
 				contactsModel.insert(i, contacts[i]);
 				currentContacts = currentContacts + "," + contacts[i].jid
 				newContacts = newContacts +1
-				contactsAdded.title = newContacts
+				//contactsAdded.title = newContacts
 			}
 		}
     }
@@ -404,14 +405,15 @@ WAStackWindow {
         waContacts.pushContacts(contacts)
 		var newc = 0
 		if (mode=="SYNC") {
+			newContacts = 0
 			for(var j =0; j<contactsModel.count; j++) {
 				if (currentContacts.indexOf(contactsModel.get(j).jid)==-1 ) {
 					currentContacts = currentContacts + "," + contactsModel.get(j).jid
+					//contactsModel.get(j).newContact = true
 					newContacts = newContacts +1
-					newc = newc +1
 				}
 			}
-			contactsAdded.title = newc
+			//contactsAdded.title = newContacts
 		} else {
 			for(var j =0; j<contactsModel.count; j++) {
 				currentContacts = currentContacts + "," + contactsModel.get(j).jid
@@ -760,6 +762,7 @@ WAStackWindow {
 						anchors.right: parent.right
 						anchors.rightMargin: 16
 						y: -8 // Yes, I like it this way!
+						title: newContacts
 					}
                 }
             }

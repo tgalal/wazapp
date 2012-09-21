@@ -117,7 +117,9 @@ WAPage {
         id:chatsDelegate;
 
         Chat{
-            Component.onCompleted: {
+			id: chatsDelegateItem
+			
+			Component.onCompleted: {
                 setConversation(model.conversation);
             }
 
@@ -138,7 +140,8 @@ WAPage {
 				profileUser = chatMenu.jid
                 chatMenu.open();
             }
-        }
+
+       }
     }
 
 

@@ -26,7 +26,7 @@ import "../common/js/Global.js" as Helpers
 import "js/contact.js" as ContactHelper
 import "../common"
 
-Rectangle{
+Item{
     id:container
 
     property string jid;
@@ -37,13 +37,22 @@ Rectangle{
     property string contactShowedName;
     property string contactStatus;
     property string contactNumber;
+	//property bool isVisible
+	//property bool isNew: false
 
     signal clicked();
 	signal optionsRequested()
 
     width: parent.width;
-    color:"transparent"
+    //color:"transparent"
 	clip: true
+
+	/*onIsVisibleChanged: {
+		if (isVisible && isNew) {
+			isNew = false
+			newContacts = newContacts-1
+		}
+	}*/
 
     function unsetConversation(){
         ContactHelper.conversation = false;
@@ -133,6 +142,7 @@ Rectangle{
 				elide: Text.ElideRight
 				width: parent.width -16
 				font.bold: true
+				//color: isNew? "green" : (theme.inverted? "white":"black")
 			}
 			Label {
 				id:contact_status

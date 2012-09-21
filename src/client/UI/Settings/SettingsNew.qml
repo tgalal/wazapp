@@ -123,7 +123,7 @@ WAPage {
         title: qsTr("Settings")
         anchors.top:parent.top
         width:parent.width
-		height: 72
+		height: 73
     }
 
     TabGroup {
@@ -134,8 +134,8 @@ WAPage {
 		Item {
 			id: generalTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -231,8 +231,8 @@ WAPage {
 		Item {
 			id: appearanceTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -372,8 +372,8 @@ WAPage {
 		Item {
 			id: notificationsTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -495,8 +495,8 @@ WAPage {
 		Item {
 			id: profileTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -528,6 +528,25 @@ WAPage {
 
 					ProfileImage {
 						id: picture
+						size: 340
+						height: size
+						width: size
+						imgsource: bigImage.height>0 ? contactPicture : "../common/images/user.png"
+						onClicked: {
+							profileUser = myAccount
+							pageStack.push(setProfilePicture)
+						}
+						//onClicked: { 
+						//	if (bigImage.height>0) 
+						//		bigProfileImage = contactPicture
+						//		pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
+								//Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
+						//}
+						anchors.horizontalCenter: parent.horizontalCenter
+					}
+
+					/*ProfileImage {
+						id: picture
 						size: 140
 						height: size
 						width: size
@@ -550,17 +569,25 @@ WAPage {
 							profileUser = myAccount
 							pageStack.push(setProfilePicture)
 						}
-					}
+					}*/
 
 					GroupSeparator {
 						title: qsTr("Status")
 					}
 
-					SelectionItem {
+					/*SelectionItem {
 						id: statusText
 					    title: qsTr("Change current status")
 					    initialValue: Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
 					    onClicked: pageStack.push (Qt.resolvedUrl("../ChangeStatus/ChangeStatus.qml"))
+					}*/
+
+					Status {
+						id: myStatus
+						height: 140
+						clip: true
+						width: parent.width
+						text: Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
 					}
 
 					Connections {
@@ -573,9 +600,6 @@ WAPage {
 								bigImage.source = ""
 								bigImage.source = contactPicture
 							}
-						}
-						onStatusChanged: {
-							statusText.initialValue = Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
 						}
 					}
 
@@ -597,8 +621,8 @@ WAPage {
 		Item {
 			id: aboutTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -623,28 +647,28 @@ WAPage {
 
 
 					Image {
-						source: "../common/images/icons/wazapp80.png"
+						source: "../common/images/icons/wazapp256.png"
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 
 					Label {
 						horizontalAlignment: Text.AlignHCenter
-						anchors.leftMargin: 16
-						width: parent.width -32
+						anchors.leftMargin: 0
+						width: parent.width 
 						text: "Wazapp"
 					}
 
 					Label {
 						horizontalAlignment: Text.AlignHCenter
-						anchors.leftMargin: 16
-						width: parent.width -32
+						anchors.leftMargin: 0
+						width: parent.width
 						text: qsTr("version") + " " + waversion
 					}
 
 					Label {
 						horizontalAlignment: Text.AlignHCenter
-						anchors.leftMargin: 16
-						width: parent.width -32
+						anchors.leftMargin: 0
+						width: parent.width
 						text: message
 					}
 					

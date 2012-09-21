@@ -27,7 +27,7 @@ Item {
             height: size
             smooth: true
             fillMode: Image.Stretch
-            source: "images/usermask.png"
+            source: size>120? "images/usermask-large.png" : "images/usermask.png"
         }
 
         Image
@@ -55,7 +55,7 @@ Item {
         smooth: true
         asynchronous: true
         fillMode: Image.Stretch
-        source: "images/userborder.png"
+        source: size>120? "images/userborder-large.png" : "images/userborder.png"
         visible: imgsource != "" && rounded
     }
 

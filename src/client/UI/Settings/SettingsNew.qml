@@ -28,8 +28,6 @@ import "../common"
 WAPage {
     id: root
 
-	signal syncClicked();
-
     property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
 
 	property string message: qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
@@ -39,7 +37,7 @@ WAPage {
 
     Component.onCompleted: {
 		MySettings.initialize()
-        syncClicked.connect(onSyncClicked)
+		getRingtones()
     }
 
     tools: ToolBarLayout {
@@ -369,6 +367,9 @@ WAPage {
 
 		}
 
+
+
+
 		Item {
 			id: notificationsTab
 			anchors.top: parent.top
@@ -378,51 +379,13 @@ WAPage {
 			anchors.leftMargin: 16
 			width: parent.width -32
 
-		    ListModel {
-				id: ringtoneModel
-		        ListElement { name: QT_TR_NOOP("(no sound)"); value: "No sound.wav" }
-		        ListElement { name: "Arcade"; value: "Arcade.mp3" }
-		        ListElement { name: "Blip"; value: "Blip.mp3" }
-		        ListElement { name: "Bubbles"; value: "Bubbles.mp3" }
-		        ListElement { name: "Calendar 1"; value: "Calendar 1.mp3" }
-		        ListElement { name: "Calendar 2"; value: "Calendar 2.mp3" }
-		        ListElement { name: "Calendar 3"; value: "Calendar 3.mp3" }
-		        ListElement { name: "Calendar 4"; value: "Calendar 4.mp3" }
-		        ListElement { name: "Calendar 5"; value: "Calendar 5.mp3" }
-		        ListElement { name: "Chat alert"; value: "Chat alert.mp3" }
-		        ListElement { name: "Chuckle"; value: "Chuckle.mp3" }
-		        ListElement { name: "Clock 1"; value: "Clock 1.mp3" }
-		        ListElement { name: "Clock 2"; value: "Clock 2.mp3" }
-		        ListElement { name: "Clock 3"; value: "Clock 3.mp3" }
-		        ListElement { name: "Clock 4"; value: "Clock 4.mp3" }
-		        ListElement { name: "Clock 5"; value: "Clock 5.mp3" }
-		        ListElement { name: "Computer talk"; value: "Computer talk.mp3" }
-		        ListElement { name: "Email 1"; value: "Email 1.mp3" }
-		        ListElement { name: "Email 2"; value: "Email 2.mp3" }
-		        ListElement { name: "Email 3"; value: "Email 3.mp3" }
-		        ListElement { name: "Email 4"; value: "Email 4.mp3" }
-		        ListElement { name: "Email 5"; value: "Email 5.mp3" }
-		        ListElement { name: "Feng shoes"; value: "Feng shoes.mp3" }
-		        ListElement { name: "Halcyon"; value: "Halcyon.mp3" }
-		        ListElement { name: "Idim"; value: "Idim.mp3" }
-		        ListElement { name: "Machines"; value: "Machines.mp3" }
-		        ListElement { name: "Marbles"; value: "Marbles.mp3" }
-		        ListElement { name: "Message 1"; value: "Message 1.mp3" }
-		        ListElement { name: "Message 2"; value: "Message 2.mp3" }
-		        ListElement { name: "Message 3"; value: "Message 3.mp3" }
-		        ListElement { name: "Message 4"; value: "Message 4.mp3" }
-		        ListElement { name: "Message 5"; value: "Message 5.mp3" }
-		        ListElement { name: "Noise Experiment"; value: "Noise Experiment.mp3" }
-		        ListElement { name: "Nokia tune"; value: "Nokia tune.mp3" }
-		        ListElement { name: "Retrobot"; value: "Retrobot.mp3" }
-		        ListElement { name: "Roboioioi"; value: "Roboioioi.mp3" }
-		        ListElement { name: "Sine step"; value: "Sine step.mp3" }
-		        ListElement { name: "Spectros"; value: "Spectros.mp3" }
-		        ListElement { name: "Tickle"; value: "Tickle.mp3" }
-		        ListElement { name: "Whistling"; value: "Whistling.mp3" }
-		        ListElement { name: "Winning"; value: "Winning.mp3" }
-		        ListElement { name: "Wolfgang"; value: "Wolfgang.mp3" }
-		    }
+			Connections {
+				target: appWindow
+				onRingtonesUpdated: {
+					personalTone.initialValue = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
+					groupTone.initialValue = MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
+				}
+			}
 
 
 			Flickable {
@@ -441,9 +404,10 @@ WAPage {
 						title: qsTr("Personal messages")
 					}
 					SelectionItemTr {
+						id: personalTone
 					    title: qsTr("Notification tone")
 					    model: ringtoneModel
-						initialValue: MySettings.getSetting("PersonalRingtone", "Message 1.mp3")
+						//initialValue: MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
 					    onValueChosen: { 
 							MySettings.setSetting("PersonalRingtone", value)
 							setPersonalRingtone(value)
@@ -463,9 +427,10 @@ WAPage {
 						title: qsTr("Group messages")
 					}
 					SelectionItemTr {
+						id: groupTone
 					    title: qsTr("Notification tone")
 					    model: ringtoneModel
-						initialValue: MySettings.getSetting("GroupRingtone", "Message 1.mp3")
+						//initialValue: MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
 					    onValueChosen: { 
 							MySettings.setSetting("GroupRingtone", value)
 							setGroupRingtone(value)
@@ -613,8 +578,6 @@ WAPage {
 			}
 
 		}
-
-
 
 
 

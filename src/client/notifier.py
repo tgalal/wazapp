@@ -18,7 +18,7 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from mnotification import MNotificationManager,MNotification
 from PySide.QtGui import QSound
-from PySide.QtCore import QUrl
+from PySide.QtCore import QUrl, QCoreApplication
 from QtMobility.Feedback import QFeedbackHapticsEffect #QFeedbackEffect
 from QtMobility.SystemInfo import QSystemDeviceInfo
 from constants import WAConstants
@@ -41,6 +41,8 @@ class Notifier():
 		self.groupRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
 		self.groupVibrate = True;
 		
+		QCoreApplication.setApplicationName("Wazapp");
+
 		self.audioOutput = Phonon.AudioOutput(Phonon.MusicCategory, None)
 		self.mediaObject = Phonon.MediaObject(None)
 		Phonon.createPath(self.mediaObject, self.audioOutput)		
@@ -107,7 +109,8 @@ class Notifier():
 			del self.notifications[jid]
 			self._d("DELETING NOTIFICATION BY ID "+str(nId));
 			self.manager.removeNotification(nId);
-		
+			self.mediaObject.clear()
+
 				
 	def notificationCallback(self,jid):
 		#nId = 0
@@ -120,6 +123,13 @@ class Notifier():
 			del self.notifications[jid]
 			#self.manager.removeNotification(nId);
 		
+	def stopSound(self):
+		self.mediaObject.clear()
+
+	def playSound(self,soundfile):
+		self.mediaObject.setCurrentSource(Phonon.MediaSource(soundfile))
+		self.mediaObject.play()
+
 
 	def newGroupMessage(self,jid,contactName,message,picture=None,callback=False):
 		self.newMessage(jid,contactName,message,self.groupRingtone, self.groupVibrate, picture, callback)
@@ -137,15 +147,11 @@ class Notifier():
 		
 		if self.enabled:
 			
-			
 			if(activeConvJId == jid or activeConvJId == ""):
 				if self.audio and ringtone!= WAConstants.NO_SOUND:
 					soundPath = WAConstants.DEFAULT_BEEP_NOTIFICATION;
 					self._d(soundPath)
-					#self.audio.setMedia(QUrl.fromLocalFile(soundPath));
-					#self.audio.play();
-					self.mediaObject.setCurrentSource(Phonon.MediaSource(soundPath))
-					self.mediaObject.play()
+					self.playSound(soundPath)
 
 
 				if self.vibra and vibration:
@@ -154,13 +160,11 @@ class Notifier():
 				return
 
 
+
 			if self.audio and ringtone!=WAConstants.NO_SOUND:
 				soundPath = self.getCurrentSoundPath(ringtone);
 				self._d(soundPath)
-				#self.audio.setMedia(QUrl.fromLocalFile(soundPath));
-				#self.audio.play();
-				self.mediaObject.setCurrentSource(Phonon.MediaSource(soundPath))
-				self.mediaObject.play()
+				self.playSound(soundPath)
 
 			
 			n = MNotification("wazapp.message.new",contactName, message);

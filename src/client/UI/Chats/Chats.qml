@@ -48,10 +48,10 @@ WAPage {
         conversation = new Components.Conversation(appWindow).view;
         conversation.jid = jid;
 
-        consoleDebug("APPENDING");
+        //consoleDebug("APPENDING");
         conversationsModel.append({conversation:conversation})
 
-        consoleDebug("RETURNING")
+        //consoleDebug("RETURNING")
         return conversation;
     }
 

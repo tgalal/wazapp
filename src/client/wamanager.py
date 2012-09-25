@@ -146,8 +146,6 @@ class WAManager():
 		gui.setMyAccount(account.jid);
 
 		self.gui = gui;
-		print "INITIAL CONNECTION CHECK"
-		self.gui.whatsapp.eventHandler.initialConnCheck()
 		
 		self.gui.whatsapp.eventHandler.setMyAccount(account.jid)
 		

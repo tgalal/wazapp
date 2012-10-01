@@ -390,7 +390,7 @@ WAStackWindow {
 	function unblockContact(jid) {
 		var newc = blockedContacts
 		newc = newc.replace(jid,"")
-		newc = newc.replace(",,",",")
+		newc = newc.replace(/,,/g,",")
 		blockedContacts = newc
 		MySettings.setSetting("BlockedContacts", blockedContacts)
 		setBlockedContacts(blockedContacts)

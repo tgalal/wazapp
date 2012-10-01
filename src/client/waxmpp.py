@@ -44,6 +44,7 @@ import base64
 import shutil, datetime
 import Image
 from PIL.ExifTags import TAGS
+import subprocess
 
 
 class WAEventHandler(WAEventBase):
@@ -547,8 +548,11 @@ class WAEventHandler(WAEventBase):
 			print "Vcard too large! Removing photo..."
 			n = stream.find("PHOTO")
 			stream = stream[:n] + "END:VCARD"
-		else:
-			mediaItem.preview = vcardImage
+			f = open(WAConstants.VCARD_PATH + "/"+contactName+".vcf", 'w')
+			f.write(stream)
+			f.close()
+
+		mediaItem.preview = vcardImage
 
 		fmsg.content = contactName
 		fmsg.Media = mediaItem
@@ -647,8 +651,11 @@ class WAEventHandler(WAEventBase):
 	def sendMediaRecordedFile(self,jid):	
 		recfile = WAConstants.CACHE_PATH+'/temprecord.wav'
 		now = datetime.datetime.now()
-		destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".wav"
-		shutil.copy(recfile, destfile)
+		destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".mp3"
+		#shutil.copy(recfile, destfile)
+		pipe=subprocess.Popen(['/usr/bin/lame', recfile, destfile])
+		pipe.wait()
+		os.remove(recfile)
  
 		self._d("creating Audio Recorded MMS for " +jid)
 		fmsg = WAXMPP.message_store.createMessage(jid);

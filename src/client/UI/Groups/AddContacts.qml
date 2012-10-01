@@ -172,8 +172,14 @@ WAPage {
 				id:mouseArea
 				anchors.fill: parent
 				onClicked:{
-				    //console.log("CONTACT CLICKED: ");
-					isSelected = !isSelected
+				    if (isSelected) {
+						isSelected = false
+						selectedContacts.replace(model.jid,"");
+						selectedContacts.replace(",,",",");
+					} else {
+						isSelected = true
+						selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + model.jid;
+					}
 				}
 			}
 
@@ -340,29 +346,18 @@ WAPage {
 			width: 300
             text: qsTr("Done")
             onClicked: {
+				var myContacts = selectedContacts
 				selectedContacts = ""
 				participantsModel.clear()
-
-				for (var i=0; i<list_view1.count; ++i) {
-					list_view1.currentIndex = i
-					if (list_view1.currentItem.isSelected) {
-						consoleDebug("ADDING CONTACT: "+list_view1.currentItem.jid)
-
+				for (var i=0; i<contactsModel.count; ++i) {
+					if (myContacts.indexOf(contactsModel.get(i).jid)>-1) {
+						consoleDebug("ADDING CONTACT: "+contactsModel.get(i).jid)
 						selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + contactsModel.get(i).jid;
 						participantsModel.append({"contactPicture":contactsModel.get(i).picture,
 							"contactName":contactsModel.get(i).name,
 							"contactStatus":contactsModel.get(i).status,
 							"contactJid":contactsModel.get(i).jid})
-					} /*else {
-						for (var j=0; j<participantsModel.count; ++j) {
-							if (participantsModel.get(j).contactJid==contactsModel.get(i).jid)
-								participantsModel.remove(j)
-						}
-						var newSelectedContacts = selectedContacts
-						newSelectedContacts = newSelectedContacts.replace(contactsModel.get(i).jid,"")
-						newSelectedContacts = newSelectedContacts.replace(",,",",")
-						selectedContacts = newSelectedContacts
-					}*/
+					} 
 				}
 				consoleDebug("PARTICIPANTS RESULT: " + selectedContacts)
 				pageStack.pop()

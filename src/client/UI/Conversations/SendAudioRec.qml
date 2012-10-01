@@ -50,6 +50,8 @@ WAPage {
 			enabled: recorded
 	        onClicked: { 
 				sendMediaRecordedFile(currentJid)
+				recorded = false
+				recording = false
 				pageStack.pop()
 			}
 	    }

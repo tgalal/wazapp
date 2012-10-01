@@ -504,7 +504,7 @@ class WAUI(QDeclarativeView):
 
 
 	def deleteRecording(self):
-		if not os.path.exists(WAConstants.CACHE_PATH+'/temprecord.wav'):
+		if os.path.exists(WAConstants.CACHE_PATH+'/temprecord.wav'):
 			os.remove(WAConstants.CACHE_PATH+'/temprecord.wav')
 
 

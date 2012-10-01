@@ -489,7 +489,7 @@ class WAUI(QDeclarativeView):
 
 	def startRecording(self):
 		print 'Starting the record...'
-		self.pipe = subprocess.Popen(['/usr/bin/arecord','-t','wav',WAConstants.CACHE_PATH+'/temprecord.wav'])
+		self.pipe = subprocess.Popen(['/usr/bin/arecord','-r','16000','-t','wav',WAConstants.CACHE_PATH+'/temprecord.wav'])
 		print "The pid is: " + str(self.pipe.pid)
 
 

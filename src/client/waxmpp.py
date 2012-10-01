@@ -651,11 +651,14 @@ class WAEventHandler(WAEventBase):
 	def sendMediaRecordedFile(self,jid):	
 		recfile = WAConstants.CACHE_PATH+'/temprecord.wav'
 		now = datetime.datetime.now()
-		destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".mp3"
-		#shutil.copy(recfile, destfile)
-		pipe=subprocess.Popen(['/usr/bin/lame', recfile, destfile])
-		pipe.wait()
-		os.remove(recfile)
+		destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".wav"
+		shutil.copy(recfile, destfile)
+
+		# Convert to MP3 using lame
+		#destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".mp3"
+		#pipe=subprocess.Popen(['/usr/bin/lame', recfile, destfile])
+		#pipe.wait()
+		#os.remove(recfile)
  
 		self._d("creating Audio Recorded MMS for " +jid)
 		fmsg = WAXMPP.message_store.createMessage(jid);

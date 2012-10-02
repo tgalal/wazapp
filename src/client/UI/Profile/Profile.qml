@@ -64,7 +64,7 @@ WAPage {
         contactPicture = WAConstants.CACHE_CONTACTS + "/" + contactNumber + ".png"
 		bigImage.source = ""
         bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
-		getPicture(myAccount, "image")
+        getPicture(myAccount)
 
 	}
 

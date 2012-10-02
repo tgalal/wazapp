@@ -428,6 +428,14 @@ class MessageStore(QObject):
 		
 		self.conversations[jid] = conversation;
 		self.sendConversationReady(jid)
+
+
+	def messageExists(self, jid, msgId):
+		k = Key(jid, False, msgId)
+		return self.get(k) is not None
+
+	def keyExists(self, k):
+		return self.get(k) is not None
 		
 		
 		
@@ -436,49 +444,6 @@ class Key():
 		self.remote_jid = remote_jid;
 		self.from_me = from_me;
 		self.id = idd;
-
-	
-	def exists(self, paramKey):
-		try:
-			WAXMPP.message_store.get(paramKey)
-			return 1
-		except KeyError:
-			return 0
-     
-
-
-	def equals(obj):
-		if self == obj:
-			return True;
-		if self is None:
-			return false;
-		if type(self) != type(obj):
-			return False;
-		other = obj;
-		if self.from_me != other.from_me:
-			return false;
-		if self.id is None:
-			if other.id is not None:
-				return False;
-		elif self.id != other.id:
-			return False;
-		if self.remote_jid is None:
-			if other.remote_jid is not None:
-				return False;
-		elif self.remote_jid != other.remote_jid:
-			return False;
-
-		return True;
-
-
-	def hashCode(self):
-		prime = 31;
-		result = 1;
-		result = 31 * result + (1231 if self.from_me else 1237)
-		result = 31 * result + (0 if self.id is None else Utilities.hashCode(self.id));
-		result = 31 * result + (0 if self.remote_jid is None else Utilities.hashCode(self.remote_jid));
-	
-
 
 	def toString(self):
 		return "Key(idd=\"" + self.id + "\", from_me=" + str(self.from_me) + ", remote_jid=\"" + self.remote_jid + "\")";

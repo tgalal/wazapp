@@ -20,7 +20,7 @@ import sys,os
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView
-from utilities import Utilities;
+
 from ui import WAUI;
 from litestore import LiteStore as DataStore
 from accountsmanager import AccountsManager;

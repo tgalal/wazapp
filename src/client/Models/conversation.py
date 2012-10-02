@@ -48,7 +48,7 @@ class Conversation(Model):
 		self.save();
 		
 	def incrementNew(self):
-		self.new = self.new+1;
+		self.new = 1 if self.new is None else self.new+1;
 		self.save();
 		
 		
@@ -86,7 +86,7 @@ class Groupconversation(Model):
 		self.save();
 	
 	def incrementNew(self):
-		self.new = self.new+1;
+		self.new = 1 if self.new is None else self.new+1;
 		self.save();
 	
 	def getJid(self):

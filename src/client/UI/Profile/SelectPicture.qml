@@ -147,7 +147,11 @@ WAPage {
 					//selectedPicture = url //"/home/user/.thumbnails/grid/" + Qt.md5(url) + ".jpeg" //url
 					//pageStack.replace(Qt.resolvedUrl("SetPicture.qml"))
 
-	                setPicture(profileUser, decodeURIComponent(url))
+                    if(profileUser.indexOf("-") >= 0)
+                        setGroupPicture(profileUser, url)
+                    else
+                        setMyProfilePicture(decodeURIComponent(url)) //@@TODO PURGE THAT GLOBAL profileUser variable!!!
+                                                                    //Please stop globalizing variables!!
 					pageStack.pop()
 	            }
 	        }

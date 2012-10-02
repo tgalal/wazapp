@@ -16,23 +16,22 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
-import sys
+
 from PySide import QtCore
-from PySide.QtCore import *
-from PySide.QtGui import *
+from PySide.QtCore import QUrl
 from PySide.QtDeclarative import QDeclarativeView,QDeclarativeProperty
 from QtMobility.Messaging import *
 from contacts import WAContacts
 from waxmpp import WAXMPP
 from utilities import Utilities
 #from registration import Registration
-from contacts import ContactsSyncer
+
 from messagestore import MessageStore
 from threading import Timer
 from waservice import WAService
 import dbus
 from wadebug import UIDebug
-import os, shutil, glob, time, hashlib
+import os, shutil, time, hashlib
 from subprocess import call
 import Image
 from PIL.ExifTags import TAGS
@@ -576,7 +575,6 @@ class WAUI(QDeclarativeView):
 		
 		WAXMPP.message_store = self.messageStore;
 	
-		whatsapp.setReceiptAckCapable(True);
 		whatsapp.setContactsManager(self.c);
 		
 		whatsapp.eventHandler.connected.connect(self.rootObject().onConnected);
@@ -640,7 +638,8 @@ class WAUI(QDeclarativeView):
 		self.rootObject().setGroupSubject.connect(whatsapp.eventHandler.setGroupSubject)
 		self.rootObject().getPictureIds.connect(whatsapp.eventHandler.getPictureIds)
 		self.rootObject().getPicture.connect(whatsapp.eventHandler.getPicture)
-		self.rootObject().setPicture.connect(whatsapp.eventHandler.setPicture)
+		self.rootObject().setGroupPicture.connect(whatsapp.eventHandler.setGroupPicture)
+		self.rootObject().setMyProfilePicture.connect(whatsapp.eventHandler.setProfilePicture)
 		self.rootObject().sendMediaImageFile.connect(whatsapp.eventHandler.sendMediaImageFile)
 		self.rootObject().sendMediaVideoFile.connect(whatsapp.eventHandler.sendMediaVideoFile)
 		self.rootObject().sendMediaAudioFile.connect(whatsapp.eventHandler.sendMediaAudioFile)

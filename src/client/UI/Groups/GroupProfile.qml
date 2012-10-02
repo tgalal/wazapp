@@ -87,7 +87,6 @@ WAPage {
 					pageStack.pop()
 			}
         }
-
     }
 
 	Component.onCompleted: {
@@ -145,7 +144,7 @@ WAPage {
 				groupDate = getDateTime(parseInt(data[5])*1000)
 				groupSubjectOwner = qsTr("Subject created by") + " " + getAuthor(data[3]).split('@')[0]
 				partText.text = qsTr("Group participants:")
-				getPicture(profileUser, "image")
+                getPicture(profileUser)
 			}
 		}
 

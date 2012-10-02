@@ -78,7 +78,7 @@ class ConnMonitor(QObject):
 		self.online = state
 		if state:
 			self.connected.emit()
-		else:
+		elif not self.isOnline():
 			self.config = None
 			self.disconnected.emit()
 	

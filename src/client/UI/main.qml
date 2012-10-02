@@ -124,11 +124,12 @@ WAStackWindow {
 	signal groupEnded();
 	signal setGroupSubject(string gjid, string subject);
 	signal getPictureIds(string jids);
-	signal getPicture(string jid, string type);
+    signal getPicture(string jid);
 	signal onContactPictureUpdated(string ujid);
-	signal setPicture(string jid, string file);
+    signal setGroupPicture(string jid, string file);
+    signal setMyProfilePicture(string file);
 	signal sendMediaMessage(string jid, string data, string image, string preview);
-	signal sendMediaImageFile(string jid, string file);
+    signal sendMediaImageFile(string jid, string file);
 	signal sendMediaVideoFile(string jid, string file, string preview);
 	signal sendMediaAudioFile(string jid, string file);
 	signal sendMediaRecordedFile(string jid);
@@ -262,8 +263,8 @@ WAStackWindow {
 
 	signal groupInfoUpdated(string gjid, string gdata)
 
-	function onGroupSubjectChanged() {
-		getGroupInfo(profileUser)
+    function onGroupSubjectChanged(gJid) {
+        getGroupInfo(gJid); //@@TODO, in case I changed group subject, why re-fetch everything?!
 	}
 
 	

@@ -60,6 +60,13 @@ Rectangle {
     ]
 
 
+    function reset(){
+        _removedCount=0
+        WAlvhelper.items = new Array()
+        WAlvhelper.selectedIndices = new Array()
+    }
+
+
     function getItems(){
         return WAlvhelper.items
     }
@@ -82,11 +89,15 @@ Rectangle {
 
         var tmpind = WAlvhelper.selectedIndices.indexOf(ind)
         if(tmpind >= 0) {
+            consoleDebug("SPLICED! "+tmpind)
             WAlvhelper.selectedIndices.splice(tmpind,1)
         }
-
-        if(ind < WAlvhelper.items.length)
+        consoleDebug(ind+":::::>>>>>"+WAlvhelper.items.length)
+        if(ind < WAlvhelper.items.length) {
+            consoleDebug("CHANGE!")
             WAlvhelper.items[ind].isSelected = false
+
+         }
     }
 
     function isSelected(ind){
@@ -99,7 +110,7 @@ Rectangle {
         var selectedItems = new Array();
         for(var i=0; i<WAlvhelper.items.length; i++) {
             if(WAlvhelper.items[i].isSelected)
-                selectedItems.push(WAlvhelper.items[i].modelData)
+                selectedItems.push({selectedIndex:i, data:WAlvhelper.items[i].modelData})
         }
 
         return selectedItems;

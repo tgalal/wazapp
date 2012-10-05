@@ -24,6 +24,7 @@ import com.nokia.meego 1.0
 
 import "js/contacts.js" as ContactsManager
 import "../common/js/Global.js" as Helpers
+import "../common/WAListView/Components"
 import "../common"
 import "../Menu"
 
@@ -128,7 +129,7 @@ WAPage {
         Contact{
             property bool filtered: model.name.match(new RegExp(searchInput.text,"i")) != null
             id: contactComp
-            height: filtered ? 80 : 0
+            height: model.iscontact =="yes" && filtered ? 80 : 0
 			visible: height!=0
             Component.onCompleted: {
                 ContactsManager.contactsViews.push(contactComp)
@@ -311,7 +312,7 @@ WAPage {
             spacing: 1
 			cacheBuffer: 30000 // contactsModel.count * 81 --> this should work too.
 			highlightFollowsCurrentItem: false
-            section.property: "alphabet"
+            section.property: "name"
             section.criteria: ViewSection.FirstCharacter
 
             section.delegate: GroupSeparator {

@@ -15,26 +15,23 @@ function initSectionData(list) {
         prop = list.section.property,
         item;
 
-
-
     if (list.section.criteria == ViewSection.FullString) {
-        for (var i = 0, count = list.count; i < count; i++) {
-            list.currentIndex = i;
-            item = list.currentItem.contactName
-            if (item !== current) {
-                current = item;
+        for (var i = 0, count = list.model.count; i < count; i++) {
+            item = list.model.get(i);
+            if (item[prop] !== current) {
+                current = item[prop];
                 _sections.push(current);
                 sectionData.push({ index: i, header: current });
             }
         }
     } else if (list.section.criteria == ViewSection.FirstCharacter) {
-        for (var i2 = 0, count2 = list.count; i2 < count2; i2++) {
-            list.currentIndex = i2;
-            item = list.currentItem.contactName.substring(0,1)
-            if (item !== current) {
-                current = item;
+        for (var i = 0, count = list.model.count; i < count; i++) {
+            item = list.model.get(i)
+
+            if (item[prop].substring(0, 1) !== current) {
+                current = item[prop].substring(0, 1);
                 _sections.push(current);
-                sectionData.push({ index: i2, header: current });
+                sectionData.push({ index: i, header: current });
             }
         }
     }

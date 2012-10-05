@@ -21,6 +21,7 @@
 ****************************************************************************/
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import com.nokia.extras 1.0
 import QtMobility.gallery 1.1
 
 import "Chats"
@@ -398,6 +399,52 @@ WAStackWindow {
 		}
     }
 
+
+
+    function getContacts(){
+
+        return contactsModel;
+    }
+
+    function getGroups(){
+
+        consoleDebug("Getting groups")
+        var convs = getConversations();
+        consoleDebug(convs)
+        var modelData = Qt.createQmlObject("import QtQuick 1.0; ListModel{}", appWindow, "groupsModel")
+
+        for(var i=0; i < convs.count; i++) {
+
+            var conv = convs.get(i).conversation;
+            consoleDebug(conv);
+            consoleDebug(conv.isGroup());
+
+            if(conv.isGroup()) {
+
+                consoleDebug("Appending")
+
+                modelData.append({name:conv.title, picture:conv.picture, jid:conv.jid})
+                consoleDebug("Pass")
+
+            }
+
+        }
+
+        consoleDebug("Returning")
+        consoleDebug(modelData.length);
+
+        return modelData;
+
+    }
+
+
+    function getConversations(){
+
+        return conversationsModel;
+    }
+
+
+
 	property string currentContacts: ""
 	property int newContacts: 0
 
@@ -421,14 +468,36 @@ WAStackWindow {
 		}
     }
 
+
+    signal phoneContactsReady()
     function pushPhoneContacts(contacts){
         phoneContactsModel.clear()
 		consoleDebug("APPENDING PHONE CONTACTS:" + contacts.length)
+
+        var tmpModelData = new Array
 		for (var i=0; i<contacts.length; i++) {
-			phoneContactsModel.insert(phoneContactsModel.count,{"name":contacts[i][0], "picture":contacts[i][1], 
-										"numbers":contacts[i][2].toString(), "selected":false})
+           // phoneContactsModel.insert(phoneContactsModel.count,{"name":contacts[i][0] || contacts[i][2].toString(), "picture":contacts[i][1],
+            //							"numbers":contacts[i][2].toString(), "selected":false})
+
+            tmpModelData.push({"name":contacts[i][0] || contacts[i][2].toString(), "picture":contacts[i][1],
+                                                            "numbers":contacts[i][2].toString(), "selected":false})
 		}
+
+        modelworker.sendMessage({"model":phoneContactsModel,"data":tmpModelData})
+
     }
+
+    WorkerScript{
+        id:modelworker
+        source: "common/js/modelworker.js"
+        onMessage: {
+            console.log("EMITING READY")
+            phoneContactsReady()
+            console.log("EMIT")
+        }
+    }
+
+
 
     function onContactsSyncStatusChanged(s) {
         switch(s){
@@ -724,6 +793,13 @@ WAStackWindow {
                 id: waContacts
                 height: parent.height
             }
+        }
+
+        InfoBanner {
+            id:osd_notify
+            topMargin: 10
+           // iconSource: "system_banner_thumbnail.png"
+            timerEnabled: true
         }
 
         ToolBarLayout {

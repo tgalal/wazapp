@@ -388,7 +388,9 @@ WAPage {
 			addParticipants(groupId,participants)
 		}
 		onAddedParticipants: {
-			setPicture(groupId, selectedGroupPicture)
+
+            if(selectedGroupPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+                setGroupPicture(groupId, selectedGroupPicture)
         	openConversation(groupId);
 		}
 	}

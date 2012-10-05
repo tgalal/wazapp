@@ -25,6 +25,7 @@ import com.nokia.meego 1.0
 import "../Contacts/js/contacts.js" as ContactsManager
 import "../common/js/Global.js" as Helpers
 import "../common"
+import "../common/WAListView/Components"
 import "../Contacts"
 
 WAPage {
@@ -42,6 +43,7 @@ WAPage {
         if(status == PageStatus.Activating){
 			contactRemoved()
 			list_view1.positionViewAtBeginning()
+
 		}
 		if(status == PageStatus.Active){
 			searchbar.height = 0

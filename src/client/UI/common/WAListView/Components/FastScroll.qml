@@ -1,8 +1,7 @@
+// FastScroll.qml
 import QtQuick 1.1
-import com.nokia.meego 1.0
+import com.nokia.meego 1.0 // for Style
 import "js/FastScroll.js" as Sections
-
-/*@@TODO Make generic */
 
 Item {
     id: root
@@ -93,7 +92,7 @@ Item {
 
                 Image {
                     id: handle
-                    opacity: !rail.dragging ? 0.7 : 0
+                    opacity: !rail.dragging ? 1 : 0
                     anchors.horizontalCenter: parent.horizontalCenter
                     source: platformStyle.handleImage
                     y: 18 + (rail.height - 36 - height)/(1.0 - listView.visibleArea.heightRatio) * listView.visibleArea.yPosition
@@ -143,14 +142,13 @@ Item {
             Text {
                 id: magnifierLabel
                 objectName: "magnifierLabel"
-                height: 150
-                width: parent.width
                 x: 14
-                verticalAlignment: Text.AlignVCenter
-                wrapMode: Text.WordWrap
-                font.pixelSize: 46
+                y: 40
+
+                font.pixelSize: platformStyle.fontPixelSize
                 //font.family: "Nokia Pure Text Bold"
                 color: platformStyle.textColor
+
                 text: internal.currentSection
             }
         }

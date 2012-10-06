@@ -811,23 +811,24 @@ WAPage {
 					}
 					
                     onTextChanged: {
-						sendMediaWindow.opacity = 0
+                        sendMediaWindow.opacity = 0
 
-						//chat_text.text = Helpers.emojify2(chat_text.text)
+                        //chat_text.text = Helpers.emojify2(chat_text.text)
                         if(!typingEnabled)
                         {
                             //to prevent initial set of placeHolderText from firing textChanged signal
                             typingEnabled = true
                             return
                         }
+                        if(!isGroup()) {
+                            if(!iamtyping) {
+                                consoleDebug("TYPING");
+                                sendTyping(jid);
+                            }
+                            iamtyping = true;
+                            typing_timer.restart();
 
-                        if(!iamtyping)
-                        {
-                            consoleDebug("TYPING");
-                            sendTyping(jid);
                         }
-                        iamtyping = true;
-                        typing_timer.restart();
                     }
 
                     platformSipAttributes: SipAttributes {

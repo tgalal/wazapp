@@ -669,7 +669,7 @@ class WAEventHandler(QObject):
 
 		msg.Conversation = WAXMPP.message_store.getOrCreateConversationByJid(jid)
 
-		msg.content = QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the group picture")
+		msg.content = author#QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the group picture")
 
 		selfChange = contact.number == self.account
 		msg.content = msg.content.replace("%1", (contact.name or contact.number) if not selfChange else "You")

@@ -390,7 +390,7 @@ WAPage {
 		onAddedParticipants: {
 
             if(selectedGroupPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-                setPicture(groupId, selectedGroupPicture)
+                setGroupPicture(groupId, selectedGroupPicture)
         	openConversation(groupId);
 		}
 	}

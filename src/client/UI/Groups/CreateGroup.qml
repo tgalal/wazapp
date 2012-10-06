@@ -41,7 +41,7 @@ WAPage {
         status_text.forceActiveFocus();
     }
 
-	function getCurrentContacts() {
+    function getCurrentContacts() {
 		for (var i=0; i<participantsModel.count; ++i) {
 			selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + participantsModel.get(i).contactJid;
 		}
@@ -390,7 +390,7 @@ WAPage {
 		onAddedParticipants: {
 
             if(selectedGroupPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-                setGroupPicture(groupId, selectedGroupPicture)
+                setPicture(groupId, selectedGroupPicture)
         	openConversation(groupId);
 		}
 	}

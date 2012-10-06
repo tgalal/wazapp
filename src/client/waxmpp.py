@@ -34,14 +34,10 @@ from waupdater import WAUpdater
 import base64
 import hashlib
 import os
-import shutil
+import shutil, datetime
 import thread
 import Image
 from PIL.ExifTags import TAGS
-import subprocess
-
-import dbus
-import dbus.service
 
 
 

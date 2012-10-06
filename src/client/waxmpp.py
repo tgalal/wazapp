@@ -41,9 +41,10 @@ import thread
 from watime import WATime
 from time import sleep
 import base64
-
+import shutil, datetime
 import Image
 from PIL.ExifTags import TAGS
+import subprocess
 
 
 class WAEventHandler(WAEventBase):
@@ -485,7 +486,7 @@ class WAEventHandler(WAEventBase):
 
 	def setPersonalRingtone(self,value):
 		self._d("Personal Ringtone: " + str(value))
-		self.notifier.personalRingtone = "/usr/share/sounds/ring-tones/" + value;
+		self.notifier.personalRingtone = value;
 
 	def setPersonalVibrate(self,value):
 		self._d("Personal Vibrate: " + str(value))
@@ -493,7 +494,7 @@ class WAEventHandler(WAEventBase):
 
 	def setGroupRingtone(self,value):
 		self._d("Group Ringtone: " + str(value))
-		self.notifier.groupRingtone = "/usr/share/sounds/ring-tones/" + value;
+		self.notifier.groupRingtone = value;
 
 	def setGroupVibrate(self,value):
 		self._d("Group Vibrate: " + str(value))
@@ -547,8 +548,11 @@ class WAEventHandler(WAEventBase):
 			print "Vcard too large! Removing photo..."
 			n = stream.find("PHOTO")
 			stream = stream[:n] + "END:VCARD"
-		else:
-			mediaItem.preview = vcardImage
+			f = open(WAConstants.VCARD_PATH + "/"+contactName+".vcf", 'w')
+			f.write(stream)
+			f.close()
+
+		mediaItem.preview = vcardImage
 
 		fmsg.content = contactName
 		fmsg.Media = mediaItem
@@ -643,6 +647,37 @@ class WAEventHandler(WAEventBase):
 		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
 		WAXMPP.message_store.pushMessage(jid,fmsg)
 
+
+	def sendMediaRecordedFile(self,jid):	
+		recfile = WAConstants.CACHE_PATH+'/temprecord.wav'
+		now = datetime.datetime.now()
+		destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".wav"
+		shutil.copy(recfile, destfile)
+
+		# Convert to MP3 using lame
+		#destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".mp3"
+		#pipe=subprocess.Popen(['/usr/bin/lame', recfile, destfile])
+		#pipe.wait()
+		#os.remove(recfile)
+ 
+		self._d("creating Audio Recorded MMS for " +jid)
+		fmsg = WAXMPP.message_store.createMessage(jid);
+		
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = 3
+		mediaItem.local_path = destfile
+		mediaItem.transfer_status = 0
+
+		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Audio")
+		fmsg.Media = mediaItem
+
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
+		
 
 
 	def sendMediaAudioFile(self,jid,audio):

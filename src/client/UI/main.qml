@@ -117,6 +117,7 @@ WAStackWindow {
 	signal sendMediaImageFile(string jid, string file);
 	signal sendMediaVideoFile(string jid, string file, string preview);
 	signal sendMediaAudioFile(string jid, string file);
+	signal sendMediaRecordedFile(string jid);
 	signal sendLocation(string jid, string latitude, string longitude, string rotate);
     signal sendVCard(string jid, string contact);
 	signal removeSingleContact(string jid);
@@ -125,7 +126,11 @@ WAStackWindow {
 	signal imageRotated(string filepath);
 	signal getPicturesFinished();
 	signal removeFile(string file);
-	signal vibrateNow();
+	signal startRecording();
+	signal stopRecording();
+	signal playRecording();
+	signal deleteRecording();
+
 
 	signal openContactPicker(string multi, string title); //TESTING...
 	signal setBlockedContacts(string contacts);
@@ -135,6 +140,7 @@ WAStackWindow {
     signal setPersonalVibrate(bool value);
 	signal setGroupRingtone(string value);
     signal setGroupVibrate(bool value);
+	signal vibrateNow();
 
 
 	signal openPreviewPicture(string ujid, string picturefile, int rotation, string previewimg, string capturemode)
@@ -176,6 +182,19 @@ WAStackWindow {
 		}
 	}
 
+	signal getRingtones();
+	signal ringtonesUpdated();
+	ListModel {
+		id: ringtoneModel
+	}
+	function pushRingtones(files) {
+		ringtoneModel.clear()
+		ringtoneModel.append({ name: QT_TR_NOOP("(no sound)"), value: "No sound.wav"})
+		for (var i=0; i<files.length; ++i) {
+			ringtoneModel.append(files[i])
+		}
+		ringtonesUpdated();
+	}
 
 	signal groupCreated(string group_id)
 
@@ -346,7 +365,7 @@ WAStackWindow {
 
 		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "Message 1.mp3"));
         setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"); //changed to be passed as boolean
-		setGroupRingtone(MySettings.getSetting("GroupRingtone", "Message 1.mp3"));
+		setGroupRingtone(MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
         setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes")=="Yes");
 
 	}
@@ -372,7 +391,7 @@ WAStackWindow {
 	function unblockContact(jid) {
 		var newc = blockedContacts
 		newc = newc.replace(jid,"")
-		newc = newc.replace(",,",",")
+		newc = newc.replace(/,,/g,",")
 		blockedContacts = newc
 		MySettings.setSetting("BlockedContacts", blockedContacts)
 		setBlockedContacts(blockedContacts)
@@ -571,7 +590,7 @@ WAStackWindow {
         consoleDebug("Adding messages to conv")
         for (var i =0; i< messages.data.length; i++)
         {
-            consoleDebug("adding message: " + messages.data[i].content );
+            //consoleDebug("adding message: " + messages.data[i].content );
             conversation.addMessage(messages.data[i]);
         }
 
@@ -704,6 +723,10 @@ WAStackWindow {
 
 	SendVideo {
 		id:sendVideo
+	}
+
+	SendAudioRec {
+		id:sendAudioRec
 	}
 
 	SendAudio {

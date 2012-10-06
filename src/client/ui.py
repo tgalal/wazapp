@@ -37,6 +37,7 @@ from subprocess import call
 import Image
 from PIL.ExifTags import TAGS
 from constants import WAConstants
+import subprocess
 
 class WAUI(QDeclarativeView):
 	quit = QtCore.Signal()
@@ -101,6 +102,12 @@ class WAUI(QDeclarativeView):
 		self.rootObject().consoleDebug.connect(self.consoleDebug)
 		self.rootObject().setLanguage.connect(self.setLanguage)
 		self.rootObject().removeFile.connect(self.removeFile)
+		self.rootObject().getRingtones.connect(self.getRingtones)
+		self.rootObject().startRecording.connect(self.startRecording)
+		self.rootObject().stopRecording.connect(self.stopRecording)
+		self.rootObject().playRecording.connect(self.playRecording)
+		self.rootObject().deleteRecording.connect(self.deleteRecording)
+
 
 		self.rootObject().openContactPicker.connect(self.openContactPicker)
 
@@ -151,6 +158,7 @@ class WAUI(QDeclarativeView):
 		
 		self.whatsapp.eventHandler.onFocus();
 		self.whatsapp.eventHandler.onAvailable();
+		self.whatsapp.eventHandler.notifier.stopSound();
 	
 	def closeEvent(self,e):
 		self._d("HIDING")
@@ -310,7 +318,7 @@ class WAUI(QDeclarativeView):
 
 			if os.path.isfile(curFile):
 				curFileExtention = curFile.split(".")[-1]
-				if curFileExtention in data and not curFile in self.filelist:
+				if curFileExtention in data and not curFile in self.filelist and not "No sound.wav" in curFile:
 					self.filelist.append(curFile)
 			elif not "." in curFile: #Don't process hidden folders
 				#if not curFile in ignored:
@@ -402,6 +410,21 @@ class WAUI(QDeclarativeView):
 		self.rootObject().pushVideoFiles( sorted(myfiles, key=lambda k: k['date'], reverse=True) );
 
 
+	def getRingtones(self):
+		print "GETTING RING TONES..."
+		self.filelist = []
+		data = ["mp3","MP3","wav","WAV"]
+		self.processFiles("/usr/share/sounds/ring-tones/", data) #, ignored)
+		self.processFiles("/home/user/MyDocs/Ringtones", data) #, ignored)
+
+		myfiles = []
+		for f in self.filelist:
+			myfiles.append({"name":f.split('/')[-1].split('.')[0].title(),"value":f}) 
+
+		self.rootObject().pushRingtones( sorted(myfiles, key=lambda k: k['name']) );
+
+
+
 	def thumbnailUpdated(self,result):
 		self.rootObject().onThumbnailUpdated()
 
@@ -463,6 +486,28 @@ class WAUI(QDeclarativeView):
 		filepath = filepath.replace("file://","")
 		os.remove(filepath)
 
+
+	def startRecording(self):
+		print 'Starting the record...'
+		self.pipe = subprocess.Popen(['/usr/bin/arecord','-r','16000','-t','wav',WAConstants.CACHE_PATH+'/temprecord.wav'])
+		print "The pid is: " + str(self.pipe.pid)
+
+
+	def stopRecording(self):
+		print 'Killing REC Process now!'
+		os.kill(self.pipe.pid, 9)
+		self.pipe.poll()
+
+
+	def playRecording(self):
+		self.whatsapp.eventHandler.notifier.playSound(WAConstants.CACHE_PATH+'/temprecord.wav')
+
+
+	def deleteRecording(self):
+		if os.path.exists(WAConstants.CACHE_PATH+'/temprecord.wav'):
+			os.remove(WAConstants.CACHE_PATH+'/temprecord.wav')
+
+
 	def initConnection(self):
 		
 		password = self.store.account.password;
@@ -502,7 +547,6 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.groupParticipants.connect(self.rootObject().onGroupParticipants);
 		whatsapp.eventHandler.groupEnded.connect(self.rootObject().onGroupEnded);
 		whatsapp.eventHandler.groupSubjectChanged.connect(self.rootObject().onGroupSubjectChanged);
-
 		whatsapp.eventHandler.profilePictureUpdated.connect(self.updateContact);
 
 		whatsapp.eventHandler.setPushName.connect(self.updatePushName);
@@ -546,13 +590,12 @@ class WAUI(QDeclarativeView):
 		self.rootObject().sendMediaImageFile.connect(whatsapp.eventHandler.sendMediaImageFile)
 		self.rootObject().sendMediaVideoFile.connect(whatsapp.eventHandler.sendMediaVideoFile)
 		self.rootObject().sendMediaAudioFile.connect(whatsapp.eventHandler.sendMediaAudioFile)
+		self.rootObject().sendMediaRecordedFile.connect(whatsapp.eventHandler.sendMediaRecordedFile)
 		self.rootObject().sendMediaMessage.connect(whatsapp.eventHandler.sendMediaMessage)
 		self.rootObject().sendLocation.connect(whatsapp.eventHandler.sendLocation)
 		self.rootObject().rotateImage.connect(whatsapp.eventHandler.rotateImage)
 		self.rootObject().changeStatus.connect(whatsapp.eventHandler.changeStatus)
 
-
-		#self.rootObject().sendVCard.connect(whatsapp.eventHandler.sendVCard)
 		self.c.contactExported.connect(whatsapp.eventHandler.sendVCard)
 
 		self.rootObject().setBlockedContacts.connect(whatsapp.eventHandler.setBlockedContacts)

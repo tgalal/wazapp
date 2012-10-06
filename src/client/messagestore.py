@@ -130,12 +130,12 @@ class MessageStore(QObject):
 		
 		messages = self.conversations[jid].loadMessages(offset,limit);
 		
-		self.sendMessagesReady(jid,messages);
+		self.sendMessagesReady(jid,messages,False);
 		return messages
 	
 	
 	def sendConversationReady(self,jid):
-		self._d("SENDING CONV READY %s"%jid)
+		#self._d("SENDING CONV READY %s"%jid)
 		tmp = {}
 		'''
 			jid,subject,id,contacts..etc
@@ -143,20 +143,20 @@ class MessageStore(QObject):
 		'''
 		c = self.conversations[jid];
 		tmp = c.getModelData();
-		self._d(tmp)
+		#self._d(tmp)
 		tmp["isGroup"] = c.isGroup()
 		tmp["jid"]=c.getJid();
 		
-		self._d("Checking if group")
+		#self._d("Checking if group")
 		if c.isGroup():
-			self._d("yes, fetching contacts")
+			#self._d("yes, fetching contacts")
 			contacts = c.getContacts();
 			tmp["contacts"] = []
 			for contact in contacts:
-				self._d(contact.getModelData())
+				#self._d(contact.getModelData())
 				tmp["contacts"].append(contact.getModelData());
 		
-		self._d("emitting ready ")
+		#self._d("emitting ready ")
 		self.conversationReady.emit(tmp);
 	
 	def sendMessagesReady(self,jid,messages,reorder=True):

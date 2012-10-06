@@ -914,7 +914,7 @@ WAPage {
 				pageStack.push(sendAudio)
 			}
 			else if (value=="rec") {
-				pageStack.push(sendAudio)
+				pageStack.push(sendAudioRec)
 			}
 			else if (value=="location") {
 				pageStack.push (Qt.resolvedUrl("Location.qml"))

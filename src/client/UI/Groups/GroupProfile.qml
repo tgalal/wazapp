@@ -39,6 +39,10 @@ WAPage {
 	property string groupOwnerJid
 	property string groupSubjectOwner
 	property bool working: false
+	property string currentParticipants
+	property string addparticipants
+	property string removeparticipants
+
 
     tools: ToolBarLayout {
         id: toolBar
@@ -57,20 +61,30 @@ WAPage {
 			enabled: !working
             onClicked: {
 				working = true
-				var participants;
-				var removeparticipants;
-				for (var i=0; i<participantsModel.count; ++i) {
-					if (participantsModel.get(i).contactJid!="undefined" && participantsModel.get(i).contactJid!=myAccount)
-						participants = participants + (participants!==""? ",":"") + participantsModel.get(i).contactJid;
-				}
-				consoleDebug("CURRENT PARTICIPANTS: "+participants)
-				for (var i=0; i<partModel.count; ++i) {
-					if ( participants.indexOf(partModel.get(i).contactJid)==-1 && partModel.get(i).contactJid!=myAccount )
-						removeparticipants = removeparticipants + (removeparticipants!==""? ",":"") + partModel.get(i).contactJid;
-				}
-				consoleDebug("REMOVING PARTICIPANTS: "+removeparticipants)
+				consoleDebug("CURRENT PARTICIPANTS: "+ currentParticipants)
+				var current = currentParticipants.split(',');
+				var newparts = selectedContacts.split(',');
+				addparticipants = "";
+				removeparticipants = "";
 
-				removeParticipants(profileUser,removeparticipants)
+				for (var i=0; i<newparts.length; ++i) {
+					if (currentParticipants.indexOf(newparts[i])==-1)
+						addparticipants = addparticipants + (addparticipants!==""? ",":"") + newparts[i];
+				}
+				for (var i=0; i<current.length; ++i) {
+					if (selectedContacts.indexOf(current[i])==-1)
+						removeparticipants = removeparticipants + (removeparticipants!==""? ",":"") + current[i];
+				}
+
+				consoleDebug("PARTICIPANTS TO ADD: "+addparticipants)
+				consoleDebug("PARTICIPANTS TO REMOVE: "+removeparticipants)
+
+				if (removeparticipants!=="")
+					removeParticipants(profileUser,removeparticipants)
+				else if(addparticipants!=="")
+					addParticipants(profileUser,addparticipants)
+				else
+					pageStack.pop()
 			}
         }
 
@@ -78,8 +92,10 @@ WAPage {
 
 	Component.onCompleted: {
 		selectedContacts = ""
+		currentParticipants = ""
+		addparticipants = "";
+		removeparticipants = "";
 		participantsModel.clear()
-		partModel.clear()
 		getInfo()
 	}
 
@@ -111,12 +127,6 @@ WAPage {
 		return check;
 	}
 
-	function getCurrentContacts() {
-		for (var i=0; i<participantsModel.count; ++i) {
-			selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + participantsModel.get(i).contactJid;
-		}
-	}
-
 	Connections {
 		target: appWindow
 	
@@ -141,51 +151,34 @@ WAPage {
 
 		onGroupParticipants: { 
 			var list = groupParticipantsIds.split(",")
-			//consoleDebug("PARTICIPANTS: " + list)
-		    for(var i =0; i<contactsModel.count; i++) {
-		        if( list.indexOf(contactsModel.get(i).jid)>-1 ) {
-					list.splice(list.indexOf(contactsModel.get(i).jid),1)
-					
-					participantsModel.append({"contactPicture":contactsModel.get(i).picture,
-					"contactName":contactsModel.get(i).name,
-					"contactStatus":contactsModel.get(i).status,
-					"contactJid":contactsModel.get(i).jid})
+			consoleDebug("GOT GROUP PARTICIPANTS: " + list)
+			for (var j=0; j<list.length; ++j) {
+				consoleDebug("ADDING " + list[j])
+				for(var i =0; i<contactsModel.count; i++) {
+				    if( list[j]==contactsModel.get(i).jid ) {
+						participantsModel.append({"contactPicture":contactsModel.get(i).picture,
+						"contactName":contactsModel.get(i).name,
+						"contactStatus":contactsModel.get(i).status,
+						"contactJid":contactsModel.get(i).jid})
 
-					partModel.append({"contactPicture":contactsModel.get(i).picture,
-					"contactName":contactsModel.get(i).name,
-					"contactStatus":contactsModel.get(i).status,
-					"contactJid":contactsModel.get(i).jid})
+						selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + contactsModel.get(i).jid;
+						break;
+					}
 				}
-		    }
-			consoleDebug("PARTICIPANTS: " + list)
-			for (var i=0; i<list.length; i++) {
-				participantsModel.append({"contactPicture":"../common/images/user.png",
-				"contactName":list[i].split('@')[0],
-				"contactStatus":"",
-				"contactJid":list[i]})
-
-				partModel.append({"contactPicture":"../common/images/user.png",
-				"contactName":list[i].split('@')[0],
-				"contactStatus":"",
-				"contactJid":list[i]})
 			}
-			
+			currentParticipants = selectedContacts
 		}
 
 		onRemovedParticipants: {
-			var participants;
-			for (var i=0; i<participantsModel.count; ++i) {
-				if (participantsModel.get(i).contactJid!="undefined")
-					participants = participants + (participants!==""? ",":"") + participantsModel.get(i).contactJid;
-			}
-			addParticipants(profileUser,participants)
+			if(addparticipants!=="")
+				addParticipants(profileUser,addparticipants)
+			else
+				pageStack.pop()
 		}
 
 		onAddedParticipants: {
-			participantsModel.clear()
-			partModel.clear()
-			getGroupParticipants(profileUser)
 			working = false
+			pageStack.pop()
 		}
 		
 		onOnContactPictureUpdated: {
@@ -198,8 +191,6 @@ WAPage {
 		}	
 
 	}
-
-	ListModel { id:partModel }
 
 
 	Image {
@@ -352,7 +343,6 @@ WAPage {
 						id: bcArea
 						anchors.fill: parent
 						onClicked: {
-							getCurrentContacts()
 							pageStack.push (addContacts) 
 						}
 					}
@@ -416,23 +406,23 @@ WAPage {
 		    }
 
 		    Column{
-				y: 9
+				//y: 9
 				x: 74
 				width: parent.width -74
 				anchors.verticalCenter: parent.verticalCenter
 				Label{
 					y: 2
-		            text: getUserAuthor(contactName)
+		            text: getUserAuthor(contactJid)
 				    font.pointSize: 18
 					elide: Text.ElideRight
-					width: parent.width
+					width: parent.width -48
 					font.bold: true
 				}
 				Label{
 		            text: Helpers.emojify(contactStatus)
 				    font.pixelSize: 20
 				    color: "gray"
-					width: parent.width
+					width: parent.width -48
 					elide: Text.ElideRight
 					height: 24
 					clip: true
@@ -462,11 +452,10 @@ WAPage {
 					anchors.fill: parent
 					onClicked: {
 						consoleDebug("REMOVING " +contactJid)
+						selectedContacts = selectedContacts.replace(contactJid,"")
+						selectedContacts = selectedContacts.replace(/,,/g,",")
 						participantsModel.remove(cindex)
-						var newSelectedContacts = selectedContacts
-						newSelectedContacts = newSelectedContacts.replace(contactJid,"")
-						newSelectedContacts = newSelectedContacts.replace(",,",",")
-						selectedContacts = newSelectedContacts
+						consoleDebug("NEW PARTICIPANTS RESULT: " +selectedContacts)
 					}
 				}
 			}

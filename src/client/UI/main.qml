@@ -669,7 +669,7 @@ WAStackWindow {
             conversation.open();
         }
 
-		if (reorder) reorderConversation(messages.jid)
+        if (reorder) reorderConversation(messages.jid)//wtf?
 
 		onPaused(messages.jid)
 

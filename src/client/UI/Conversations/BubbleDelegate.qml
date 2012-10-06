@@ -127,6 +127,7 @@ Item {
             localPath: delegateContainer.media.local_path?delegateContainer.media.local_path:""
 			message: delegateContainer.message
 			bubbleColor:delegateContainer.bubbleColor;
+            mediaSize: delegateContainer.media.size
 
 			Connections {
 				target: appWindow

@@ -173,6 +173,7 @@ class LiteStore(DataStore):
 		pushname = self.columnExists("contacts","pushname");
 		pictureid = self.columnExists("contacts","pictureid");
 		iscontact = self.columnExists("contacts","iscontact");
+		mediaSize = self.columnExists("media", "size");
 		
 		if not media_id:
 			self._d.d("media_id Not found, altering table")
@@ -196,6 +197,10 @@ class LiteStore(DataStore):
 		if not iscontact:
 			self._d.d("iscontact in contacts Not found, altering table")
 			c.execute("Alter TABLE contacts add column 'iscontact' TEXT")
+			
+		if not mediaSize:
+			self._d.d("size in media not found, altering table")
+			c.execute("ALTER TABLE media add column 'size' INTEGER DEFAULT 0")
 			
 			
 		self._d.d("Checking addition of 'new' column to conversation")
@@ -253,11 +258,11 @@ class LiteStore(DataStore):
 			c.execute("INSERT INTO mediatypes(id,type,enabled) VALUES (6,'vcf',0)")
 			
 			
-			q = 'CREATE TABLE IF NOT EXISTS "main"."media" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "mediatype_id" INTEGER NOT NULL, "preview" VARCHAR,"remote_url" VARCHAR, "local_path" VARCHAR, transfer_status INTEGER NOT NULL DEFAULT 0)'
+			q = 'CREATE TABLE IF NOT EXISTS "main"."media" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "mediatype_id" INTEGER NOT NULL, "preview" VARCHAR,"remote_url" VARCHAR, "local_path" VARCHAR, transfer_status INTEGER NOT NULL DEFAULT 0, size INTEGER DEFAULT 0)'
 			
 			c.execute(q)
 			
-			qgroup = 'CREATE TABLE IF NOT EXISTS "main"."groupmedia" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "mediatype_id" INTEGER NOT NULL,"preview" VARCHAR, "remote_url" VARCHAR, "local_path" VARCHAR, groupmessage_id INTEGER NOT NULL,transfer_status INTEGER NOT NULL DEFAULT 0)'
+			qgroup = 'CREATE TABLE IF NOT EXISTS "main"."groupmedia" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "mediatype_id" INTEGER NOT NULL,"preview" VARCHAR, "remote_url" VARCHAR, "local_path" VARCHAR, groupmessage_id INTEGER NOT NULL,transfer_status INTEGER NOT NULL DEFAULT 0, size INTEGER DEFAULT 0)'
 			
 			#c.execute(qgroup)
 			

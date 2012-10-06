@@ -410,12 +410,14 @@ class WAEventHandler(QObject):
 
 	@preMessageReceived
 	@postMessageReceived
-	def onImageReceived(self, message, preview, url, wantsReceipt = True):
-
+	def onImageReceived(self, message, preview, url, size, wantsReceipt = True):
+		
+		self._d("MEDIA SIZE IS "+str(size))
 		mediaItem = WAXMPP.message_store.store.Media.create()
 		mediaItem.remote_url = url
 		mediaItem.preview = preview
 		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_IMAGE
+		mediaItem.size = size
 
 		message.content = QtCore.QCoreApplication.translate("WAEventHandler", "Image")
 		message.Media = mediaItem
@@ -426,12 +428,13 @@ class WAEventHandler(QObject):
 
 	@preMessageReceived
 	@postMessageReceived
-	def onVideoReceived(self, message, preview, url, wantsReceipt = True):
+	def onVideoReceived(self, message, preview, url, size, wantsReceipt = True):
 
 		mediaItem = WAXMPP.message_store.store.Media.create()
 		mediaItem.remote_url = url
 		mediaItem.preview = preview
 		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
+		mediaItem.size = size
 
 		message.content = QtCore.QCoreApplication.translate("WAEventHandler", "Video")
 		message.Media = mediaItem
@@ -441,11 +444,12 @@ class WAEventHandler(QObject):
 
 	@preMessageReceived
 	@postMessageReceived
-	def onAudioReceived(self, message, url, wantsReceipt = True):
+	def onAudioReceived(self, message, url, size, wantsReceipt = True):
 
 		mediaItem = WAXMPP.message_store.store.Media.create()
 		mediaItem.remote_url = url
 		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_AUDIO
+		mediaItem.size = size
 
 		message.content = QtCore.QCoreApplication.translate("WAEventHandler", "Audio")
 		message.Media = mediaItem
@@ -1128,6 +1132,10 @@ class WAEventHandler(QObject):
 		mediaItem.local_path = image
 		mediaItem.transfer_status = 0
 		mediaItem.preview = stream
+		try:
+			mediaItem.size = os.path.getsize(mediaItem.local_path)
+		except:
+			pass
 
 		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Image")
 		fmsg.Media = mediaItem
@@ -1170,6 +1178,11 @@ class WAEventHandler(QObject):
 		mediaItem.local_path = video.replace("file://","")
 		mediaItem.transfer_status = 0
 		mediaItem.preview = stream
+		
+		try:
+			mediaItem.size = os.path.getsize(mediaItem.local_path)
+		except:
+			pass
 
 		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Video")
 		fmsg.Media = mediaItem
@@ -1222,6 +1235,11 @@ class WAEventHandler(QObject):
 		mediaItem.mediatype_id = 3
 		mediaItem.local_path = audio.replace("file://","")
 		mediaItem.transfer_status = 0
+		
+		try:
+			mediaItem.size = os.path.getsize(mediaItem.local_path)
+		except:
+			pass
 
 		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Audio")
 		fmsg.Media = mediaItem

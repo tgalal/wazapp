@@ -18,6 +18,8 @@ SpeechBubble {
 	property string localPath;
     property string transferState;
 
+    property int mediaSize
+
 	property bool loaded: false
 
     signal downloadClicked()
@@ -27,6 +29,12 @@ SpeechBubble {
         progressBar.value=progress
     }
 
+    function bytesToSize(bytes) {
+        if(!bytes) return 0;
+        var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        return Math.round(bytes / Math.pow(1024, i), 2) + '' + sizes[i];
+    }
 
 
 
@@ -102,7 +110,7 @@ SpeechBubble {
                     target: operationButton
                     //visible: delegateContainer.from_me!=1
                     enabled:true
-                    text: delegateContainer.from_me==1? qsTr("Send"):qsTr("Download")
+                    text: (delegateContainer.from_me==1? qsTr("Send"):qsTr("Download")) + (mediaBubble.mediaSize?" ("+bytesToSize(mediaBubble.mediaSize)+")":"")
                 }
             },
 

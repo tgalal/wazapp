@@ -31,7 +31,7 @@ using namespace WA_UTILITIES::Utilities;
 WACodeRequest::WACodeRequest(QString cc, QString in, QString method)
 {
     QString mytoken = "k7Iy3bWARdNeSL8gYgY6WveX12A1g4uTNXrRzt1H";
-    mytoken.append("c0d4db538579a3016902bf699c16d490acf91ff4");
+    mytoken.append("889d4f44e479e6c38b4a834c6d8417815f999abe");
     mytoken.append(in);
 
     QCryptographicHash md(QCryptographicHash::Md5);

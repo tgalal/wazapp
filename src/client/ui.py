@@ -125,6 +125,7 @@ class WAUI(QDeclarativeView):
 		self.messageStore = MessageStore(self.store);
 		self.messageStore.messagesReady.connect(self.rootObject().messagesReady)
 		self.messageStore.conversationReady.connect(self.rootObject().conversationReady)
+		self.messageStore.conversationExported.connect(self.rootObject().onConversationExported)
 		self.rootObject().loadMessages.connect(self.messageStore.loadMessages);
 		
 		
@@ -132,6 +133,7 @@ class WAUI(QDeclarativeView):
 		self.rootObject().deleteMessage.connect(self.messageStore.deleteMessage)
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
 		self.rootObject().removeSingleContact.connect(self.messageStore.removeSingleContact)
+		self.rootObject().exportConversation.connect(self.messageStore.exportConversation)
 		self.dbusService = WAService(self);
 		
 	

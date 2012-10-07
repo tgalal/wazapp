@@ -33,6 +33,8 @@ class WAConstants():
 	CACHE_PATH = os.path.expanduser('~/.cache/wazapp');
 	CACHE_CONTACTS = CACHE_PATH+"/contacts"
 	CACHE_PROFILE = CACHE_PATH+"/profile"
+	
+	CACHE_CONV = STORE_PATH+"/exported_conversations"
 
 	THUMBS_PATH = os.path.expanduser('/home/user/.thumbnails');
 		

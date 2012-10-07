@@ -58,7 +58,7 @@ class Conversation(Model):
 		if offset:
 			conditions["id<"] = offset;
 		
-		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit)
+		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit) if limit else self.store.Message.findAll(conditions,order=["id DESC"])
 		
 		messages.reverse();
 		

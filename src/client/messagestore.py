@@ -31,6 +31,7 @@ class MessageStore(QObject):
 	messageStatusUpdated = QtCore.Signal(str,int,int);
 	messagesReady = QtCore.Signal(dict,bool);
 	conversationReady = QtCore.Signal(dict);
+	conversationExported = QtCore.Signal(str, str); #jid, exportePath
 	
 	currKeyId = 0
 
@@ -86,7 +87,57 @@ class MessageStore(QObject):
 
 
 	def removeSingleContact(self, jid):
-		seld._d("Removing contact: "+jid);
+		self._d("Removing contact: "+jid);
+		
+
+	def exportConversation(self, jid):
+		self._d("Exporting conversations")
+		exportDir = WAConstants.CACHE_CONV
+		exportPath = "%s/%s.txt"%(exportDir, jid)
+
+		if not os.path.exists(exportDir):
+			os.makedirs(exportDir)
+			
+		conv = self.getOrCreateConversationByJid(jid)
+		conv.loadMessages(offset=0, limit=0)
+		
+		cachedContacts = self.store.getCachedContacts()
+		
+		contacts = {}
+		
+		if not conv.isGroup():
+			contact = conv.getContact()
+			try:
+				contacts[contact.id] = cachedContacts[contact.number].name or contact.number
+			except:
+				contacts[contact.id] = contact.number
+				
+		else:
+			contacts = conv.getContacts()
+			for c in contacts:
+				try:
+					contacts[c.id] = cachedContacts[c.number].name or c.number
+				except:
+					contacts[c.id] = c.number
+		
+		buf = ""
+
+		for m in conv.messages:
+			if not conv.isGroup():
+				if m.type == m.TYPE_SENT and m.status != m.STATUS_DELIVERED:
+					continue
+			
+			t = datetime.datetime.fromtimestamp(int(m.timestamp)/1000).strftime('%d-%m-%Y %H:%M')
+			author= contacts[m.contact_id] if conv.isGroup() else (contacts[conv.contact_id] if m.type == m.TYPE_RECEIVED else "You")
+			content = m.content if not m.media_id else "[media omitted]"
+			buf+="[%s]%s: %s\n"%(t,author,content)
+		
+		f = open(exportPath, 'w')
+		f.write(buf)
+		f.close()
+		self.conversationExported.emit(jid, exportPath)
+		return exportPath
+		
 	
 	
 	def loadConversations(self):

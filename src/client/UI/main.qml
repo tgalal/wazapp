@@ -130,6 +130,7 @@ WAStackWindow {
 	signal stopRecording();
 	signal playRecording();
 	signal deleteRecording();
+    signal exportConversation(string jid);
 
 
 	signal openContactPicker(string multi, string title); //TESTING...
@@ -285,6 +286,9 @@ WAStackWindow {
         aboutDialog.open();
     }
 
+    function onConversationExported(jid, path){
+        consoleDebug(jid+":::"+path)
+    }
 
 	function onContactsChanged() {
 

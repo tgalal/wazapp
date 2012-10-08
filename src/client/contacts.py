@@ -21,6 +21,7 @@ from PySide.QtGui import *
 from utilities import Utilities
 from warequest import WARequest
 from xml.dom import minidom
+from PySide import QtCore
 from PySide.QtCore import QObject
 from PySide.QtCore import QUrl
 from PySide.QtCore import Qt
@@ -265,6 +266,7 @@ class WAContacts(QObject):
 					c['picture'] = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
 					myname = c['name']
 					wc.setRealTimeData(myname,c['picture'],"yes");
+					QtCore.QCoreApplication.processEvents()
 					break;
 
 			if founded is False and wc.number is not None:

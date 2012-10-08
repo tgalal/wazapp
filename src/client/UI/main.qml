@@ -33,21 +33,24 @@ import "Updater"
 import "Conversations"
 import "Profile"
 import "Groups"
+import "Misc"
 import "common/js/settings.js" as MySettings
 
 //import com.nokia.extras 1.0
 
 WAStackWindow {
     id: appWindow
-    initialPage: mainPage  
-    showStatusBar: !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
-	showToolBar: !dialogOpened
+    initialPage: mainPage //splashPage//mainPage
+    showStatusBar: initializationDone && !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
+    showToolBar: initializationDone && !dialogOpened
 
     toolBarPlatformStyle:ToolBarStyle{
         inverted: theme.inverted
     }
 
     Component.onCompleted: {
+        pageStack.push(splashPage,{},true)
+
 		MySettings.initialize()
 		theme.inverted = MySettings.getSetting("ThemeColor", "White")=="Black"
 		mainBubbleColor = parseInt(MySettings.getSetting("BubbleColor", "1"))
@@ -73,6 +76,7 @@ WAStackWindow {
     property int orientation
 	property string vibraForPersonal
 	property string vibraForGroup
+    property bool initializationDone: false
 
     /****** Signal and Slot definitions *******/
 
@@ -131,6 +135,8 @@ WAStackWindow {
 	signal playRecording();
 	signal deleteRecording();
     signal exportConversation(string jid);
+
+    signal breathe()
 
 
 	signal openContactPicker(string multi, string title); //TESTING...
@@ -285,6 +291,17 @@ WAStackWindow {
     function aboutInit(){
         aboutDialog.open();
     }
+
+    function setSplashOperation(op) {
+        splashPage.setCurrentOperation(op)
+    }
+
+    function onInitDone(){
+        initializationDone = true
+        pageStack.pop(mainPage,true)
+        //pageStack.replace(mainPage)
+    }
+
 
     function onConversationExported(jid, path){
         consoleDebug(jid+":::"+path)
@@ -506,6 +523,8 @@ WAStackWindow {
                                                             "numbers":contacts[i][2].toString(), "selected":false})
 		}
 
+        breathe()
+
         modelworker.sendMessage({"model":phoneContactsModel,"data":tmpModelData})
 
     }
@@ -548,6 +567,12 @@ WAStackWindow {
     function conversationReady(conv){
         //This should be called if and only if conversation start point is backend
         consoleDebug("Got a conv in conversationReady slot: " + conv.jid);
+
+
+        if(!initializationDone)
+            splashPage.setSubOperation(conv.jid)
+
+        breathe()
         var conversation = waChats.getOrCreateConversation(conv.jid);
 
         var contact;
@@ -573,7 +598,6 @@ WAStackWindow {
             contact.setConversation(conversation);
 
         }
-
     }
 
 	signal reorderConversation(string cjid)
@@ -712,6 +736,11 @@ WAStackWindow {
 
 
     /*****************************************/
+
+    WASplash{
+        id:splashPage
+    }
+
 
     WAUpdate{
         id:updatePage

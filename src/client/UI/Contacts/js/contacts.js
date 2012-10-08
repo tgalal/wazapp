@@ -56,6 +56,7 @@ function populateContacts(contacts)
     }
 
     console.log("Gathered conversations before clearing: "+ccount);
+    breathe()
 
     contactsModel.clear();
     contactsViews = new Array();
@@ -71,6 +72,14 @@ function populateContacts(contacts)
 		//contacts[i].newContact = false;
         contactsModel.append(contacts[i]);
 
+        if(!initializationDone){
+            splashPage.setSubOperation(contacts[i].jid)
+            breathe()
+         }
+        else if(i%4 == 0) {
+            breathe();
+        }
+
         var cachedConv =   conversations[contacts[i].jid];
         if(cachedConv){
             console.log("Rebinding existing conv");
@@ -79,6 +88,8 @@ function populateContacts(contacts)
             cachedConv.addContact(contactsViews[i]);
             contactsViews[i].setConversation(cachedConv);
         }
+
+
     }
     console.log("Populating done!");
 }

@@ -89,11 +89,22 @@ class WAManager():
 		gui.quit.connect(self.quit);
 
 		#gui.populatePhoneContacts();
+		
+		
+		print "SHOW FULL SCREEN"
+		gui.showFullScreen();
+		
+		gui.onProcessEventsRequested()
+		
 		gui.populateContacts("ALL");
 		
 		gui.populateConversations();
-		print "SHOW FULL SCREEN"
-		gui.showFullScreen();
+		
+		gui.populatePhoneContacts()
+		
+		gui.initializationDone = True
+		gui.initialized.emit()
+
 		
 		print "INIT CONNECTION"
 		gui.initConnection();

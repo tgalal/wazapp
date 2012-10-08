@@ -24,6 +24,7 @@ import datetime
 from wadebug import MessageStoreDebug
 import os
 from constants import WAConstants
+import dbus
 
 class MessageStore(QObject):
 
@@ -88,12 +89,12 @@ class MessageStore(QObject):
 
 	def removeSingleContact(self, jid):
 		self._d("Removing contact: "+jid);
-		
+
 
 	def exportConversation(self, jid):
 		self._d("Exporting conversations")
+		bus = dbus.SessionBus()
 		exportDir = WAConstants.CACHE_CONV
-		exportPath = "%s/%s.txt"%(exportDir, jid)
 
 		if not os.path.exists(exportDir):
 			os.makedirs(exportDir)
@@ -120,6 +121,10 @@ class MessageStore(QObject):
 				except:
 					contacts[c.id] = c.number
 		
+		fileName = "WhatsApp chat with %s"%(contacts[contact.id])
+		exportPath = "%s/%s.txt"%(exportDir, fileName.encode('utf-8'))
+		item = "file://"+exportPath
+		
 		buf = ""
 
 		for m in conv.messages:
@@ -128,17 +133,30 @@ class MessageStore(QObject):
 					continue
 			
 			t = datetime.datetime.fromtimestamp(int(m.timestamp)/1000).strftime('%d-%m-%Y %H:%M')
-			author= contacts[m.contact_id] if conv.isGroup() else (contacts[conv.contact_id] if m.type == m.TYPE_RECEIVED else "You")
+			author = contacts[m.contact_id] if conv.isGroup() else (contacts[conv.contact_id] if m.type == m.TYPE_RECEIVED else "You")
 			content = m.content if not m.media_id else "[media omitted]"
-			buf+="[%s]%s: %s\n"%(t,author,content)
-		
-		f = open(exportPath, 'w')
+			try:
+				authorClean = author.encode('utf-8','replace')
+			except UnicodeDecodeError:
+				authorClean = "".join(i for i in author if ord(i)<128)
+			try:
+				contentClean = content.encode('utf-8','replace')
+			except UnicodeDecodeError:
+				contentClean = "".join(i for i in content if ord(i)<128)
+			buf+="[%s]%s: %s\n"%(str(t),authorClean,contentClean)
+
+		f = open(exportPath, 'w')		
 		f.write(buf)
 		f.close()
-		self.conversationExported.emit(jid, exportPath)
-		return exportPath
-		
-	
+			
+		trackerService = bus.get_object('org.freedesktop.Tracker1.Miner.Files.Index','/org/freedesktop/Tracker1/Miner/Files/Index')
+		addFile = trackerService.get_dbus_method('IndexFile','org.freedesktop.Tracker1.Miner.Files.Index')
+		addFile(item)
+		time.sleep(1) #the most stupid line I ever wrote in my life but it must be here because of the sluggish tracker
+		shareService = bus.get_object('com.nokia.ShareUi', '/')
+		share = shareService.get_dbus_method('share', 'com.nokia.maemo.meegotouch.ShareUiInterface')
+		share([item,])		
+			
 	
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();

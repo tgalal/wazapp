@@ -286,10 +286,6 @@ WAStackWindow {
         aboutDialog.open();
     }
 
-    function onConversationExported(jid, path){
-        consoleDebug(jid+":::"+path)
-    }
-
 	function onContactsChanged() {
 
         /*@@TODO: invalid way and should be removed. When a contact changes, only that changed contact should be synced silently

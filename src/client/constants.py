@@ -24,7 +24,9 @@ class WAConstants():
 	STORE_PATH = os.path.expanduser('~/.wazapp');
 	
 	#MEDIA_PATH = STORE_PATH+'/media'
-	MEDIA_PATH = "/home/user/MyDocs/Wazapp/media"
+	MYDOCS_PATH = "/home/user/MyDocs"
+	APP_PATH = MYDOCS_PATH+'/Wazapp'
+	MEDIA_PATH = APP_PATH+'/media'
 	AUDIO_PATH = MEDIA_PATH+'/audio'
 	IMAGE_PATH = MEDIA_PATH+'/images'
 	VIDEO_PATH = MEDIA_PATH+'/videos'
@@ -34,7 +36,7 @@ class WAConstants():
 	CACHE_CONTACTS = CACHE_PATH+"/contacts"
 	CACHE_PROFILE = CACHE_PATH+"/profile"
 	
-	CACHE_CONV = STORE_PATH+"/exported_conversations"
+	CACHE_CONV = MYDOCS_PATH+"/Documents"
 
 	THUMBS_PATH = os.path.expanduser('/home/user/.thumbnails');
 		

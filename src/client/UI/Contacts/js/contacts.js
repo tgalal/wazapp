@@ -88,8 +88,6 @@ function populateContacts(contacts)
             cachedConv.addContact(contactsViews[i]);
             contactsViews[i].setConversation(cachedConv);
         }
-
-
     }
     console.log("Populating done!");
 }

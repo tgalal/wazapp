@@ -35,8 +35,6 @@ if __name__ == "__main__":
 
 	if os.path.isfile(WAConstants.STORE_PATH + "/log.txt"):
 		os.rename(WAConstants.STORE_PATH +"/log.txt",WAConstants.STORE_PATH + "previews-log.txt")
-	if not os.path.exists(WAConstants.VCARD_PATH):
-		os.makedirs(WAConstants.VCARD_PATH)
 
 	linuxCodec = QtCore.QTextCodec.codecForName("UTF-8")
 	QtCore.QTextCodec.setCodecForTr(linuxCodec)

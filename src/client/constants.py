@@ -24,7 +24,8 @@ class WAConstants():
 	STORE_PATH = os.path.expanduser('~/.wazapp');
 	
 	#MEDIA_PATH = STORE_PATH+'/media'
-	MEDIA_PATH = "/home/user/MyDocs/Wazapp/media"
+	MYDOCS_ROOT = "/home/user/MyDocs/Wazapp"
+	MEDIA_PATH = MYDOCS_ROOT + "/media"
 	AUDIO_PATH = MEDIA_PATH+'/audio'
 	IMAGE_PATH = MEDIA_PATH+'/images'
 	VIDEO_PATH = MEDIA_PATH+'/videos'

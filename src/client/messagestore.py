@@ -94,9 +94,6 @@ class MessageStore(QObject):
 		self._d("Exporting conversations")
 		exportDir = WAConstants.CACHE_CONV
 		exportPath = "%s/%s.txt"%(exportDir, jid)
-
-		if not os.path.exists(exportDir):
-			os.makedirs(exportDir)
 			
 		conv = self.getOrCreateConversationByJid(jid)
 		conv.loadMessages(offset=0, limit=0)

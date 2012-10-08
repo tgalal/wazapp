@@ -338,6 +338,10 @@ class WAUI(QDeclarativeView):
 
 	def processFiles(self, folder, data): #, ignored):
 		#print "Processing " + folder
+		
+		if not os.path.exists(folder):
+			return
+		
 		currentDir = os.path.abspath(folder)
 		filesInCurDir = os.listdir(currentDir)
 

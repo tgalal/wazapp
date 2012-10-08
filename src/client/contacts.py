@@ -249,11 +249,6 @@ class WAContacts(QObject):
 		phoneContacts = cm.getContacts();
 		tmp = []
 		self.contacts = {};
-		
-		if not os.path.exists(WAConstants.CACHE_CONTACTS):
-			os.makedirs(WAConstants.CACHE_CONTACTS)
-		if not os.path.exists(WAConstants.CACHE_PROFILE):
-			os.makedirs(WAConstants.CACHE_PROFILE)
 
 		for wc in contacts:
 			jname = wc.jid.replace("@s.whatsapp.net","")

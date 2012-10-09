@@ -28,9 +28,9 @@ import "../common"
 WAPage {
     id:container
 
-	//anchors.fill: parent
-
-
+    Component.onCompleted: {
+            getInfo("YES")
+    }
     tools: ToolBarLayout {
         id: toolBar
         ToolIcon {
@@ -39,253 +39,384 @@ WAPage {
         }
     }
 
-	property string contactName
-	property string contactNumber
-	property string contactPicture: "../common/images/user.png"
-	property string contactStatus
-	property bool inContacts
+    property string contactName
+    property string contactNumber
+    property string contactPicture: "../common/images/user.png"
+    property string contactStatus
+    property bool inContacts
 
-	Component.onCompleted: {
-		getInfo("YES")
-	}
-
-	function getInfo(updatepicture) {
-        for(var i =0; i<contactsModel.count; i++) {
-			if(contactsModel.get(i).jid == profileUser) {
-                contactPicture = contactsModel.get(i).picture
-				contactName = contactsModel.get(i).name
-				contactStatus = contactsModel.get(i).status? contactsModel.get(i).status : ""
-				contactNumber = contactsModel.get(i).number
-				inContacts = contactsModel.get(i).iscontact=="yes"
-				bigImage.source = ""
-                bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
-				break;
-			}
+    function findChatIem(jid){
+        for (var i=0; i<conversationsModel.count;i++) {
+            var chatItem = conversationsModel.get(i);
+            if(chatItem.conversation.jid == jid)
+                   return  i;
         }
-		if (contactName == "") {
-			contactName = qsTr("Unknown contact")
-			contactNumber = profileUser.split('@')[0]
-		}
-		if (updatepicture=="YES")
-			getPictureIds(profileUser)
+        return -1;
+    }
 
-	}
+    function removeChatItem(jid){
+        var chatItemIndex = findChatIem(jid);
+        consoleDebug("deleting")
+        if(chatItemIndex >= 0){
+            var conversation = conversationsModel.get(chatItemIndex).conversation;
+            var contacts = conversation.getContacts();
+            for(var i=0; i<contacts.length; i++){
+                contacts[i].unsetConversation();
+            }
+            delete conversation;
+            conversationsModel.remove(chatItemIndex);
+            checkUnreadMessages()
+        }
+    }
 
-	Connections {
-		target: appWindow
-		onRefreshSuccessed: statusButton.enabled=true
-		onRefreshFailed: statusButton.enabled=true
-		onOnContactPictureUpdated: {
-			if (profileUser == ujid) {
-				getInfo("NO")
-				picture.imgsource = ""
-				picture.imgsource = contactPicture
-				bigImage.source = ""
+    function getInfo(updatepicture) {
+        for(var i =0; i<contactsModel.count; i++) {
+            if(contactsModel.get(i).jid == profileUser) {
+                contactPicture = contactsModel.get(i).picture
+                contactName = contactsModel.get(i).name
+                contactStatus = contactsModel.get(i).status? contactsModel.get(i).status : ""
+                contactNumber = contactsModel.get(i).number
+                inContacts = contactsModel.get(i).iscontact=="yes"
+                bigImage.source = ""
                 bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
-			}
-		}
-		onContactStatusUpdated: {
-			if (contactForStatus == profileUser) {
-				contactStatus = nstatus
-				statuslabel.text = Helpers.emojify(contactStatus)
-			}
-		}
-	}
+                break;
+            }
+        }
+        if (contactName == "") {
+                contactName = qsTr("Unknown contact")
+                contactNumber = profileUser.split('@')[0]
+        }
+        if (updatepicture=="YES")
+                getPictureIds(profileUser)
+    }
 
-	Image {
-		id: bigImage
-		visible: false
+    ButtonStyle {
+        id: buttonStyleTop
+        property string __invertedString: theme.inverted ? "-inverted" : ""
+        pressedBackground: "image://theme/color3-meegotouch-button-background-pressed-vertical-top"
+        checkedBackground: "image://theme/color3-meegotouch-button-background-selected-vertical-top"
+        disabledBackground: "image://theme/color3-meegotouch-button"+__invertedString+"-background-disabled-vertical-top"
+        checkedDisabledBackground: "image://theme/color3-meegotouch-button"+__invertedString+"-background-disabled-selected-vertical-top"
+    }
+    ButtonStyle {
+        id: buttonStyleCenter
+        property string __invertedString: theme.inverted ? "-inverted" : ""
+        pressedBackground: "image://theme/color3-meegotouch-button-background-pressed-vertical-center"
+        checkedBackground: "image://theme/color3-meegotouch-button-background-selected-vertical-center"
+        disabledBackground: "image://theme/color3-meegotouch-button"+__invertedString+"-background-disabled-vertical-center"
+        checkedDisabledBackground: "image://theme/color3-meegotouch-button"+__invertedString+"-background-disabled-selected-vertical-center"
+    }
+    ButtonStyle {
+        id: buttonStyleBottom
+        property string __invertedString: theme.inverted ? "-inverted" : ""
+        pressedBackground: "image://theme/color3-meegotouch-button-background-pressed-vertical-bottom"
+        checkedBackground: "image://theme/color3-meegotouch-button-background-selected-vertical-bottom"
+        disabledBackground: "image://theme/color3-meegotouch-button"+__invertedString+"-background-disabled-vertical-bottom"
+        checkedDisabledBackground: "image://theme/color3-meegotouch-button"+__invertedString+"-background-disabled-selected-vertical-bottom"
+    }
+
+    QueryDialog {
+        id: chatHistoryDelete
+        titleText: qsTr("Confirm Delete")
+        message: qsTr("Are you sure you want to delete this conversation and all its messages?")
+        acceptButtonText: qsTr("Yes")
+        rejectButtonText: qsTr("No")
+        onAccepted: {
+            deleteConversation(profileUser)
+            removeChatItem(profileUser)
+        }
+    }
+
+    Connections {
+        target: appWindow
+        onRefreshSuccessed: statusButton.enabled=true
+        onRefreshFailed: statusButton.enabled=true
+        onOnContactPictureUpdated: {
+            if (profileUser == ujid) {
+                getInfo("NO")
+                picture.imgsource = ""
+                picture.imgsource = contactPicture
+                bigImage.source = ""
+                bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
+            }
+        }
+        onContactStatusUpdated: {
+            if (contactForStatus == profileUser) {
+                contactStatus = nstatus
+                statuslabel.text = Helpers.emojify(contactStatus)
+            }
+        }
+    }
+
+    Image {
+        id: bigImage
+        visible: false
         source: WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
-		cache: false
-	}
+        cache: false
+    }
+
+    Column {
+        id: column1
+        width: parent.width -32
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        anchors.topMargin: 12
+        spacing: 12
+
+        Row {
+            width: parent.width
+            height: col1.heigth + 48
+            spacing: 10
+
+            ProfileImage {
+                id: picture
+                size: 80
+                height: size
+                width: size
+                y: 0
+                imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
+                onClicked: {
+                    if (bigImage.width>0) {
+                        Qt.openUrlExternally(bigImage.source)
+                    }
+                }
+            }
+
+            Column {
+                id: col1
+                width: parent.width - picture.size -10
+                anchors.verticalCenter: parent.verticalCenter
+
+                Label {
+                    text: contactName
+                    font.bold: true
+                    font.pixelSize: 26
+                    width: parent.width
+                    elide: Text.ElideRight
+                }
+
+                Label {
+                    id: statuslabel
+                    font.pixelSize: 22
+                    color: "gray"
+                    visible: contactStatus!==""
+                    text: Helpers.emojify(contactStatus)
+                    width: parent.width
+                }
+            }
+        }
+
+        Separator {
+            width: parent.width
+        }
+    }
 
     Flickable {
         id: flickArea
-        anchors.fill: parent
-		anchors.topMargin: 12
+        anchors.top: column1.bottom
+        anchors.topMargin: 12
+        width: parent.width
+        height: parent.height - column1.height
         contentWidth: parent.width
-        contentHeight: column1.height +20
+        contentHeight: buttonColumn.height+separator1.height+blockLabel.height+telephonyItem.height+separator2.height+groupsList.height+separator3.height+mediaList.height
+        clip: true
 
-        Column {
-            id: column1
-			width: parent.width -32
-			anchors.left: parent.left
-			anchors.leftMargin: 16
-			anchors.rightMargin: 16
-			anchors.topMargin: 12
-			spacing: 12
+        Label {
+            id: blockLabel
+            text: qsTr("Contact blocked")
+            font.bold: true
+            font.pixelSize: 26
+            color: "red"
+            width: parent.width
+            visible: blockedContacts.indexOf(profileUser)!=-1
+            height: visible ? 50 : 0
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
+        }
 
-			Row {
-				width: parent.width
-				height: col1.heigth + 48
-				spacing: 10
+        ButtonColumn{
+            id: buttonColumn
+            width: parent.width
+            anchors.top: blockLabel.bottom
 
-				ProfileImage {
-					id: picture
-					size: 80
-					height: size
-					width: size
-					y: 0
-					imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
-					onClicked: { 
-						if (bigImage.width>0) {
-                            //bigProfileImage = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
-							//pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-							Qt.openUrlExternally(bigImage.source)
-						}
-					}
-				}
+            Button {
+                id: statusButton
+                platformStyle: buttonStyleTop
+                height: 50
+                width: parent.width
+                font.pixelSize: 22
+                text: qsTr("Update status")
+                visible: profileUser.indexOf("g.us")==-1
+                onClicked: {
+                        updateSingleStatus=true
+                        statusButton.enabled=false
+                        contactForStatus = profileUser
+                        refreshContacts("STATUS", profileUser.split('@')[0])
+                }
+            }
 
-				Column {
-					id: col1
-					width: parent.width - picture.size -10
-					anchors.verticalCenter: parent.verticalCenter
+            Button {
+                id: blockButton
+                platformStyle: buttonStyleCenter
+                height: 50
+                width: parent.width
+                font.pixelSize: 22
+                text: blockedContacts.indexOf(profileUser)==-1? qsTr("Block contact") : qsTr("Unblock contact")
+                onClicked: {
+                    if (blockedContacts.indexOf(profileUser)==-1)
+                        blockContact(profileUser)
+                    else
+                        unblockContact(profileUser)
+                }
+            }
 
-					Label {
-						text: contactName
-						font.bold: true
-						font.pixelSize: 26
-						width: parent.width
-						elide: Text.ElideRight
-					}
+            Button {
+                height: 50
+                platformStyle: buttonStyleCenter
+                width: parent.width
+                font.pixelSize: 22
+                text: qsTr("Add to contacts")
+                visible: !inContacts
+                onClicked: Qt.openUrlExternally("tel:"+contactNumber)
+            }
 
-					Label {
-						id: statuslabel
-						font.pixelSize: 22
-						color: "gray"
-						visible: contactStatus!==""
-						text: Helpers.emojify(contactStatus)
-						width: parent.width
-						//elide: Text.ElideRight
-					}
-				}
-			}
+            Button {
+                id: sendChatButton
+                platformStyle: buttonStyleCenter
+                height: 50
+                width: parent.width
+                font.pixelSize: 22
+                text: qsTr("Send chat history")
+                onClicked: { exportConversation(profileUser); }
+            }
 
-			Separator {
-				width: parent.width
-			}
+            Button {
+                id: deleteChatButton
+                platformStyle: buttonStyleBottom
+                height: 50
+                width: parent.width
+                font.pixelSize: 22
+                text: qsTr("Delete chat history")
+                onClicked: {
+                    chatHistoryDelete.open()
+                }
+            }
+        }
 
-			Button {
-				id: statusButton
-				height: 50
-				width: parent.width
-				font.pixelSize: 22
-				text: qsTr("Update status")
-				visible: profileUser.indexOf("g.us")==-1
-				onClicked: { 
-					updateSingleStatus=true
-					statusButton.enabled=false
-					contactForStatus = profileUser
-					refreshContacts("STATUS", profileUser.split('@')[0])
-				}
-			}
+        GroupSeparator {
+            id: separator3
+            anchors.top: buttonColumn.bottom
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            width: parent.width - 44
+            height: 50
+            title: qsTr("Media")
+        }
 
-			Label {
-				font.pixelSize: 26
-				text: qsTr("Phone:")
-				width: parent.width
-			}
+        //'SELECT mediatype_id,preview,local_path FROM media WHERE id IN (SELECT media_id FROM messages WHERE key LIKE "%385977012270@s.whatsapp.net%" AND NOT media_id=0) ORDER BY id DESC;'
+        //'SELECT mediatype_id,preview,local_path FROM media WHERE id IN (SELECT media_id FROM messages WHERE key LIKE "%'+profileUser+'%" AND NOT media_id=0) ORDER BY id DESC;'
+        ListView {
+            id: mediaList
+            Component.onCompleted: {
+                //getContactMediaByJid(profileUser)
+                //for (var i=0; i<result.length;i++) {
+                //    console.log(i,result[i].local_path)
+                //}
+            }
+            orientation: ListView.Horizontal
+            width: parent.width -32
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.top: separator3.bottom
+            height: 96
+            //delegate: Image {source: local_path}
+        }
 
-			Rectangle {
-				height: 84
-				width: parent.width
-				color: "transparent"
-				x: 0
+        GroupSeparator {
+            id: separator2
+            anchors.top: mediaList.bottom
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            width: parent.width - 44
+            height: 50
+            title: qsTr("Groups")
+        }
 
-				BorderImage {
-					height: 84
-					width: parent.width -80
-					x: 0; y: 0
-					source: "pics/buttons/button-left"+(theme.inverted?"-inverted":"")+
-							(bArea.pressed? "-pressed" : "")+".png"
-					border { left: 22; right: 22; bottom: 22; top: 22; }
+        ListView {
+            id: groupsList
+            orientation: ListView.Vertical
+            width: parent.width -32
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.top: separator2.bottom
+            height: 200
+        }
 
-					Label {
-						x: 20; y: 14
-						width: parent.width
-						font.pixelSize: 20
-						text: qsTr("Mobile phone")
-					}
-					Label {
-						x: 20; y: 40
-						width: parent.width
-						font.bold: true
-						font.pixelSize: 24
-						text: contactNumber
-					}
-					MouseArea {
-						id: bArea
-						anchors.fill: parent
-						onClicked: makeCall(contactNumber) 
-					}
-				}
+        GroupSeparator {
+            id: separator1
+            anchors.top: groupsList.bottom
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            width: parent.width - 44
+            height: 50
+            title: qsTr("Phone")
+        }
 
-				BorderImage {
-					height: 84
-					anchors.right: parent.right
-					width: 80
-					x: 0; y: 0
-					source: "pics/buttons/button-right"+(theme.inverted?"-inverted":"")+
-							(bcArea.pressed? "-pressed" : "")+".png"
-					border { left: 22; right: 22; bottom: 22; top: 22; }
+        Item {
+            id: telephonyItem
+            anchors.top: separator1.bottom
+            height: 84
+            width: parent.width
+            x: 0
 
-					Image {
-						x: 18
-						anchors.verticalCenter: parent.verticalCenter
-						source: "image://theme/icon-m-toolbar-new-message"+(theme.inverted?"-white":"")
-					}
-					MouseArea {
-						id: bcArea
-						anchors.fill: parent
-						onClicked: sendSMS(contactNumber)
-					}
-				}
+            BorderImage {
+                height: 84
+                width: parent.width -80
+                x: 0; y: 0
+                source: "pics/buttons/button-left"+(theme.inverted?"-inverted":"")+(bArea.pressed? "-pressed" : "")+".png"
+                border { left: 22; right: 22; bottom: 22; top: 22; }
 
-			}
+                Label {
+                    x: 20; y: 14
+                    width: parent.width
+                    font.pixelSize: 20
+                    text: qsTr("Mobile phone")
+                }
+                Label {
+                    x: 20; y: 40
+                    width: parent.width
+                    font.bold: true
+                    font.pixelSize: 24
+                    text: contactNumber
+                }
+                MouseArea {
+                    id: bArea
+                    anchors.fill: parent
+                    onClicked: makeCall(contactNumber)
+                }
+            }
 
-			Separator {
-				width: parent.width
-				visible: contactName==qsTr("Unknown contact")
-			}
+            BorderImage {
+                height: 84
+                anchors.right: parent.right
+                width: 80
+                x: 0; y: 0
+                source: "pics/buttons/button-right"+(theme.inverted?"-inverted":"")+(bcArea.pressed? "-pressed" : "")+".png"
+                border { left: 22; right: 22; bottom: 22; top: 22; }
 
-			Button {
-				height: 50
-				width: parent.width
-				font.pixelSize: 22
-				text: qsTr("Add to contacts")
-				visible: !inContacts
-		        onClicked: Qt.openUrlExternally("tel:"+contactNumber)
-			}
-
-			Separator {
-				width: parent.width
-			}
-
-			Label {
-				text: qsTr("Contact blocked")
-				font.bold: true
-				font.pixelSize: 26
-				color: "red"
-				width: parent.width
-				visible: blockedContacts.indexOf(profileUser)!=-1
-				elide: Text.ElideRight
-			}
-
-			Button {
-				id: blockButton
-				height: 50
-				width: parent.width
-				font.pixelSize: 22
-				text: blockedContacts.indexOf(profileUser)==-1? qsTr("Block contact") : qsTr("Unblock contact")
-				onClicked: { 
-					if (blockedContacts.indexOf(profileUser)==-1)
-						blockContact(profileUser)
-					else
-						unblockContact(profileUser)
-				}
-			}
-
-		}
-	}
-
+                Image {
+                    x: 18
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: "image://theme/icon-m-toolbar-new-message"+(theme.inverted?"-white":"")
+                }
+                MouseArea {
+                    id: bcArea
+                    anchors.fill: parent
+                    onClicked: sendSMS(contactNumber)
+                }
+            }
+        }
+    }
 }

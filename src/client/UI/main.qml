@@ -598,6 +598,7 @@ WAStackWindow {
             contact.setConversation(conversation);
 
         }
+
     }
 
 	signal reorderConversation(string cjid)

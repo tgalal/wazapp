@@ -138,7 +138,6 @@ class WAUI(QDeclarativeView):
 		self.messageStore = MessageStore(self.store);
 		self.messageStore.messagesReady.connect(self.rootObject().messagesReady)
 		self.messageStore.conversationReady.connect(self.rootObject().conversationReady)
-		self.messageStore.conversationExported.connect(self.rootObject().onConversationExported)
 		self.rootObject().loadMessages.connect(self.messageStore.loadMessages);
 		
 		

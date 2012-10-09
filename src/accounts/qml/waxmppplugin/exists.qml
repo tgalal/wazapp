@@ -29,6 +29,16 @@ PageStackWindow{
 
 Page {
 
+    ToolBarLayout {
+        id: commonTools
+        visible: false
+        ToolIcon {
+            platformIconId: "toolbar-back"
+            onClicked: Qt.quit()
+        }
+    }
+
+    tools:commonTools
     id:main
 
     WAHeader{

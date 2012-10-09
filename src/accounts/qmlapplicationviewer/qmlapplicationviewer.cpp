@@ -40,6 +40,10 @@
 #include <QTimer>
 #include <QThread>
 
+#include <QX11Info>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+
 #include "utilities.h";
 using namespace WA_UTILITIES::Utilities;
 
@@ -77,8 +81,11 @@ static QmlJsDebuggingEnabler enableDebuggingHelper;
 
 class QmlApplicationViewerPrivate
 {
+    QmlApplicationViewerPrivate(QDeclarativeView *view_) : view(view_) {}
+
     QString mainQmlFile;
     friend class QmlApplicationViewer;
+    QDeclarativeView *view;
     static QString adjustPath(const QString &path);
 };
 
@@ -101,7 +108,7 @@ QString QmlApplicationViewerPrivate::adjustPath(const QString &path)
 
 QmlApplicationViewer::QmlApplicationViewer(QWidget *parent)
     : QDeclarativeView(parent)
-    , d(new QmlApplicationViewerPrivate())
+    , d(new QmlApplicationViewerPrivate(this))
 {
       debug_data = new QString();
     connect(engine(), SIGNAL(quit()), SLOT(close()));
@@ -139,11 +146,26 @@ QmlApplicationViewer *QmlApplicationViewer::create()
 
 void QmlApplicationViewer::setMainQmlFile(const QString &file)
 {
-     this->rootContext()->setContextProperty("actor",this);
+    Atom atomMInvokedBy = XInternAtom(QX11Info::display(), "_MEEGOTOUCH_WM_INVOKED_BY", False);
+    Display *display = QX11Info::display();
+    XChangeProperty(display, d->view->winId(), atomMInvokedBy, XA_WINDOW, 32, PropModeReplace, (unsigned char *)&parentWindowId, 1);
+    XSetTransientForHint(display, d->view->winId(), parentWindowId);
+    Atom atomWindowType = XInternAtom(QX11Info::display(), "_MEEGOTOUCH_NET_WM_WINDOW_TYPE_MAPPLICATION", False);
+    XChangeProperty(QX11Info::display(), d->view->winId(),
+                    XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
+                    XA_ATOM, 32, PropModeAppend, (unsigned char*) &atomWindowType, 1);
+
+    this->rootContext()->setContextProperty("actor",this);
     d->mainQmlFile = QmlApplicationViewerPrivate::adjustPath(file);
     setSource(QUrl::fromLocalFile(d->mainQmlFile));
 
+    QObject* themeObject = qvariant_cast<QObject*>(d->view->rootContext()->contextProperty("theme"));
+    if ( themeObject )
+       themeObject->setProperty("inverted", true);
 
+    QObject* screenObject = qvariant_cast<QObject*>(d->view->rootContext()->contextProperty("screen"));
+    if ( screenObject )
+       screenObject->setProperty("allowedOrientations", 1);
 }
 
 

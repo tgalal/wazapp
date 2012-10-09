@@ -40,7 +40,6 @@ WAPage {
 			anchors.centerIn: parent
 			width: 300
 	        text: qsTr("No background")
-			enabled: recorded
 	        onClicked: { 
 				setBackground("none")
 				pageStack.pop()

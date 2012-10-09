@@ -63,8 +63,7 @@ class WAManager():
 		
 		dirs = [
 			WAConstants.STORE_PATH,
-
-			WAConstants.MYDOCS_ROOT,
+			WAConstants.APP_PATH,
 			WAConstants.MEDIA_PATH,
 			WAConstants.AUDIO_PATH,
 			WAConstants.IMAGE_PATH,

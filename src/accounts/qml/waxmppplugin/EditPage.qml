@@ -27,8 +27,20 @@ Page{
     property string pushName;
     property string status:"Offline"
 
+    function saveAccount()
+    {
+        if(push_field.value.trim() == ""){
+            showNotification(qsTr("Push name cannot be left empty"))
+        }
+        else{
+            actor.savePushName(push_field.value)
+            showNotification(qsTr("Push name saved"));
+            Qt.quit()
+        }
+    }
+
     tools:editTools
-    anchors.margins: 5
+//    anchors.margins: 5
 
     Column{
        anchors.fill: parent
@@ -59,7 +71,7 @@ Page{
         value: pushName?pushName:"";
     }
 
-    Button{
+    /*Button{
         text:qsTr("Save")
         onClicked: {
             if(push_field.value.trim() == ""){
@@ -71,6 +83,6 @@ Page{
 
             }
         }
-    }
+    }*/
 }
 }

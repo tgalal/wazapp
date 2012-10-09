@@ -72,10 +72,12 @@ Item {
         id: mouseArea
 
         anchors.fill: parent
-        onClicked: selectionDialog.open()
+        onClicked: {
+			selectionDialog.open()
+		}
     }
 
-    SelectionDialog {
+	SelectionDialog {
         id: selectionDialog
         titleText: title.text
         delegate: Item {

@@ -1,10 +1,12 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "js/settings.js" as MySettings
 
 Item {
 	id: container
 
     property alias title: title.text
+	property string subtitle
     property string initialValue
 
     signal clicked()
@@ -13,14 +15,30 @@ Item {
     width: parent.width
     height: 72
 
-    /*Rectangle {
-        id: highlight
+	Component.onCompleted: {
+		MySettings.initialize()
+		getSubtitle()
+	}
 
-        anchors { fill: parent; bottomMargin: 1; topMargin: 1 }
-        color: mouseArea.pressed ? "#4d4d4d" : "transparent"
-        opacity: 0.5
-        smooth: true
-    }*/
+	Connections {
+		target: appWindow
+		onSetBackground: {
+			var result = backgroundimg.replace("file://","")
+			myBackgroundImage = result
+			initialValue = result
+			getSubtitle()
+			MySettings.setSetting("Background", result)
+		}
+	}
+
+	function getSubtitle() {
+		var res = initialValue.split('/')
+		res = res[res.length-1]
+		subtitle = res.charAt(0).toUpperCase() + res.slice(1);
+		//subtitle = subtitle.split('.')[0]
+		if (subtitle=="None") subtitle = qsTr("(no background)")
+	}
+
 
 
     Column {
@@ -39,7 +57,7 @@ Item {
             id: subTitle
             color: "gray"
             verticalAlignment: Text.AlignVCenter
-            text: initialValue
+            text: subtitle=="none" ? qsTr("(no background)") : subtitle
             font.pixelSize: 22
         }
     }
@@ -54,7 +72,6 @@ Item {
 
     MouseArea {
         id: mouseArea
-
         anchors.fill: parent
         onClicked: container.clicked()
     }

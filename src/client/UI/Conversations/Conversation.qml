@@ -383,7 +383,7 @@ WAPage {
     Rectangle{
         id:top_bar
         width:parent.width
-		color: theme.inverted? "#161616" : "transparent"
+		color: "transparent" //theme.inverted? "#161616" : "transparent"
         height: appWindow.inPortrait ? 73 : (showSendButton ? 0 : 73)
 		clip: true
 		
@@ -605,7 +605,7 @@ WAPage {
 
     Rectangle {
 		id: conv_panel
-        color: theme.inverted? "transparent" : "#dedfde"
+        color: "transparent" //theme.inverted? "transparent" : "#dedfde"
         anchors.top: parent.top
         anchors.topMargin: top_bar.height
         width: parent.width
@@ -981,6 +981,7 @@ WAPage {
             onClicked: {
 				sendMediaWindow.opacity = 0
                 emojiDialog.openDialog();
+				showSendButton=true; 
 		    }
 		}
 

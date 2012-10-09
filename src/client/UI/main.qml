@@ -22,7 +22,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 import com.nokia.extras 1.0
-import QtMobility.gallery 1.1
 
 import "Chats"
 import "common"
@@ -42,7 +41,7 @@ WAStackWindow {
     id: appWindow
     initialPage: mainPage //splashPage//mainPage
     showStatusBar: initializationDone && !(screen.currentOrientation == Screen.Landscape && activeConvJId!="")
-    showToolBar: initializationDone && !dialogOpened
+	showToolBar: initializationDone && !dialogOpened
 
     toolBarPlatformStyle:ToolBarStyle{
         inverted: theme.inverted
@@ -59,6 +58,11 @@ WAStackWindow {
 		orientation = parseInt(MySettings.getSetting("Orientation", "0"))
 		vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")
 		vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")
+		personalRingtone = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
+		groupRingtone = MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
+		myBackgroundImage = MySettings.getSetting("Background", "none")
+		myBackgroundOpacity = MySettings.getSetting("BackgroundOpacity", "5")
+		setBackground(myBackgroundImage)
 	}
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
@@ -74,9 +78,15 @@ WAStackWindow {
 	property string selectedGroupPicture
 	property string bigProfileImage
     property int orientation
+	property string personalRingtone
+	property string groupRingtone
 	property string vibraForPersonal
 	property string vibraForGroup
-    property bool initializationDone: false
+	property bool initializationDone: false
+	property string currentSelectionProfile
+	property string currentSelectionProfileValue
+	property string myBackgroundImage
+	property int myBackgroundOpacity
 
     /****** Signal and Slot definitions *******/
 
@@ -135,8 +145,9 @@ WAStackWindow {
 	signal playRecording();
 	signal deleteRecording();
     signal exportConversation(string jid);
-
-    signal breathe()
+	signal breathe()
+	signal playSoundFile(string soundfile);
+	signal stopSoundFile();
 
 
 	signal openContactPicker(string multi, string title); //TESTING...
@@ -148,6 +159,9 @@ WAStackWindow {
 	signal setGroupRingtone(string value);
     signal setGroupVibrate(bool value);
 	signal vibrateNow();
+
+	signal setRingtone(string ringtonevalue);
+	signal setBackground(string backgroundimg);
 
 
 	signal openPreviewPicture(string ujid, string picturefile, int rotation, string previewimg, string capturemode)
@@ -191,17 +205,43 @@ WAStackWindow {
 
 	signal getRingtones();
 	signal ringtonesUpdated();
+
 	ListModel {
 		id: ringtoneModel
 	}
 	function pushRingtones(files) {
 		ringtoneModel.clear()
-		ringtoneModel.append({ name: QT_TR_NOOP("(no sound)"), value: "No sound.wav"})
+		var nosound = qsTr("(no sound)")
+		var browse = qsTr("Browse")
+		ringtoneModel.append({ name: browse, value: "browse"})
+		ringtoneModel.append({ name: nosound, value: "/usr/share/sounds/ring-tones/No sound.wav"})
 		for (var i=0; i<files.length; ++i) {
 			ringtoneModel.append(files[i])
 		}
 		ringtonesUpdated();
 	}
+
+
+	signal browseFiles(string folder, string format);
+	signal browserUpdated();
+	signal customRingtoneSelected();
+	property bool enableBackInBrowser
+	property string currentBrowserFolder
+
+	ListModel {
+		id: browserModel
+	}
+	function pushBrowserFiles(files, folder) {
+		browserModel.clear()
+		enableBackInBrowser = folder!="/home/user/MyDocs"
+		currentBrowserFolder = folder
+		for (var i=0; i<files.length; ++i) {
+			browserModel.append(files[i])
+		}
+		browserUpdated();
+	}
+
+
 
 	signal groupCreated(string group_id)
 
@@ -384,7 +424,7 @@ WAStackWindow {
 		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
 		setResizeImages(resizeImages)
 
-		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "Message 1.mp3"));
+		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
         setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"); //changed to be passed as boolean
 		setGroupRingtone(MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
         setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes")=="Yes");
@@ -516,8 +556,8 @@ WAStackWindow {
 
         var tmpModelData = new Array
 		for (var i=0; i<contacts.length; i++) {
-           // phoneContactsModel.insert(phoneContactsModel.count,{"name":contacts[i][0] || contacts[i][2].toString(), "picture":contacts[i][1],
-            //							"numbers":contacts[i][2].toString(), "selected":false})
+           //phoneContactsModel.insert(phoneContactsModel.count,{"name":contacts[i][0] || contacts[i][2].toString(), "picture":contacts[i][1],
+            // "numbers":contacts[i][2].toString(), "selected":false})
 
             tmpModelData.push({"name":contacts[i][0] || contacts[i][2].toString(), "picture":contacts[i][1],
                                                             "numbers":contacts[i][2].toString(), "selected":false})
@@ -555,11 +595,11 @@ WAStackWindow {
     }
 
     function openConversation(jid){
-          consoleDebug("should open chat window with "+jid)
-
-          var conversation = waChats.getOrCreateConversation(jid);
-          conversation.open();
-     }
+		consoleDebug("should open chat window with "+jid)
+		dialogOpened = false
+		var conversation = waChats.getOrCreateConversation(jid);
+		conversation.open();
+	}
 
 
     /****Conversation related slots****/
@@ -767,10 +807,6 @@ WAStackWindow {
 		id:sendAudio
 	}
 
-	SendAudioFile {
-		id:sendAudioFile
-	}
-
 	SelectPicture {
 		id:setProfilePicture
 	}
@@ -803,33 +839,6 @@ WAStackWindow {
 	ListModel {
 		id: participantsModel
 	}
-
-
-	DocumentGalleryModel {
-		id: galleryArtistModel
-		rootType: DocumentGallery.Album
-		properties: ["artist", "title"]
-		sortProperties: ["artist", "title"]
-		autoUpdate: true
-	}
-
-
-	property string filterAlbum
-    DocumentGalleryModel {
-        id: galleryAudioModel
-        rootType: DocumentGallery.Audio
-        properties: ["url", "fileName", "title", "artist", "duration"]
-        sortProperties: ["+title"]
-		autoUpdate: true
-		filter: GalleryFilterIntersection {
-            filters: [
-                GalleryEqualsFilter {
-                    property: "albumTitle"
-                    value: filterAlbum.replace("'","\\'")
-                }
-            ]
-		}
-   }
 
 
     WAPage {

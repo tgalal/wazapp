@@ -29,6 +29,7 @@ import "../EmojiDialog"
 Item {
 
 	id: content
+	height: column1.height
 
 	property alias text: status_text.text
 	property string tempStatus: ""
@@ -90,80 +91,73 @@ Item {
 		}
 	}
 	
-    Rectangle {
-        //anchors.top: parent.top
-		//anchors.topMargin: 90
-		width: parent.width
-		height: parent.height
-        color: "transparent"
+    Column {
+		id: column1
+        spacing: 16
+        anchors { top: parent.top; left: parent.left; right: parent.right; }
+        //anchors.leftMargin: 16
+        //anchors.rightMargin: 16
 
-        Column {
-            spacing: 16
-            anchors { top: parent.top; left: parent.left; right: parent.right; }
-            //anchors.leftMargin: 16
-            //anchors.rightMargin: 16
+        WATextArea {
+		    id: status_text
+		    width:parent.width
+			wrapMode: TextEdit.Wrap
+			textFormat: Text.RichText
+			textColor: "black"
+			onActiveFocusChanged: { 
+				lastPosition = status_text.cursorPosition 
+				consoleDebug("LAST POSITION: " + lastPosition)
+			}
+		}
 
-            WATextArea {
-			    id: status_text
-			    width:parent.width
-				wrapMode: TextEdit.Wrap
-				textFormat: Text.RichText
-				textColor: "black"
-				onActiveFocusChanged: { 
-					lastPosition = status_text.cursorPosition 
-					consoleDebug("LAST POSITION: " + lastPosition)
-				}
+		Rectangle {
+			id: input_button_holder
+			anchors.left: parent.left
+			width: parent.width
+			height: 50
+			color: "transparent"
+			clip: true
+							
+			Button
+			{
+				id:emoji_button
+				//platformStyle: ButtonStyle { inverted: true }
+				width:50
+				height:50
+                iconSource: "../common/images/emoji/32/emoji-E415.png"
+				anchors.left: parent.left
+				anchors.leftMargin: 0
+				anchors.verticalCenter: send_button.verticalCenter
+				onClicked: emojiDialog.openDialog()
 			}
 
-			Rectangle {
-				id: input_button_holder
-				anchors.left: parent.left
-				width: parent.width
-				height: 50
-				color: "transparent"
-				clip: true
-								
-				Button
-				{
-					id:emoji_button
-					//platformStyle: ButtonStyle { inverted: true }
-					width:50
-					height:50
-                    iconSource: "../common/images/emoji/32/emoji-E415.png"
-					anchors.left: parent.left
-					anchors.leftMargin: 0
-					anchors.verticalCenter: send_button.verticalCenter
-					onClicked: emojiDialog.openDialog()
-				}
-
-			
-				Button
-				{
-					id:send_button
-					platformStyle: ButtonStyle { inverted: true }
-					width:160
-					height:50
-					text: qsTr("Done")
-					anchors.right: parent.right
-					anchors.rightMargin: 0
-					//enabled: cleanText(status_text.text).trim() !=""
-					y: 0
-					onClicked:{
-						var toSend = cleanText(status_text.text);
-						toSend = toSend.trim();
-						if ( toSend != "")
-						{
-							tempStatus = toSend;
-							changeStatus(toSend);
-							send_button.enabled = false
-							status_text.enabled = false
-							emoji_button.enabled = false
-						}
+		
+			Button
+			{
+				id:send_button
+				platformStyle: ButtonStyle { inverted: true }
+				width:160
+				height:50
+				text: qsTr("Done")
+				anchors.right: parent.right
+				anchors.rightMargin: 0
+				//enabled: cleanText(status_text.text).trim() !=""
+				y: 0
+				onClicked:{
+					var toSend = cleanText(status_text.text);
+					toSend = toSend.trim();
+					if ( toSend != "")
+					{
+						tempStatus = toSend;
+						changeStatus(toSend);
+						send_button.enabled = false
+						status_text.enabled = false
+						emoji_button.enabled = false
 					}
 				}
 			}
-        }
-
+		}
     }
+
     
 }

@@ -78,28 +78,25 @@ WAPage {
         return ContactsManager.contactsViews[ContactsManager.contactsViews.length-1];
 
     }
+	
+    Item { id: dummy }
 
     function hideSearchBar() {
-        searchbar.h1 = 71
-        searchbar.h2 = 0
         searchbar.height = 0
         searchInput.enabled = false
         sbutton.enabled = false
         searchInput.text = ""
-        searchInput.focus = false
-		list_view1.forceActiveFocus()
+        searchInput.platformCloseSoftwareInputPanel()
+		searchInput.enabled = false
         timer.stop()
     }
-
     function showSearchBar() {
-        searchbar.h1 = 0
-        searchbar.h2 = 71
         searchbar.height = 71
         searchInput.enabled = true
         sbutton.enabled = true
         searchInput.text = ""
-        searchInput.focus = false
-        list_view1.forceActiveFocus()
+        searchInput.enabled = true
+        dummy.focus = true
         timer.start()
     }
 
@@ -211,9 +208,6 @@ WAPage {
 		color: "transparent"
 		clip: true
 
-		property int h1
-		property int h2
-
 		Rectangle {
 
 			id: srect
@@ -224,6 +218,9 @@ WAPage {
 			anchors.topMargin: searchbar.height - 62
 			anchors.bottomMargin: 2
 			color: "transparent"
+            opacity: searchbar.height==0 ? 0 : 1
+
+            Behavior on opacity { NumberAnimation { duration: 400 } }
 
 			TextField {
 			    id: searchInput
@@ -258,25 +255,7 @@ WAPage {
 
 		}
 
-		onHeightChanged: SequentialAnimation {
-			PropertyAction { target: searchbar; property: "height"; value: searchbar.h1 }
-			NumberAnimation { target: searchbar; property: "height"; to: searchbar.h2; duration: 300; easing.type: Easing.InOutQuad }
-		}
-
-        states: [
-            State {
-                name: 'hidden'; when: searchbar.height == 0
-                PropertyChanges { target: searchbar; opacity: 0; }
-            },
-            State {
-                name: 'showed'; when: searchbar.height == 71
-                PropertyChanges { target: searchbar; opacity: 1; }
-            }
-        ]
-        transitions: Transition {
-            NumberAnimation { properties: "opacity"; easing.type: Easing.InOutQuad; duration: 300 }
-        }
-
+        Behavior on height { NumberAnimation { duration: 200 } }
 
 	}
 

@@ -34,7 +34,6 @@ WAPage {
 							 qsTr("You are trying it at your own risk.") + "\n" + 
 							 qsTr("Please report any bugs to") + "\n" + "tarek@wazapp.im"
 
-
     Component.onCompleted: {
 		MySettings.initialize()
 		getRingtones()
@@ -101,6 +100,12 @@ WAPage {
         id: myButtonStyleRight
         pressedBackground: "image://theme/color3-meegotouch-button-background-pressed-horizontal-right"
         checkedBackground: "image://theme/color3-meegotouch-button-background-selected-horizontal-right"
+    }
+
+    SliderStyle {
+        id: mySliderStyle
+        grooveItemBackground: "image://theme/color3-meegotouch-slider-elapsed-background-horizontal"
+        grooveItemElapsedBackground: "image://theme/color3-meegotouch-slider-elapsed-background-horizontal"
     }
 
 
@@ -182,24 +187,44 @@ WAPage {
 					SelectionItemTr {
 					    title: qsTr("Current language")
 					    model: ListModel {
-					        ListElement { name: "Chinese"; value: "zh" }
-					        ListElement { name: "Chinese (Taiwan)"; value: "zh_TW" }
-					        ListElement { name: "Czech (Czech Republic)"; value: "cs_CZ" }
-					        ListElement { name: "Dutch"; value: "nl" }
-					        ListElement { name: "English"; value: "en" }
-					        ListElement { name: "English (United Kingdom)"; value: "en_GB" }
-					        ListElement { name: "French (France)"; value: "fr_FR" }
-					        ListElement { name: "German (Germany)"; value: "de_DE" }
-					        ListElement { name: "Italian"; value: "it" }
-					        ListElement { name: "Portuguese (Brazil)"; value: "pt_BR" }
-					        ListElement { name: "Portuguese (Portugal)"; value: "pt_PT" }
-					        ListElement { name: "Romanian"; value: "ro" }
-					        ListElement { name: "Russian"; value: "ru" }
-					        ListElement { name: "Russian (Russia)"; value: "ru_RU" }
-					        ListElement { name: "Spanish (Argentina)"; value: "es_AR" }
-					        ListElement { name: "Spanish (Mexico)"; value: "es_MX" }
-					        ListElement { name: "Swedish (Finland)"; value: "sv_FI" }
-					        ListElement { name: "Turkish (Turkey)"; value: "tr_TR" }
+							ListElement { name: "Albanian"; value: "sq" }
+							ListElement { name: "Arabic"; value: "ar" }
+							ListElement { name: "Basque"; value: "eu" }
+							ListElement { name: "Bulgarian"; value: "bg" }
+							ListElement { name: "Catalan"; value: "ca" }
+							ListElement { name: "Chinese"; value: "zh" }
+							ListElement { name: "Chinese (Hong Kong)"; value: "zh_HK" }
+							ListElement { name: "Chinese (Taiwan)"; value: "zh_TW" }
+							ListElement { name: "Croatian"; value: "hr" }
+							ListElement { name: "Czech"; value: "cs" }
+							ListElement { name: "Dutch"; value: "nl" }
+							ListElement { name: "English"; value: "en" }
+							ListElement { name: "English (United Kingdom)"; value: "en_GB" }
+							ListElement { name: "English (United States)"; value: "en_US" }
+							ListElement { name: "Finnish"; value: "fi" }
+							ListElement { name: "French (France)"; value: "fr_FR" }
+							ListElement { name: "French (Switzerland)"; value: "fr_CH" }
+							ListElement { name: "German (Germany)"; value: "de_DE" }
+							ListElement { name: "German (Switzerland)"; value: "de_CH" }
+							ListElement { name: "Greek"; value: "el" }
+							ListElement { name: "Hebrew"; value: "he" }
+							ListElement { name: "Hindi"; value: "hi" }
+							ListElement { name: "Italian"; value: "it" }
+							ListElement { name: "Macedonian"; value: "mk" }
+							ListElement { name: "Malay"; value: "ms" }
+							ListElement { name: "Persian"; value: "fa" }
+							ListElement { name: "Portuguese (Brazil)"; value: "pt_BR" }
+							ListElement { name: "Portuguese (Portugal)"; value: "pt_PT" }
+							ListElement { name: "Romanian"; value: "ro" }
+							ListElement { name: "Russian"; value: "ru" }
+							ListElement { name: "Spanish"; value: "es" }
+							ListElement { name: "Spanish (Argentina)"; value: "es_AR" }
+							ListElement { name: "Spanish (Mexico)"; value: "es_MX" }
+							ListElement { name: "Swedish (Finland)"; value: "sv_FI" }
+							ListElement { name: "Swedish (Sweden)"; value: "sv_SE" }
+							ListElement { name: "Thai"; value: "th" }
+							ListElement { name: "Turkish"; value: "tr" }
+							ListElement { name: "Vietnamese"; value: "vi" }
 					    }
 						initialValue: MySettings.getSetting("Language", "en")
 					    onValueChosen: { 
@@ -248,8 +273,46 @@ WAPage {
 					spacing: 10
 
 					GroupSeparator {
+						title: qsTr("Background")
+					}
+
+					SelectionItem {
+						id: backgroundSelector
+					    title: qsTr("Image")
+					    initialValue: MySettings.getSetting("Background", "none")
+						onClicked: pageStack.push(Qt.resolvedUrl("SetBackground.qml") );
+					}
+
+
+					Label {
+						verticalAlignment: Text.AlignBottom
+						text: qsTr("Opacity:")
+						y: 24
+						height: 50
+					}
+		            Slider {
+		                //visible:settingsPage.status!=PageStatus.Inactive
+		                id: themeslider
+						x: 20; width: parent.width -40
+		                maximumValue: 10
+		                minimumValue: 0
+		                stepSize: 1
+		                value: MySettings.getSetting("BackgroundOpacity", "0.5")
+		                platformStyle: mySliderStyle
+		                onValueChanged: {
+		                    myBackgroundOpacity = value
+							MySettings.setSetting("BackgroundOpacity", value)
+		                }
+
+		            }
+
+
+
+					GroupSeparator {
 						title: qsTr("Appearance")
 					}
+
+
 					Label {
 						verticalAlignment: Text.AlignBottom
 						text: qsTr("Orientation:")
@@ -311,6 +374,7 @@ WAPage {
 					        }
 					    }
 					}
+
 					Label {
 						verticalAlignment: Text.AlignBottom
 						text: qsTr("Bubble color:")
@@ -403,15 +467,11 @@ WAPage {
 					GroupSeparator {
 						title: qsTr("Personal messages")
 					}
-					SelectionItemTr {
+					SelectionItemTrSound {
 						id: personalTone
 					    title: qsTr("Notification tone")
-					    model: ringtoneModel
-						//initialValue: MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
-					    onValueChosen: { 
-							MySettings.setSetting("PersonalRingtone", value)
-							setPersonalRingtone(value)
-						}
+						profile: "PersonalRingtone"
+					    initialValue: personalRingtone
 					}
 					SwitchItem {
 						title: qsTr("Vibrate")
@@ -426,15 +486,11 @@ WAPage {
 					GroupSeparator {
 						title: qsTr("Group messages")
 					}
-					SelectionItemTr {
+					SelectionItemTrSound {
 						id: groupTone
 					    title: qsTr("Notification tone")
-					    model: ringtoneModel
-						//initialValue: MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
-					    onValueChosen: { 
-							MySettings.setSetting("GroupRingtone", value)
-							setGroupRingtone(value)
-						}
+						profile: "GroupRingtone"
+					    initialValue: groupRingtone
 					}
 					SwitchItem {
 						id: groupVibra
@@ -469,7 +525,7 @@ WAPage {
 			Flickable {
 				id: flickArea4
 				anchors.fill: parent
-				contentWidth: width
+				contentWidth: width 
 				contentHeight: column4.height + 20
 				anchors.centerIn: parent
 				clip: true
@@ -501,55 +557,16 @@ WAPage {
 							profileUser = myAccount
 							pageStack.push(setProfilePicture)
 						}
-						//onClicked: { 
-						//	if (bigImage.height>0) 
-						//		bigProfileImage = contactPicture
-						//		pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-								//Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
-						//}
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
-
-					/*ProfileImage {
-						id: picture
-						size: 140
-						height: size
-						width: size
-						imgsource: bigImage.height>0 ? contactPicture : "../common/images/user.png"
-						onClicked: { 
-							if (bigImage.height>0) 
-								bigProfileImage = contactPicture
-								pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-								//Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
-						}
-						anchors.horizontalCenter: parent.horizontalCenter
-					}
-
-					Button {
-						height: 50
-						width: parent.width
-						font.pixelSize: 22
-						text: qsTr("Change picture")
-						onClicked: {
-							profileUser = myAccount
-							pageStack.push(setProfilePicture)
-						}
-					}*/
 
 					GroupSeparator {
 						title: qsTr("Status")
 					}
 
-					/*SelectionItem {
-						id: statusText
-					    title: qsTr("Change current status")
-					    initialValue: Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
-					    onClicked: pageStack.push (Qt.resolvedUrl("../ChangeStatus/ChangeStatus.qml"))
-					}*/
-
 					Status {
 						id: myStatus
-						height: 140
+						//height: 140
 						clip: true
 						width: parent.width
 						text: Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))

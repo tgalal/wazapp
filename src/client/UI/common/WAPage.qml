@@ -27,4 +27,37 @@ import com.nokia.meego 1.0
 Page {
    orientationLock: appWindow.orientation==2 ? PageOrientation.LockLandscape:
                 appWindow.orientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
+
+	Connections {
+		target: appWindow
+		onSetBackground: {
+			var result = backgroundimg.replace("file://","")
+			myBackgroundImage = result
+		}
+	}
+
+    Image {
+		id: background
+        anchors.fill: parent
+        source: myBackgroundImage!="none" ? myBackgroundImage : ""
+        opacity: getOpacity(myBackgroundOpacity)
+		fillMode: Image.PreserveAspectCrop
+    }
+
+	function getOpacity(value) {
+		if (value=="10") return 1.0;
+		else if (value=="9") return 0.9;
+		else if (value=="8") return 0.8;
+		else if (value=="7") return 0.7;
+		else if (value=="6") return 0.6;
+		else if (value=="5") return 0.5;
+		else if (value=="4") return 0.4;
+		else if (value=="3") return 0.3;
+		else if (value=="2") return 0.2;
+		else if (value=="1") return 0.1;
+		else if (value=="0") return 0;
+
+	}
+
+
 }

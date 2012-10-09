@@ -289,20 +289,32 @@ class WAEventHandler(QObject):
 		self._d("Resending %i old messages"%(len(messages)))
 		for m in messages:
 			media = m.getMedia()
+			jid = m.getConversation().getJid()
 			if media is not None:
 				if media.transfer_status == 2:
 					if media.mediatype_id == 6:
-						'''self.interfaceHandler.send("message_vcardSend", m.getConversation.getJid(), stream, contactName)''' #@@TODO
+						vcard = self.readVCard(m.content)
+						if vcard:
+							resultId = self.interfaceHandler.call("message_vcardSend", (jid, vcard, m.content))
+							k = Key(jid, True, resultId)
+							m.key = k.toString()
+							m.save()
+										
 					elif media.mediatype_id == 5:
-						'''self.sendMessageWithLocation(m)''' #@@TODO
+						
+							latitude,longitude = media.local_path.split(',')
+							
+							resultId = self.interfaceHandler.call("message_locationSend", (jid, latitude, longitude, media.preview))
+							k = Key(jid, True, resultId)
+							m.key = k.toString()
+							m.save()
 					else:
 						media.transfer_status = 1
 						media.save()
 			else:
 				try:
-					jid = m.getConversation().getJid()
 					msgId = self.interfaceHandler.call("message_send", (jid, m.content.encode('utf-8')))
-					m.key = Key(jid, True, msgId).toString() #@@TODO check offline send time correctness
+					m.key = Key(jid, True, msgId).toString()
 					m.save()
 				except UnicodeDecodeError:
 					self._d("skipped sending an old message because UnicodeDecodeError")
@@ -979,18 +991,40 @@ class WAEventHandler(QObject):
 		self._d("Group Vibrate: " + str(value))
 		self.notifier.groupVibrate = value;
 
-
+	
+	def readVCard(self, contactName):
+		
+		path = WAConstants.VCARD_PATH + "/"+contactName+".vcf"
+		stream = ""
+		if os.path.exists(path):
+			try:
+				while not "END:VCARD" in stream:
+					f = open(path, 'r')
+					stream = f.read()
+					f.close()
+					sleep(0.1)
+					
+				
+				if len(stream) > 65536:
+					print "Vcard too large! Removing photo..."
+					n = stream.find("PHOTO")
+					stream = stream[:n] + "END:VCARD"
+					f = open(path, 'w')
+					f.write(stream)
+					f.close()
+			except:
+				pass
+		
+		return stream
+	
 	def sendVCard(self,jid,contactName):
 		contactName = contactName.encode('utf-8')
 		self._d("Sending vcard: " + WAConstants.VCARD_PATH + "/" + contactName + ".vcf")
 
-		stream = ""
-		while not "END:VCARD" in stream:
-			f = open(WAConstants.VCARD_PATH + "/"+contactName+".vcf", 'r')
-			stream = f.read()
-			f.close()
-			sleep(0.1)
-			
+		
+		stream = self.readVCard(contactName)
+		if not stream:
+			return
 		#print "DATA: " + stream
 
 		fmsg = WAXMPP.message_store.createMessage(jid);
@@ -1020,16 +1054,6 @@ class WAEventHandler(QObject):
 			vcardImage = stream[n:]
 			vcardImage = vcardImage.replace("END:VCARD","")
 			#mediaItem.preview = vcardImage
-
-		print "VCARD SIZE: " + str(len(stream))
-
-		if len(stream) > 65536:
-			print "Vcard too large! Removing photo..."
-			n = stream.find("PHOTO")
-			stream = stream[:n] + "END:VCARD"
-			f = open(WAConstants.VCARD_PATH + "/"+contactName+".vcf", 'w')
-			f.write(stream)
-			f.close()
 
 		mediaItem.preview = vcardImage
 

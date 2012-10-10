@@ -5,6 +5,11 @@ import "../../../common"
 Item {
     property alias model:walistview.model
     property alias delegate:walistview.delegate
+
+    function positionViewAtBeginning (){
+        walistview.positionViewAtBeginning()
+    }
+
     anchors.fill: parent
     ListView {
 

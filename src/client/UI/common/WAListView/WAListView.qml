@@ -59,13 +59,29 @@ Rectangle {
         }
     ]
 
-
     function reset(){
         _removedCount=0
-        WAlvhelper.items = new Array()
-        WAlvhelper.selectedIndices = new Array()
+        //WAlvhelper.items = new Array()
+        resetSelections()
+        positionViewAtBeginning()
+
     }
 
+    function positionViewAtBeginning (){
+        walistview.item.positionViewAtBeginning()
+         consoleDebug("Positioned to beginning!")
+    }
+
+    function resetSelections(){
+
+        var selected = getSelected()
+        for (var i=0; i<selected.length; i++){
+
+            unSelect(selected[i].selectedIndex)
+        }
+
+         WAlvhelper.selectedIndices = new Array()
+    }
 
     function getItems(){
         return WAlvhelper.items

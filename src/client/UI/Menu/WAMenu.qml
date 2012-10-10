@@ -37,8 +37,8 @@ Menu {
             text: qsTr("Create group");
 			enabled: connectionStatus=="online"
             onClicked: {
-				selectedContacts = ""
-				participantsModel.clear()
+                //selectedContacts = ""
+                //participantsModel.clear()
 				pageStack.push (Qt.resolvedUrl("../Groups/CreateGroup.qml"))
 			}
         }

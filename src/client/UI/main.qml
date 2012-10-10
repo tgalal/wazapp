@@ -791,6 +791,10 @@ WAStackWindow {
         id:settingsPage
     }*/
 
+    SyncedContactsList{
+        id: genericSyncedContactsSelector
+    }
+
 	SendPicture {
 		id:sendPicture
 	}
@@ -817,6 +821,7 @@ WAStackWindow {
 
 	AddContacts {
 		id: addContacts
+
 	}
 
     LoadingPage{
@@ -835,10 +840,10 @@ WAStackWindow {
         id:phoneContactsModel
     }
 
-	property string selectedContacts: ""
-	ListModel {
-		id: participantsModel
-	}
+    property string selectedContacts: ""
+    ListModel {
+        id: participantsModel
+    }
 
 
     WAPage {

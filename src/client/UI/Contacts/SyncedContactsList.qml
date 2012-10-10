@@ -14,6 +14,22 @@ WAPage{
         return contactlist.getSelected()
     }
 
+    function resetSelections(){
+        contactlist.resetSelections()
+    }
+
+    function positionViewAtBeginning (){
+        contactlist.positionViewAtBeginning()
+    }
+
+    function unbindSlots(){
+        selected.disconnect()
+    }
+
+    function select(ind){return contactlist.select(ind);}
+    function unSelect(ind){return contactlist.unSelect(ind);}
+
+
     WAHeader{
         id:header
         anchors.top:parent.top

@@ -133,7 +133,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
         case AccountSetup::CreateNew:
             {
             viewer->init(1);
-            viewer->rootContext()->setContextProperty("mccCode",Utilities::getMcc());
     }
             break;
 
@@ -150,7 +149,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
        default:{
             viewer->init(1);
-            viewer->rootContext()->setContextProperty("mccCode",Utilities::getMcc());
              }
 
 

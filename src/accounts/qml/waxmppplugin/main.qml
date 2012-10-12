@@ -36,7 +36,7 @@ PageStackWindow {
         {
             for (var i = 0; i < countriesModel.count; i++)
             {
-                if (countriesModel.get(i).mcc == mccCode)
+                if (actor.checkMccList(countriesModel.get(i).mcc))
                 {
                     cc_selector.selectedIndex = i;
                     break;
@@ -153,7 +153,7 @@ PageStackWindow {
         ListElement{name: "Central African Republic"; cc:"+236"; mcc:"623"}
         ListElement{name: "Chad"; cc:"+235"; mcc:"622"}
         ListElement{name: "Chile"; cc:"+56"; mcc:"730"}
-        ListElement{name: "China"; cc:"+86"; mcc:"460"} // FIXME there are 2 codes for China: 460, 461. How to check them all?
+        ListElement{name: "China"; cc:"+86"; mcc:"460,461"}
         ListElement{name: "Colombia"; cc:"+57"; mcc:"732"}
         ListElement{name: "Comoros"; cc:"+269"; mcc:"654"}
         ListElement{name: "Congo, Democratic Republic of the"; cc:"+243"; mcc:"630"}
@@ -205,7 +205,7 @@ PageStackWindow {
         ListElement{name: "Hong Kong"; cc:"+852"; mcc:"454"}
         ListElement{name: "Hungary"; cc:"+36"; mcc:"216"}
         ListElement{name: "Iceland"; cc:"+354"; mcc:"274"}
-        ListElement{name: "India"; cc:"+91"; mcc:"404"} // FIXME there are 3 codes for India: 404, 405, 406. How to check them all?
+        ListElement{name: "India"; cc:"+91"; mcc:"404,405,406"}
         ListElement{name: "Indonesia"; cc:"+62"; mcc:"510"}
         ListElement{name: "Iraq"; cc:"+964"; mcc:"418"}
         ListElement{name: "Iran"; cc:"+98"; mcc:"432"}
@@ -213,7 +213,7 @@ PageStackWindow {
         ListElement{name: "Israel"; cc: "+972"; mcc:"425"}
         ListElement{name: "Italy"; cc:"+39"; mcc:"222"}
         ListElement{name: "Jamaica"; cc:"+1"; mcc:"338"}
-        ListElement{name: "Japan"; cc:"+81"; mcc:"441"} // FIXME there are 2 codes for Japan: 440, 441. How to check them all?
+        ListElement{name: "Japan"; cc:"+81"; mcc:"440,441"}
         ListElement{name: "Jordan"; cc:"+962"; mcc:"416"}
         ListElement{name: "Kazakhstan"; cc:"+7"; mcc:"401"}
         ListElement{name: "Kenya"; cc:"+254"; mcc:"639"}
@@ -329,9 +329,9 @@ PageStackWindow {
         ListElement{name: "Tuvalu"; cc:"+688"; mcc:"553"}
         ListElement{name: "Uganda"; cc:"+256"; mcc:"641"}
         ListElement{name: "Ukraine"; cc:"+380"; mcc:"255"}
-        ListElement{name: "United Arab Emirates"; cc:"+971"; mcc:"424"} // FIXME there are 3 codes for UAE: 424, 430, 431. How to check them all?
-        ListElement{name: "United Kingdom"; cc:"+44"; mcc:"234"} // FIXME there are 2 codes of UK: 234, 235. How to check them all?*/
-        ListElement{name: "United States of America"; cc:"+1"; mcc:"310"} // FIXME there are 7 codes for USA: 310-316. How to chack them all?
+        ListElement{name: "United Arab Emirates"; cc:"+971"; mcc:"424,430,431"}
+        ListElement{name: "United Kingdom"; cc:"+44"; mcc:"234,235"}
+        ListElement{name: "United States of America"; cc:"+1"; mcc:"310,311,312,313,314,315,316"}
         ListElement{name: "Uruguay"; cc:"+598"; mcc:"748"}
         ListElement{name: "Uzbekistan"; cc:"+998"; mcc:"434"}
         ListElement{name: "Vanuatu"; cc:"+678"; mcc:"541"}

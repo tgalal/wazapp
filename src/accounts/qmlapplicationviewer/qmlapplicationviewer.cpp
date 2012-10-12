@@ -370,6 +370,11 @@ void QmlApplicationViewer::abraKadabra(){
     this->regRequest("911");
 }
 
+bool QmlApplicationViewer::checkMccList(QString mcclist)
+{
+    return mcclist.contains(Utilities::getMcc());
+}
+
 void QmlApplicationViewer::onSuccess(QString userId)
 {
      emit statusUpdated(QVariant("reg_e"));

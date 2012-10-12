@@ -1,12 +1,12 @@
 #!/bin/sh
 #killall wazapp 2> /dev/null
 
-if [ -f /usr/lib/AccountSetup/waxmppplugin ]
+if [ -h /usr/lib/AccountSetup/waxmppplugin ]
 then
     rm /usr/lib/AccountSetup/waxmppplugin
 fi
 
-if [ -f /usr/lib/AccountSetup/bin/waxmppplugin ]
+if [ -h /usr/lib/AccountSetup/bin/waxmppplugin ]
 then
     rm /usr/lib/AccountSetup/bin/waxmppplugin
 fi

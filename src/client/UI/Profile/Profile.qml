@@ -40,10 +40,10 @@ WAPage {
         }
     }
 
-	property string contactName
-	property string contactNumber
-	property string contactPicture: "none"
-	property string contactStatus
+    property string myName
+    property string myNumber
+    property string myPicture: currentProfilePicture?currentProfilePicture:defaultProfilePicture
+    property string myStatus: currentStatus
 
 	Component.onCompleted: {
 		MySettings.initialize()
@@ -51,42 +51,43 @@ WAPage {
 		getInfo()
 	}
 
-	onStatusChanged: {
+    /*onStatusChanged: {
         if(status == PageStatus.Activating){
-            contactStatus = MySettings.getSetting("Status", "")
+            myStatus = MySettings.getSetting("Status", "")
         }
-	}
+    }*/
 
 	function getInfo() {
-		contactName = qsTr("My Profile")
-		contactStatus = MySettings.getSetting("Status", "")
-		contactNumber = myAccount.split('@')[0]
-        contactPicture = WAConstants.CACHE_CONTACTS + "/" + contactNumber + ".png"
+        myName = qsTr("My Profile")
+        myStatus = MySettings.getSetting("Status", "")
+        myNumber = myAccount.split('@')[0]
+        myPicture = WAConstants.CACHE_CONTACTS + "/" + myNumber + ".png"
 		bigImage.source = ""
         bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
 		getPicture(myAccount, "image")
 
 	}
 
-	Connections {
+    /*Connections {
 		target: appWindow
-		onOnContactPictureUpdated: {
+        onOnXContactPictureUpdated: {
 			if (myAccount == ujid) {
-                contactPicture = WAConstants.CACHE_CONTACTS + "/" + contactNumber + ".png"
+              //  myPicture = WAConstants.CACHE_CONTACTS + "/" + myNumber + ".png"
 				picture.imgsource = ""
-				picture.imgsource = contactPicture
+                picture.imgsource = myPicture
 				bigImage.source = ""
-                bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
+                bigImage.source = WAConstants.CACHE_PROFILE + "/" + myAccount.split('@')[0] + ".jpg"
 			}
 		}
 		onStatusChanged: {
-			contactStatus = MySettings.getSetting("Status", "")
+            myStatus = MySettings.getSetting("Status", "")
 		}
-	}
+    }*/
 
 	Image {
 		id: bigImage
 		visible: false
+        source: myPicture
 		//source: contactPicture.replace(".png",".jpg").replace("contacts","profile")
 	}
 
@@ -108,12 +109,12 @@ WAPage {
 				size: 80
 				height: size
 				width: size
-				imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
+                imgsource: myPicture
 				onClicked: { 
 					if (bigImage.width>0) {
-                        bigProfileImage = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
+                        //bigProfileImage = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
 						//pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-						Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
+                        Qt.openUrlExternally(myPicture.replace(".png",".jpg").replace("contacts","profile"))
 					}
 				}
 			}
@@ -123,7 +124,7 @@ WAPage {
 				anchors.verticalCenter: picture.verticalCenter
 
 				Label {
-					text: contactName
+                    text: myName
 					font.bold: true
 					font.pixelSize: 26
 					width: parent.width
@@ -133,8 +134,8 @@ WAPage {
 				Label {
 					font.pixelSize: 22
 					color: "gray"
-					visible: contactStatus!==""
-					text: Helpers.emojify(contactStatus)
+                    visible: myStatus!==""
+                    text: Helpers.emojify(myStatus)
 					width: parent.width
 					elide: Text.ElideRight
 				}
@@ -151,7 +152,6 @@ WAPage {
 			width: parent.width
 			font.pixelSize: 22
 			text: qsTr("Change status")
-			//visible: contactStatus!==""
 			onClicked: pageStack.push (Qt.resolvedUrl("../ChangeStatus/ChangeStatus.qml"))
 		}
 
@@ -169,5 +169,13 @@ WAPage {
 
 
 	}
+
+    SelectPicture {
+        id:setProfilePicture
+        onSelected: {
+            pageStack.pop()
+            setPicture(jid, path)
+        }
+    }
 
 }

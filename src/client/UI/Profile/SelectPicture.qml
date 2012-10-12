@@ -30,6 +30,8 @@ import "../common"
 WAPage {
     id:container
 
+    signal selected(string path)
+
     tools: ToolBarLayout {
         id: toolBar
         ToolIcon {
@@ -144,11 +146,9 @@ WAPage {
 	            id: mouseArea
 	            anchors.fill: parent
 	            onClicked: {
-					//selectedPicture = url //"/home/user/.thumbnails/grid/" + Qt.md5(url) + ".jpeg" //url
-					//pageStack.replace(Qt.resolvedUrl("SetPicture.qml"))
 
-	                setPicture(profileUser, decodeURIComponent(url))
-					pageStack.pop()
+                    selected(decodeURIComponent(url));
+
 	            }
 	        }
 		}

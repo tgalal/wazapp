@@ -29,6 +29,8 @@ import "../EmojiDialog"
 WAPage {
 
 	id: content
+    property string jid;
+    property string currentSubject;
 
 	signal emojiSelected(string emojiCode);
 
@@ -77,7 +79,7 @@ WAPage {
 				wrapMode: TextEdit.Wrap
 				textFormat: Text.RichText
 				textColor: "black"
-				text: groupSubject
+                text: currentSubject
 				onActiveFocusChanged: { 
 					lastPosition = subject_text.cursorPosition 
 				}
@@ -121,7 +123,7 @@ WAPage {
 						consoleDebug("Setting subject: " + toSend)
 						toSend = toSend.trim();
 						if ( toSend != "") {
-							setGroupSubject(profileUser, toSend)
+                            setGroupSubject(jid, toSend)
 							pageStack.pop()
 						}
 					}

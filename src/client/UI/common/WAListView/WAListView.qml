@@ -293,7 +293,7 @@ Rectangle {
                 height:parent.height
                 anchors.right: parent.right
                 //anchors.rightMargin: 5
-                visible: !item.isSelected && allowRemove
+                visible: !item.isSelected && allowRemove && !(model.noremove && model.noremove==true)
 
 
                 BorderImage {

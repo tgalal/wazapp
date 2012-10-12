@@ -84,7 +84,7 @@ class WAEventHandler(WAEventBase):
 	removeParticipants = QtCore.Signal(str, str);
 	removedParticipants = QtCore.Signal();
 	getGroupParticipants = QtCore.Signal(str);
-	groupParticipants = QtCore.Signal(str);
+	groupParticipants = QtCore.Signal(str, str);
 	endGroupChat = QtCore.Signal(str);
 	groupEnded = QtCore.Signal();
 	setGroupSubject = QtCore.Signal(str, str);
@@ -874,7 +874,7 @@ class WAEventHandler(WAEventBase):
 		
 	def onGroupParticipants(self,jid,jids):
 		self._d("GOT group participants")
-		self.groupParticipants.emit(",".join(jids));
+		self.groupParticipants.emit(jid, ",".join(jids));
 		conversation = WAXMPP.message_store.getOrCreateConversationByJid(jid);
 		
 		# DO WE REALLY NEED TO ADD EVERY CONTACT ?
@@ -1594,6 +1594,7 @@ class StanzaReader(QThread):
 
 					if fromAttribute == "s.us":
 						print "STATUS CHANGED NOTIFICATION!!!"
+						self.connection.sendDeliveredReceiptAck(fromAttribute,msg_id); 
 						self.eventHandler.statusChanged.emit()
 						return;
 

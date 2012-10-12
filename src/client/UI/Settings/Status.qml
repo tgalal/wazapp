@@ -33,6 +33,7 @@ Item {
 
 	property alias text: status_text.text
 	property string tempStatus: ""
+    property bool requested:false
 	
 	signal emojiSelected(string emojiCode);
 
@@ -82,13 +83,22 @@ Item {
 	Connections {
 		target: appWindow
 
-		onStatusChanged: {
-			MySettings.setSetting("Status", tempStatus)
-			myStatus.text = Helpers.emojify(tempStatus)
-			send_button.enabled = true
-			status_text.enabled = true
-			emoji_button.enabled = true
-		}
+        onProfileStatusChanged: {
+
+            if(requested) {
+                MySettings.setSetting("Status", tempStatus)
+                myStatus.text = Helpers.emojify(tempStatus)
+                send_button.text=qsTr("Done")
+                send_button.enabled = true
+                status_text.enabled = true
+                emoji_button.enabled = true
+
+                showNotification(qsTr("Status updated"))
+
+                requested = false
+
+            }
+        }
 	}
 	
     Column {
@@ -140,19 +150,21 @@ Item {
 				height:50
 				text: qsTr("Done")
 				anchors.right: parent.right
-				anchors.rightMargin: 0
+                anchors.rightMargin: 0
 				//enabled: cleanText(status_text.text).trim() !=""
 				y: 0
 				onClicked:{
 					var toSend = cleanText(status_text.text);
 					toSend = toSend.trim();
 					if ( toSend != "")
-					{
+                    {
+                        requested = true;
 						tempStatus = toSend;
-						changeStatus(toSend);
-						send_button.enabled = false
-						status_text.enabled = false
-						emoji_button.enabled = false
+                        changeStatus(toSend);
+                        send_button.text = qsTr("Updating") + "..."
+                        send_button.enabled = false
+                        status_text.enabled = false
+                        emoji_button.enabled = false
 					}
 				}
 			}

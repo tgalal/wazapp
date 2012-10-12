@@ -25,6 +25,7 @@ import "../common/js/Global.js" as Helpers
 import "../Contacts/js/contact.js" as ContactHelper
 import "../common"
 import "../common/WAListView"
+import "../Profile"
 import "../EmojiDialog"
 
 WAPage {
@@ -34,11 +35,12 @@ WAPage {
 	property string groupId
 	property bool creatingGroup: false
 	signal emojiSelected(string emojiCode);
+    property string selectedPicture
 
     Component.onCompleted: {
         //participantsModel.clear()
         //selectedContacts = ""
-		selectedGroupPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
+
         status_text.forceActiveFocus();
 
         genericSyncedContactsSelector.resetSelections()
@@ -135,7 +137,7 @@ WAPage {
                 size: 80
                 height: size
                 width: size
-                imgsource: selectedGroupPicture
+                imgsource: selectedPicture || "../"+defaultGroupPicture
             }
 
             Button {
@@ -145,7 +147,7 @@ WAPage {
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: 22
                 text: qsTr("Select picture")
-                onClicked: pageStack.push (Qt.resolvedUrl("SelectGroupPicture.qml"))
+                onClicked: pageStack.push(selectPicturePage)
             }
         }
 
@@ -286,8 +288,8 @@ WAPage {
 		}
 		onAddedParticipants: {
 
-            if(selectedGroupPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-                setPicture(groupId, selectedGroupPicture)
+            if(selectedPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+                setPicture(groupId, selectedPicture)
         	openConversation(groupId);
 		}
 	}
@@ -341,5 +343,14 @@ WAPage {
         }
 
     }
+
+    SelectPicture {
+        id:selectPicturePage
+        onSelected: {
+            pageStack.pop()
+            selectedPicture = path
+        }
+    }
+
 
 }

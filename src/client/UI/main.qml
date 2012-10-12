@@ -28,7 +28,7 @@ import "common"
 import "Contacts"
 import "Menu"
 import "Updater"
-//import "Settings"
+import "Settings"
 import "Conversations"
 import "Profile"
 import "Groups"
@@ -67,33 +67,37 @@ WAStackWindow {
 
     property string waversiontype:waversion.split('.').length == 4?'developer':'beta'
     property string activeConvJId:""
-	property string profileUser
+    property string profileUser//@@THIS IS FUCKING RETARDED!!!!!!!!
 	property bool updateSingleStatus: false
 	property bool dialogOpened: false
     property int mainBubbleColor
 	property bool sendWithEnterKey
 	property bool resizeImages
-	property string selectedPicture
-	property string selectedContactName: ""
-	property string selectedGroupPicture
-	property string bigProfileImage
+    //property string selectedPicture//@@THIS IS FUCKING RETARDED!!!!!!!!
+    property string selectedContactName: ""//@@THIS IS FUCKING RETARDED!!!!!!!!
+    //property string selectedGroupPicture//@@THIS IS FUCKING RETARDED!!!!!!!!
+    //property string bigProfileImage //@@THIS IS FUCKING RETARDED!!!!!!!!
     property int orientation
 	property string personalRingtone
 	property string groupRingtone
 	property string vibraForPersonal
 	property string vibraForGroup
 	property bool initializationDone: false
-	property string currentSelectionProfile
-	property string currentSelectionProfileValue
+    property string currentSelectionProfile//@@THIS IS FUCKING RETARDED!!!!!!!!
+    property string currentSelectionProfileValue//@@THIS IS FUCKING RETARDED!!!!!!!!
 	property string myBackgroundImage
 	property int myBackgroundOpacity
+
+    property string currentProfilePicture: currentPicture;
+    property string currentStatus:MySettings.getSetting("Status", "Hi there I'm using Wazapp")
+    property string defaultProfilePicture: "common/images/user.png"
+    property string defaultGroupPicture: "common/images/group.png"
 
     /****** Signal and Slot definitions *******/
 
 	signal setLanguage(string lang);
 	signal consoleDebug(string text);
 
-	signal statusChanged();
     signal changeStatus(string new_status)
     signal sendMessage(string jid, string msg);
     signal requestPresence(string jid);
@@ -119,13 +123,11 @@ WAStackWindow {
 	signal removeParticipants(string gjid, string participants);
 	signal removedParticipants();
 	signal getGroupParticipants(string gjid);
-	signal groupParticipants();
 	signal endGroupChat(string gjid);
 	signal groupEnded();
 	signal setGroupSubject(string gjid, string subject);
 	signal getPictureIds(string jids);
 	signal getPicture(string jid, string type);
-	signal onContactPictureUpdated(string ujid);
 	signal setPicture(string jid, string file);
 	signal sendMediaMessage(string jid, string data, string image, string preview);
 	signal sendMediaImageFile(string jid, string file);
@@ -169,9 +171,9 @@ WAStackWindow {
 		openPreviewPicture(ujid, picturefile, rotation, previewimg, capturemode)
 	}
 
-	signal mediaTransferProgressUpdated(int mprogress, int mid)
-	signal mediaTransferSuccess(int mid, string filepath)
-	signal mediaTransferError(int mid)
+    signal mediaTransferProgressUpdated(int mprogress, int mid) //@@THIS IS FUCKING RETARDED!!!!!!!!
+    signal mediaTransferSuccess(int mid, string filepath)//@@THIS IS FUCKING RETARDED!!!!!!!!
+    signal mediaTransferError(int mid)//@@THIS IS FUCKING RETARDED!!!!!!!!
 
 	signal selectedMedia(string url);
 	property string currentJid: ""
@@ -249,18 +251,67 @@ WAStackWindow {
 		removedParticipants()
 	}
 
+    signal profilePictureUpdated()
 
-	property string groupParticipantsIds
-	function onGroupParticipants(jids) {
-		groupParticipantsIds = jids
-		groupParticipants()
+    function onPictureUpdated(jid) {
+
+        if(jid == myAccount) {
+            var path = WAConstants.CACHE_CONTACTS + "/" + myAccount.split("@")[0] + ".jpg";
+            currentProfilePicture=""
+            currentProfilePicture = path
+
+            profilePictureUpdated()
+        } else {
+
+            var isGroup =  jid.indexOf("-") != -1
+            var conversation = isGroup?waChats.getOrCreateConversation(jid):waChats.findConversation(jid)
+
+            if(!isGroup) {
+                  consoleDebug("getting contacts")
+                var contacts = getContacts();
+                consoleDebug("Looking for right contact to update")
+                for(var i=0; i<contacts.count; i++){
+                    var c = contacts.get(i);
+                    if(c.jid == jid){
+                        consoleDebug("Updating contact picture now")
+                        c.picture = ""
+                        c.picture = WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".jpg";
+                    }
+                }
+            }
+
+            if(conversation){
+                conversation.picture = ""
+                conversation.onChange();
+                conversation.picture = conversation.getPicture();
+                conversation.onChange();
+            }
+        }
+    }
+
+    //property string groupParticipantsIds
+    function onGroupParticipants(jid, jids) {
+        //groupParticipantsIds = jids
+        //groupParticipants()
+
+        console.log("GOT GROUP PARTICIPANTS FOR "+jid)
+        var conversation = waChats.getOrCreateConversation(jid);
+        console.log("GOT CONV, now pushing")
+        conversation.pushParticipants(jids)
+
 	}
 
 	function onGroupEnded() {
 		groupEnded()
 	}
 
-	signal groupInfoUpdated(string gjid, string gdata)
+    function onGroupInfoUpdated(jid, data) {
+        consoleDebug("SHOULD PUSH GROUP INFO TO "+jid)
+        var conversation = waChats.getOrCreateConversation(jid);
+        conversation.pushGroupInfo(data);
+        conversation.onChange();
+
+    }
 
 	function onGroupSubjectChanged() {
 		getGroupInfo(profileUser)
@@ -332,6 +383,12 @@ WAStackWindow {
         aboutDialog.open();
     }
 
+    function showNotification(text){
+        osd_notify.parent = pageStack.currentPage
+        osd_notify.text = text
+        osd_notify.show();
+    }
+
     function setSplashOperation(op) {
         splashPage.setCurrentOperation(op)
     }
@@ -400,6 +457,7 @@ WAStackWindow {
     }
 
 
+
 	property string contactForStatus
 	signal contactStatusUpdated(string nstatus)
 	function updateContactStatus(status) {
@@ -413,20 +471,18 @@ WAStackWindow {
 		contactStatusUpdated(status)
 	}
 	
-	
-	property string myAccount: ""
-	function setMyAccount(account) {
-		myAccount = account
 
-		blockedContacts = MySettings.getSetting("BlockedContacts", "")
-		setBlockedContacts(blockedContacts)
+    function setMyAccount(account) { //@@TODO purge!
 
-		resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
-		setResizeImages(resizeImages)
+        blockedContacts = MySettings.getSetting("BlockedContacts", "")
+        setBlockedContacts(blockedContacts)
 
-		setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
+        resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
+        setResizeImages(resizeImages)
+
+        setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
         setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"); //changed to be passed as boolean
-		setGroupRingtone(MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
+        setGroupRingtone(MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
         setGroupVibrate(MySettings.getSetting("GroupVibrate", "Yes")=="Yes");
 
 	}
@@ -579,7 +635,11 @@ WAStackWindow {
         }
     }
 
-
+    signal profileStatusChanged()
+    function onProfileStatusChanged(){
+        profileStatusChanged()
+        currentStatus = MySettings.getSetting("Status", "")
+    }
 
     function onContactsSyncStatusChanged(s) {
         switch(s){
@@ -641,7 +701,7 @@ WAStackWindow {
 
     }
 
-	signal reorderConversation(string cjid)
+    signal reorderConversation(string cjid) //@@THIS IS FUCKING RETARDED!!!!!!!!
 	signal updateChatItemList()
 
     function messagesReady(messages,reorder){
@@ -711,7 +771,7 @@ WAStackWindow {
         }
     }
 
-	signal onTyping(string ujid)
+    signal onTyping(string ujid)//@@THIS IS FUCKING RETARDED!!!!!!!!
     /*function onTyping(jid){
         var conversation = waChats.getConversation(jid);
 
@@ -720,7 +780,7 @@ WAStackWindow {
         }
     }*/
 
-	signal onPaused(string ujid)
+    signal onPaused(string ujid) //@@THIS IS FUCKING RETARDED!!!!!!!!
     /*function onPaused(jid){
         var conversation = waChats.getConversation(jid);
 
@@ -729,7 +789,7 @@ WAStackWindow {
         }
     }*/
 
-    signal messageSent(int mid, string ujid)
+    signal messageSent(int mid, string ujid)//@@THIS IS THE MOST FUCKING RETARDED THING I'VE EVER SEEN!!!!!!!!
     function onMessageSent(message_id,jid) {
         var conversation = waChats.getConversation(jid);
 
@@ -739,7 +799,7 @@ WAStackWindow {
 		messageSent(message_id,jid)
     }
 
-    signal messageDelivered(int mid, string ujid)
+    signal messageDelivered(int mid, string ujid)  //@@THIS IS THE MOST FUCKING RETARDED THING I'VE EVER SEEN!!!!!!!!
     function onMessageDelivered(message_id,jid) {
         var conversation = waChats.getConversation(jid);
 
@@ -787,9 +847,9 @@ WAStackWindow {
         id:updatePage
     }
 
-    /*Settings{
+    SettingsNew{
         id:settingsPage
-    }*/
+    }
 
     SyncedContactsList{
         id: genericSyncedContactsSelector
@@ -811,17 +871,8 @@ WAStackWindow {
 		id:sendAudio
 	}
 
-	SelectPicture {
-		id:setProfilePicture
-	}
-
 	SelectContacts {
 		id: shareSyncContacts
-	}
-
-	AddContacts {
-		id: addContacts
-
 	}
 
     LoadingPage{
@@ -841,9 +892,9 @@ WAStackWindow {
     }
 
     property string selectedContacts: ""
-    ListModel {
+    /*ListModel {
         id: participantsModel
-    }
+    }*/
 
 
     WAPage {

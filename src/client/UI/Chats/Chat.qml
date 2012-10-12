@@ -59,7 +59,7 @@ Rectangle{
 				waChats.moveToCorrectIndex(cjid);
 		}
 
-		onGroupInfoUpdated: {
+        /*onGroupInfoUpdated: {
 			var data = gdata.split("<<->>")
 			if (jid==gjid) {
 				consoleDebug("CONVERSATION JID: " + jid)
@@ -74,7 +74,8 @@ Rectangle{
 				chat_picture.imgsource = ""
 				chat_picture.imgsource = picture
 			}
-		}	
+        }*/
+
 		onUpdateContactName: {
 			if (jid == ujid) {
 				if (title = jid.split('@')[0]) {

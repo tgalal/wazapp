@@ -46,7 +46,7 @@ class WAUI(QDeclarativeView):
 	phoneContactsReady = QtCore.Signal(list)
 
 	
-	def __init__(self):
+	def __init__(self, accountJid):
 		
 		_d = UIDebug();
 		self._d = _d.d;
@@ -71,10 +71,17 @@ class WAUI(QDeclarativeView):
 		url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
 
 		self.filelist = []
-		
+		self.accountJid = accountJid;
 
 		self.rootContext().setContextProperty("waversion", Utilities.waversion);
 		self.rootContext().setContextProperty("WAConstants", WAConstants.getAllProperties());
+		self.rootContext().setContextProperty("myAccount", accountJid);
+		
+		currProfilePicture = WAConstants.CACHE_PROFILE + "/" + accountJid.split("@")[0] + ".jpg"
+		self.rootContext().setContextProperty("currentPicture", currProfilePicture if os.path.exists(currProfilePicture) else "")
+		
+		
+		
 		self.setSource(url);
 		self.focus = False
 		self.whatsapp = None
@@ -99,7 +106,7 @@ class WAUI(QDeclarativeView):
 		#self.c.contactsRefreshed.connect(self.updateContactsData); NUEVO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		self.c.contactsRefreshFailed.connect(self.rootObject().onRefreshFail);
 		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
-		self.c.contactPictureUpdated.connect(self.rootObject().onContactPictureUpdated);
+		self.c.contactPictureUpdated.connect(self.rootObject().onPictureUpdated);
 		#self.c.contactUpdated.connect(self.rootObject().onContactUpdated);
 		#self.c.contactAdded.connect(self.onContactAdded);
 		self.rootObject().refreshContacts.connect(self.c.resync)
@@ -218,7 +225,6 @@ class WAUI(QDeclarativeView):
 
 	def setMyAccount(self,account):
 		self.rootObject().setMyAccount(account)
-		self.account = account
 
 	def sendSMS(self, num):
 		print "SENDING SMS TO " + num
@@ -594,7 +600,7 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.lastSeenUpdated.connect(self.rootObject().onLastSeenUpdated);
 		whatsapp.eventHandler.updateAvailable.connect(self.rootObject().onUpdateAvailable)
 		
-		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().groupInfoUpdated);
+		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().onGroupInfoUpdated);
 		whatsapp.eventHandler.groupCreated.connect(self.rootObject().groupCreated);
 		whatsapp.eventHandler.addedParticipants.connect(self.rootObject().addedParticipants);
 		whatsapp.eventHandler.removedParticipants.connect(self.rootObject().onRemovedParticipants);
@@ -604,7 +610,7 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.profilePictureUpdated.connect(self.updateContact);
 
 		whatsapp.eventHandler.setPushName.connect(self.updatePushName);
-		whatsapp.eventHandler.statusChanged.connect(self.rootObject().statusChanged);
+		whatsapp.eventHandler.statusChanged.connect(self.rootObject().onProfileStatusChanged);
 		#whatsapp.eventHandler.setPushName.connect(self.rootObject().updatePushName);
 		#whatsapp.eventHandler.profilePictureUpdated.connect(self.rootObject().onPictureUpdated);
 

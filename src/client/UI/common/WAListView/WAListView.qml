@@ -89,7 +89,7 @@ Rectangle {
 
 
     function select(ind){
-
+        consoleDebug("In selector")
         if(isSelected())
             return
 
@@ -216,9 +216,9 @@ Rectangle {
 
 
             //height: filtered ? 80 : 0
-            height:isRemoved?0:80
+            height:(model.norender && model.norender == true) || isRemoved?0:80
             visible:!isRemoved
-            width: appWindow.inPortrait? 480:854
+            width: parent.width
             color: "transparent"
             clip: true
 

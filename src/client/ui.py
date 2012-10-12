@@ -294,7 +294,10 @@ class WAUI(QDeclarativeView):
 
 			contacts = self.c.getContacts();
 			self._d("POPULATE CONTACTS: " + str(len(contacts)));
-			self.rootObject().pushContacts(mode,contacts);
+			
+			
+			contactsFiltered = filter(lambda c: c["jid"]!=self.accountJid, contacts)
+			self.rootObject().pushContacts(mode,contactsFiltered);
 
 		#if self.whatsapp is not None:
 		#	self.whatsapp.eventHandler.networkDisconnected()

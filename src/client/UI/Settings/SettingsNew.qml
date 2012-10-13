@@ -671,7 +671,7 @@ WAPage {
             pageStack.pop()
             picture.state = "loading"
             breathe()
-            setPicture(myAccount, path)
+            setMyProfilePicture(myAccount, path)
         }
     }
 

@@ -1411,7 +1411,7 @@ class WAEventHandler(QObject):
 		
 	def onGroupParticipants(self,jid,jids):
 		self._d("GOT group participants")
-		self.groupParticipants.emit(",".join(jids));
+		self.groupParticipants.emit(jid, ",".join(jids));
 		conversation = WAXMPP.message_store.getOrCreateConversationByJid(jid);
 		
 		# DO WE REALLY NEED TO ADD EVERY CONTACT ?

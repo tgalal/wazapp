@@ -21,7 +21,10 @@ class WADebug():
 		#enabledTypes = ["general","stanzareader","sql","conn","waxmpp","wamanager","walogin","waupdater","messagestore"];
 		disabledTypes = ["sql"]
 		if messageType.lower() not in disabledTypes:
-			print message;
+			try:
+				print message;
+			except UnicodeEncodeError:
+				print "Skipped debug message because of UnicodeEncodeError"
 	
 	def formatMessage(self,message):
 		#default = "{type}:{time}:\t{message}"

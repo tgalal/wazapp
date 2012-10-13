@@ -64,7 +64,7 @@ Menu {
 
         MenuItem{
             text: qsTr("Settings")
-            onClicked:  pageStack.push( Qt.resolvedUrl("../Settings/SettingsNew.qml") );
+            onClicked:  pageStack.push(settingsPage);
         }
 
 

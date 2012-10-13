@@ -7,6 +7,8 @@ import "js/conversation.js" as ConversationHelper
 import "../common"
 import "../Menu"
 import "../EmojiDialog"
+import "../Groups"
+import "../Contacts"
 
 WAPage {
     id:conversation_view
@@ -45,6 +47,13 @@ WAPage {
 		}   
     }
 
+    function openProfile(){
+        if(conversationProfile.progress == 0)
+            bindProfile();
+
+        pageStack.push(conversationProfile.item)
+    }
+
     /****conversation info properties****/
     property int conversation_id;
     property string jid;
@@ -55,7 +64,7 @@ WAPage {
     property string subject;
 	property string owner;
     property string groupIcon;
-    property string defaultGroupIcon:"../common/images/group.png"
+    property string defaultGroupIcon:"../"+defaultGroupPicture
     property int unreadCount;
     property int remainingMessagesCount;
     property bool hasMore:remainingMessagesCount?true:false
@@ -84,23 +93,37 @@ WAPage {
     signal emojiSelected(string emojiCode);
 
 
+    function pushParticipants(jids){
+        console.log("REAL PUSH")
+        conversationProfile.item.pushParticipants(jids)
+    }
+
+    function pushGroupInfo(gdata){
+        console.log("GROUP INFO IN CONVERSATION TOOK OVER")
+        if (gdata=="ERROR") {
+        } else {
+            var data = gdata.split("<<->>")
+            subject = data[2]
+            owner = data[1]
+            title = getTitle()
+        }
+        getPicture(jid, "image")
+
+        conversationProfile.item.pushGroupInfo(gdata);
+    }
+
+
 	Connections {
 		target: appWindow
 
-		onGroupInfoUpdated: {
+        /*onGroupInfoUpdated: {
 			if (jid==gjid) {
 				var data = gdata.split("<<->>")
 				subject = data[2]
 				owner = data[1]
 				title = getTitle()
 			}
-		}
-		onOnContactPictureUpdated: {
-			if (jid == ujid) {
-				userimage.imgsource = ""
-				userimage.imgsource = getPicture()
-			}
-		}
+        }*/
 		onSelectedMedia: {
 			if (activeConvJId == jid)
 				sendMediaMessage(jid, url)
@@ -211,6 +234,15 @@ WAPage {
     function rebind(){
         title:getTitle();
         picture:getPicture();
+    }
+
+    function bindProfile(){
+       if(conversationProfile.progress == 0){
+           if(isGroup()) {
+               consoleDebug("PROFILE BINDED!")
+                conversationProfile.sourceComponent=groupProfile
+           }
+       }
     }
 
 
@@ -462,11 +494,13 @@ WAPage {
 				width: 84
 				onClicked: { 
 					if (!conversation_view.isGroup()) {
-						profileUser = jid
-						pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+                        var contact = waContacts.getOrCreateContact({"jid":conversation_view.jid});
+                        contact.openProfile();
 					} else {
 						profileUser = jid
-						pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
+                        //pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
+                        openProfile();
+                        conversationProfile.item.getInfo();
 					}
 				}
 			}
@@ -982,6 +1016,7 @@ WAPage {
 				sendMediaWindow.opacity = 0
                 emojiDialog.openDialog();
 				showSendButton=true; 
+                chat_text.lastPosition = chat_text.cursorPosition
 		    }
 		}
 
@@ -1055,7 +1090,7 @@ WAPage {
 
             WAMenuItem{
 				id: profileMenuItem
-				visible: conversation_view.isGroup() && selectedMessage.author.jid!=myAccount
+                visible: conversation_view.isGroup() && (selectedMessage?selectedMessage.author.jid!=myAccount:false)
 				height: visible ? 80 : 0
                 text: qsTr("View contact profile")
                 onClicked:{
@@ -1092,6 +1127,23 @@ WAPage {
                 anchors.topMargin: 12
             }
           }
+    }
+
+
+
+
+    Component{
+        id:groupProfile
+        GroupProfile{
+            groupSubject: conversation_view.subject
+            groupPicture: conversation_view.picture
+            groupOwnerJid: conversation_view.owner
+            jid:conversation_view.jid
+        }
+    }
+
+    Loader{
+        id:conversationProfile
     }
 
 

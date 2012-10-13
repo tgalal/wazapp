@@ -24,13 +24,15 @@ import com.nokia.meego 1.0
 import "../common/js/settings.js" as MySettings
 import "../common/js/Global.js" as Helpers
 import "../common"
+import "../Profile"
 
 WAPage {
     id: root
 
-    property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
+    //property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
+    property string profilePicture:currentProfilePicture?currentProfilePicture:"../"+defaultProfilePicture
 
-	property string message: qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
+    property string message: qsTr("This is a %1 version.").arg(waversiontype) + "\n" +
 							 qsTr("You are trying it at your own risk.") + "\n" + 
 							 qsTr("Please report any bugs to") + "\n" + "tarek@wazapp.im"
 
@@ -38,6 +40,7 @@ WAPage {
 		MySettings.initialize()
 		getRingtones()
     }
+
 
     tools: ToolBarLayout {
         id: toolBar
@@ -533,7 +536,7 @@ WAPage {
 				Image {
 					id: bigImage
 					visible: false
-					source: contactPicture
+                    source: profilePicture
 					cache: false
 				}
 
@@ -552,12 +555,21 @@ WAPage {
 						size: 340
 						height: size
 						width: size
-						imgsource: bigImage.height>0 ? contactPicture : "../common/images/user.png"
+                        imgsource: profilePicture
 						onClicked: {
 							profileUser = myAccount
 							pageStack.push(setProfilePicture)
 						}
 						anchors.horizontalCenter: parent.horizontalCenter
+
+                        Connections{
+                            target: appWindow
+                            onProfilePictureUpdated:{
+                                picture.state = "";
+                                appWindow.showNotification(qsTr("Profile picture updated"))
+                            }
+
+                        }
 					}
 
 					GroupSeparator {
@@ -569,21 +581,10 @@ WAPage {
 						//height: 140
 						clip: true
 						width: parent.width
-						text: Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
+                        text: Helpers.emojify(currentStatus)
 					}
 
-					Connections {
-						target: appWindow
-						onOnContactPictureUpdated: {
-							if (myAccount == ujid) {
-                                contactPicture = WAConstants.CACHE_CONTACTS + "/" + myAccount.split("@")[0] + ".jpg"
-								picture.imgsource = ""
-								picture.imgsource = contactPicture
-								bigImage.source = ""
-								bigImage.source = contactPicture
-							}
-						}
-					}
+
 
 					
 				}
@@ -663,6 +664,16 @@ WAPage {
 		}
 
 	}
+
+    SelectPicture {
+        id:setProfilePicture
+        onSelected: {
+            pageStack.pop()
+            picture.state = "loading"
+            breathe()
+            setPicture(myAccount, path)
+        }
+    }
 
 }
 

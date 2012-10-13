@@ -112,7 +112,7 @@ class WAManager():
 		store.updateDatabase()
 		store.initModels()
 		
-		gui = WAUI();
+		gui = WAUI(account.jid);
 		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
 		#gui.setSource(url)
 		gui.initConnections(store);

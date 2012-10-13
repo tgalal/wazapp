@@ -28,9 +28,7 @@ import "../common"
 WAPage {
     id:container
 
-    Component.onCompleted: {
-            getInfo("YES")
-    }
+
     tools: ToolBarLayout {
         id: toolBar
         ToolIcon {
@@ -39,11 +37,19 @@ WAPage {
         }
     }
 
+    property string contactJid;
     property string contactName
     property string contactNumber
     property string contactPicture: "../common/images/user.png"
     property string contactStatus
     property bool inContacts
+
+
+    onStatusChanged: {
+        if(status == PageStatus.Activating){
+             getPictureIds(contactJid)
+        }
+    }
 
     function findChatIem(jid){
         for (var i=0; i<conversationsModel.count;i++) {
@@ -69,26 +75,6 @@ WAPage {
         }
     }
 
-    function getInfo(updatepicture) {
-        for(var i =0; i<contactsModel.count; i++) {
-            if(contactsModel.get(i).jid == profileUser) {
-                contactPicture = contactsModel.get(i).picture
-                contactName = contactsModel.get(i).name
-                contactStatus = contactsModel.get(i).status? contactsModel.get(i).status : ""
-                contactNumber = contactsModel.get(i).number
-                inContacts = contactsModel.get(i).iscontact=="yes"
-                bigImage.source = ""
-                bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
-                break;
-            }
-        }
-        if (contactName == "") {
-                contactName = qsTr("Unknown contact")
-                contactNumber = profileUser.split('@')[0]
-        }
-        if (updatepicture=="YES")
-                getPictureIds(profileUser)
-    }
 
     ButtonStyle {
         id: buttonStyleTop
@@ -131,7 +117,7 @@ WAPage {
         target: appWindow
         onRefreshSuccessed: statusButton.enabled=true
         onRefreshFailed: statusButton.enabled=true
-        onOnContactPictureUpdated: {
+        /*onOnContactPictureUpdated: {
             if (profileUser == ujid) {
                 getInfo("NO")
                 picture.imgsource = ""
@@ -139,19 +125,19 @@ WAPage {
                 bigImage.source = ""
                 bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
             }
-        }
-        onContactStatusUpdated: {
+        }*/
+        /*onContactStatusUpdated: {
             if (contactForStatus == profileUser) {
                 contactStatus = nstatus
                 statuslabel.text = Helpers.emojify(contactStatus)
             }
-        }
+        }*/
     }
 
     Image {
         id: bigImage
         visible: false
-        source: WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
+        source: contactPicture//WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
         cache: false
     }
 
@@ -176,7 +162,7 @@ WAPage {
                 height: size
                 width: size
                 y: 0
-                imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
+                imgsource: contactPicture
                 onClicked: {
                     if (bigImage.width>0) {
                         Qt.openUrlExternally(bigImage.source)

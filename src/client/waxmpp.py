@@ -38,6 +38,7 @@ import shutil, datetime
 import thread
 import Image
 from PIL.ExifTags import TAGS
+import subprocess
 
 
 
@@ -78,11 +79,11 @@ class WAEventHandler(QObject):
 	removeParticipants = QtCore.Signal(str, str);
 	removedParticipants = QtCore.Signal();
 	getGroupParticipants = QtCore.Signal(str);
-	groupParticipants = QtCore.Signal(str);
+	groupParticipants = QtCore.Signal(str, str);
 	endGroupChat = QtCore.Signal(str);
 	groupEnded = QtCore.Signal();
 	setGroupSubject = QtCore.Signal(str, str);
-	groupSubjectChanged = QtCore.Signal(str);
+	groupSubjectChanged = QtCore.Signal();
 	getPictureIds = QtCore.Signal(str);
 	profilePictureUpdated = QtCore.Signal(str);
 	setPushName = QtCore.Signal(str, str);

@@ -48,6 +48,7 @@ WAPage {
         conversation = new Components.Conversation(appWindow).view;
         conversation.jid = jid;
 
+
         //consoleDebug("APPENDING");
         conversationsModel.append({conversation:conversation})
 
@@ -212,26 +213,6 @@ WAPage {
 				}
             }
 
-			/*WAMenuItem {
-				height: visible ? 80 : 0
-				visible: contactNumberGroup
-				text: qsTr("View group information")
-				onClicked: {
-					mainPage.pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
-				}
-			}
-
-			WAMenuItem {
-				id: profileMenuItem
-				height: visible ? 80 : 0
-				//visible: !contactNumberGroup
-				text: contactNumberGroup? qsTr("View group owner profile") : qsTr("View contact profile")
-				onClicked: {
-					profileUser = contactNumber + "@s.whatsapp.net"
-					mainPage.pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
-				}
-			}*/
-
 			WAMenuItem {
 				id: profileMenuItem
 				height: visible ? 80 : 0
@@ -239,9 +220,18 @@ WAPage {
 				text: contactNumberGroup? qsTr("View group information") : qsTr("View contact profile")
 				onClicked: {
 					if (contactNumberGroup)
-						mainPage.pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
-					else
-						mainPage.pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+                    {
+                        //mainPage.pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
+                        var conversation = waChats.getOrCreateConversation(jid)
+
+                        conversation.openProfile();
+                    }
+                    else {
+                        var contact = waContacts.getOrCreateContact({"jid":chatMenu.jid});
+                        contact.openProfile();
+                        //mainPage.pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+
+                    }
 				}
 			}
 

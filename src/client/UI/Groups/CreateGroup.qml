@@ -25,6 +25,7 @@ import "../common/js/Global.js" as Helpers
 import "../Contacts/js/contact.js" as ContactHelper
 import "../common"
 import "../common/WAListView"
+import "../Profile"
 import "../EmojiDialog"
 
 WAPage {
@@ -34,11 +35,38 @@ WAPage {
 	property string groupId
 	property bool creatingGroup: false
 	signal emojiSelected(string emojiCode);
+    property string selectedPicture
+
+
+
+
+
+
+
+
+
+    state: (screen.currentOrientation == Screen.Portrait) ? "portrait" : "landscape"
+
+    states: [
+        State {
+            name: "landscape"
+
+            PropertyChanges{target:groupInfoContainer;  parent:rowContainer;  width:rowContainer.width/2}
+            PropertyChanges { target: participantsColumn;  parent:rowContainer;  height:rowContainer.height; width:rowContainer.width/2}
+
+
+        },
+        State {
+            name: "portrait"
+            PropertyChanges{target:groupInfoContainer;  parent:columnContainer; width:columnContainer.width}
+            PropertyChanges { target: participantsColumn; parent:columnContainer; height:content.height-groupInfoContainer.height; width:columnContainer.width}
+        }
+    ]
 
     Component.onCompleted: {
         //participantsModel.clear()
         //selectedContacts = ""
-		selectedGroupPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
+
         status_text.forceActiveFocus();
 
         genericSyncedContactsSelector.resetSelections()
@@ -110,11 +138,24 @@ WAPage {
 		}
     }
 
+
+    Row{
+        id:rowContainer
+        anchors.fill: parent
+        anchors.margins: 10
+     }
+
+    Column{
+        id: columnContainer
+        anchors.fill: parent
+        anchors.margins: 10
+        spacing:10
+    }
+
+
     Column {
-        id: column1
-        width: parent.width
-        spacing: 16
-        anchors.top:parent.top
+        id: groupInfoContainer
+        spacing:12
 
         WAHeader{
             id:header
@@ -123,66 +164,67 @@ WAPage {
             height: 73
             state:creatingGroup?"busy":""
         }
-
-        Row {
-            width: parent.width
-            height: 80
-            spacing: 10
-            x: 16
-
-            RoundedImage {
-                id: picture
-                size: 80
-                height: size
-                width: size
-                imgsource: selectedGroupPicture
-            }
-
-            Button {
-                id: picButton
-                height: 50
-                width: parent.width -32 - 90
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: 22
-                text: qsTr("Select picture")
-                onClicked: pageStack.push (Qt.resolvedUrl("SelectGroupPicture.qml"))
-            }
-        }
-
-        Separator {
-            x: 16
-            width:parent.width -32
-        }
-
         Label {
-            x: 16
             color: theme.inverted ? "white" : "black"
             text: qsTr("Group subject")
         }
 
         WATextArea {
             id: status_text
-            x: 16
-            width:parent.width -32
+            width:parent.width
             wrapMode: TextEdit.Wrap
             //textFormat: Text.RichText
             textColor: "black"
         }
 
-
         Separator {
-            x: 16
-            width:parent.width -32
+            width:parent.width
         }
 
+        Row {
+            width: parent.width
+            height: 80
+            spacing: 10
+
+            RoundedImage {
+                id: picture
+                size: 80
+                height: size
+                width: size
+                imgsource: selectedPicture || "../"+defaultGroupPicture
+            }
+
+            Button {
+                id: picButton
+                height: 50
+                width: parent.width - 10 - 80
+                anchors.verticalCenter: parent.verticalCenter
+                font.pixelSize: 22
+                text: qsTr("Select picture")
+                onClicked: pageStack.push(selectPicturePage)
+            }
+        }
+
+
+
+        Separator {
+            width:parent.width
+        }
+    }
+
+
+    Item{
+        id:participantsColumn
+
         Rectangle {
-            x: 16
-            width: parent.width -32
-            height: 60
+            id:participantsHeader
+            width: parent.width
+            height: partText.height
             color: "transparent"
 
             Label {
-                width: parent.width - 60
+                id:partText
+                width: parent.width
                 color: theme.inverted ? "white" : "black"
                 text: qsTr("Group participants")
                 font.bold: true
@@ -191,7 +233,7 @@ WAPage {
 
             BorderImage {
                 id: addButton
-                width: labelText.paintedWidth + 32
+                width: labelText.paintedWidth + 30
                 height: 42
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.right: parent.right
@@ -219,29 +261,33 @@ WAPage {
             }
 
         }
-    }
 
-    WAListView{
-        id:groupParticipants
-        defaultPicture: "../common/images/user.png"
-        anchors.top:column1.bottom
-        anchors.bottom: parent.bottom
 
-        width:parent.width
-        allowRemove: true
-        allowSelect: false
-        allowFastScroll: false
-        emptyLabelText: qsTr("No participants added yet")
+        WAListView{
+            id:groupParticipants
+            defaultPicture: "../common/images/user.png"
+            anchors.top:participantsHeader.bottom
+            anchors.topMargin: 5
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            allowRemove: true
+            allowSelect: false
+            allowFastScroll: false
+            emptyLabelText: qsTr("No participants added yet")
 
-        onRemoved: {
-            consoleDebug(index)
-            var rmItem = participantsModel.get(index)
-            genericSyncedContactsSelector.unSelect(rmItem.relativeIndex)
+            onRemoved: {
+                consoleDebug(index)
+                var rmItem = participantsModel.get(index)
+                genericSyncedContactsSelector.unSelect(rmItem.relativeIndex)
+            }
+
+           model:participantsModel
+
         }
-
-       model:participantsModel
-
     }
+
+
 
 
 	ToolBarLayout {
@@ -341,5 +387,14 @@ WAPage {
         }
 
     }
+
+    SelectPicture {
+        id:selectPicturePage
+        onSelected: {
+            pageStack.pop()
+            selectedPicture = path
+        }
+    }
+
 
 }

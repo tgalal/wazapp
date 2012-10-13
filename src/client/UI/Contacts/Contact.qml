@@ -54,6 +54,13 @@ Item{
 		}
 	}*/
 
+    function openProfile(){
+        if(contactProfileLoader.progress==0)
+            contactProfileLoader.sourceComponent = contactProfileComponent
+
+        appWindow.pageStack.push(contactProfileLoader.item)
+    }
+
     function unsetConversation(){
         ContactHelper.conversation = false;
     }
@@ -75,12 +82,12 @@ Item{
 
 	Connections {
 		target: appWindow
-		onOnContactPictureUpdated: {
+        /*onOnContactPictureUpdated: {
 			if (jid == ujid) {
 				contact_picture.imgsource = ""
 				contact_picture.imgsource = getPicture()
 			}
-		}	
+        }*/
 	}
 
 	Rectangle {
@@ -166,6 +173,22 @@ Item{
 	        source: "../common/images/blocked.png"
 			visible: blockedContacts.indexOf(jid)>-1
 		}
-
     }
+
+    Component {
+        id:contactProfileComponent
+        ContactProfile{
+            id:contactProfile
+            contactName: container.contactName
+            contactNumber: container.contactNumber
+            contactPicture: container.picture
+            contactStatus: container.contactStatus
+            contactJid: container.jid
+        }
+    }
+
+    Loader{
+        id:contactProfileLoader
+    }
+
 }

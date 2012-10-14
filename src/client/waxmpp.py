@@ -39,6 +39,7 @@ import thread
 import Image
 from PIL.ExifTags import TAGS
 import subprocess
+from Context.Provider import *
 
 
 
@@ -144,6 +145,7 @@ class WAEventHandler(QObject):
 	############### NEW BACKEND STUFF
 
 	def authSuccess(self, username):
+		WAXMPP.contextproperty.setValue('online')
 		self.state = 2
 		self.connected.emit()
 		print "AUTH SUCCESS"
@@ -250,7 +252,7 @@ class WAEventHandler(QObject):
 		del self.conn.login
 		del self.conn.stanzaReader'''
 		#del self.conn
-
+		WAXMPP.contextproperty.setValue('offline')
 		self.interfaceHandler.call("disconnect")
 		self.doQuit.emit();
 		
@@ -819,7 +821,7 @@ class WAEventHandler(QObject):
 		self.updater = WAUpdater()
 		self.updater.updateAvailable.connect(self.updateAvailable)
 		
-		
+		WAXMPP.contextproperty.setValue('connecting')
 		self.connecting.emit();
 		self.disconnectRequested = False
 		
@@ -837,6 +839,7 @@ class WAEventHandler(QObject):
 		
 		
 	def onDisconnected(self, reason):
+		WAXMPP.contextproperty.setValue('offline')
 		self._d("Got disconnected because %s"%reason)
 		self.state = 0
 		self.disconnected.emit()
@@ -1469,6 +1472,12 @@ class WAEventHandler(QObject):
 
 class WAXMPP():
 	message_store = None
+	
+	myService = Service(SessionBus, 'org.tgalal.wazapp')
+	myService.setAsDefault()
+	contextproperty = Property('Wazapp.Online')
+	contextproperty.setValue('offline')
+		
 	def __init__(self,domain,resource,user,push_name,password):
 		
 		WADebug.attach(self);

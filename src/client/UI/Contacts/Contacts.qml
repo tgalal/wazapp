@@ -144,7 +144,9 @@ WAPage {
             //           (y+height >= ListView.view.contentY+100 && y+height <= ListView.view.contentBottom-100))
 
 			onOptionsRequested: {
-				profileUser = model.jid
+                contactMenu.selectedJid = jid
+                consoleDebug(contactMenu.selectedJid)
+
 				contactMenu.open()
 			}
 
@@ -325,16 +327,17 @@ WAPage {
 
 	Menu {
 	id: contactMenu
+    property string selectedJid;
 
 		MenuLayout {
 			WAMenuItem {
 				height: 80
-				text: blockedContacts.indexOf(profileUser)==-1? qsTr("Block contact") : qsTr("Unblock contact")
+                text: blockedContacts.indexOf(contactMenu.selectedJid)==-1? qsTr("Block contact") : qsTr("Unblock contact")
 				onClicked: { 
-					if (blockedContacts.indexOf(profileUser)==-1)
-						blockContact(profileUser)
+                    if (blockedContacts.indexOf(contactMenu.selectedJid)==-1)
+                        blockContact(contactMenu.selectedJid)
 					else
-						unblockContact(profileUser)
+                        unblockContact(contactMenu.selectedJid)
 				}
 			}
 			WAMenuItem {
@@ -342,7 +345,12 @@ WAPage {
 				//singleItem: true
 				text: qsTr("View contact profile")
 				onClicked: { 
-					mainPage.pageStack.push (Qt.resolvedUrl("ContactProfile.qml"))
+
+                    var c = getOrCreateContact({"jid":contactMenu.selectedJid});
+                    if(c){
+                        c.openProfile();
+                    }
+
 				}
 			}
 			/*WAMenuItem {
@@ -370,11 +378,12 @@ WAPage {
 
     QueryDialog {
         id: removeContactConfirm
+        property string selectedJid;
         titleText: qsTr("Confirm delete")
-        message: qsTr("Are you sure you want to delete %1?").arg(getAuthor(profileUser))
+        message: qsTr("Are you sure you want to delete %1?").arg(getAuthor(removeContactConfirm.selectedJid))
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
-        onAccepted: removeSingleContact(profileUser)
+        onAccepted: removeSingleContact(removeContactConfirm.selectedJid)
     }
 
 

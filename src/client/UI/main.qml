@@ -460,8 +460,7 @@ WAStackWindow {
 
 
 
-    property string contactForStatus
-    signal contactStatusUpdated(string nstatus)
+    property string contactForStatus //@@FUCKING RETARTED
     function updateContactStatus(status) {
         for(var i =0; i<contactsModel.count; i++)
         {
@@ -470,7 +469,7 @@ WAStackWindow {
                 contactsModel.get(i).status = status
             }
         }
-        contactStatusUpdated(status)
+
     }
 
 

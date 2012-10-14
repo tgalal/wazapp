@@ -145,6 +145,11 @@ notificationicons.path = /usr/share/themes/blanco/meegotouch/icons
 
 INSTALLS += notificationicons
 
+contextprovider.files = org.tgalal.wazapp.context
+contextprovider.path = /usr/share/contextkit/providers
+
+INSTALLS += contextprovider
+
 
 HEADERS += \
     waaccount.h \

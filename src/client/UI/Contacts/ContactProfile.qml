@@ -51,7 +51,7 @@ WAPage {
         }
     }
 
-    function findChatIem(jid){
+    function findChatIem(jid){ //@@PURGE
         for (var i=0; i<conversationsModel.count;i++) {
             var chatItem = conversationsModel.get(i);
             if(chatItem.conversation.jid == jid)
@@ -60,7 +60,7 @@ WAPage {
         return -1;
     }
 
-    function removeChatItem(jid){
+    function removeChatItem(jid){ //@@PURGE
         var chatItemIndex = findChatIem(jid);
         consoleDebug("deleting")
         if(chatItemIndex >= 0){
@@ -108,8 +108,8 @@ WAPage {
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
         onAccepted: {
-            deleteConversation(profileUser)
-            removeChatItem(profileUser)
+            deleteConversation(contactJid)
+            removeChatItem(contactJid)
         }
     }
 
@@ -117,21 +117,6 @@ WAPage {
         target: appWindow
         onRefreshSuccessed: statusButton.enabled=true
         onRefreshFailed: statusButton.enabled=true
-        /*onOnContactPictureUpdated: {
-            if (profileUser == ujid) {
-                getInfo("NO")
-                picture.imgsource = ""
-                picture.imgsource = contactPicture
-                bigImage.source = ""
-                bigImage.source = WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
-            }
-        }*/
-        /*onContactStatusUpdated: {
-            if (contactForStatus == profileUser) {
-                contactStatus = nstatus
-                statuslabel.text = Helpers.emojify(contactStatus)
-            }
-        }*/
     }
 
     Image {
@@ -216,7 +201,7 @@ WAPage {
             font.pixelSize: 26
             color: "red"
             width: parent.width
-            visible: blockedContacts.indexOf(profileUser)!=-1
+            visible: blockedContacts.indexOf(contactJid)!=-1
             height: visible ? 50 : 0
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
@@ -234,12 +219,11 @@ WAPage {
                 width: parent.width
                 font.pixelSize: 22
                 text: qsTr("Update status")
-                visible: profileUser.indexOf("g.us")==-1
                 onClicked: {
-                        updateSingleStatus=true
+                        updateSingleStatus=true //@@retarded
                         statusButton.enabled=false
-                        contactForStatus = profileUser
-                        refreshContacts("STATUS", profileUser.split('@')[0])
+                        contactForStatus = contactJid //@@retarded
+                        refreshContacts("STATUS", contactJid.split('@')[0]) //@@retarded
                 }
             }
 
@@ -249,12 +233,12 @@ WAPage {
                 height: 50
                 width: parent.width
                 font.pixelSize: 22
-                text: blockedContacts.indexOf(profileUser)==-1? qsTr("Block contact") : qsTr("Unblock contact")
+                text: blockedContacts.indexOf(contactJid)==-1? qsTr("Block contact") : qsTr("Unblock contact")
                 onClicked: {
-                    if (blockedContacts.indexOf(profileUser)==-1)
-                        blockContact(profileUser)
+                    if (blockedContacts.indexOf(contactJid)==-1)
+                        blockContact(contactJid)
                     else
-                        unblockContact(profileUser)
+                        unblockContact(contactJid)
                 }
             }
 
@@ -275,7 +259,7 @@ WAPage {
                 width: parent.width
                 font.pixelSize: 22
                 text: qsTr("Send chat history")
-                onClicked: { exportConversation(profileUser); }
+                onClicked: { exportConversation(contactJid); }
             }
 
             Button {
@@ -301,8 +285,6 @@ WAPage {
             title: qsTr("Media")
         }
 
-        //'SELECT mediatype_id,preview,local_path FROM media WHERE id IN (SELECT media_id FROM messages WHERE key LIKE "%385977012270@s.whatsapp.net%" AND NOT media_id=0) ORDER BY id DESC;'
-        //'SELECT mediatype_id,preview,local_path FROM media WHERE id IN (SELECT media_id FROM messages WHERE key LIKE "%'+profileUser+'%" AND NOT media_id=0) ORDER BY id DESC;'
         ListView {
             id: mediaList
             Component.onCompleted: {

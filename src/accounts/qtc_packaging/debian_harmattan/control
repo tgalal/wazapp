@@ -8,7 +8,7 @@ Homepage: http://www.wazapp.im
 
 Package: wazapp
 Architecture: any
-Depends: applauncherd-launcher, libaccounts-qt1, libaccountsetup0, libc6 (>= 2.4), libgcc1 (>= 1:4.1.1), libmeegotouchcore0, libmeegotouchextensions0, libmeegotouchsettings0, libqt4-dbus (>= 4.7.4~git20110517), libqt4-declarative (>= 4.7.4~git20110517), libqt4-network (>= 4.7.4~git20110517), libqt4-xml (>= 4.7.4~git20110517), libqtcore4 (>= 4.7.4~git20110517), libqtgui4 (>= 4.7.4~git20110517), libqtm-messaging (>= 1.2.1+193+0m6), libqtm-systeminfo (>= 1.2.1+193+0m6), libstdc++6 (>= 4.4.0), python-dbus, python-pyside, python-qtmobility, python-accounts, python-dateutil, python-imaging
+Depends: applauncherd-launcher, libaccounts-qt1, libaccountsetup0, libc6 (>= 2.4), libgcc1 (>= 1:4.1.1), libmeegotouchcore0, libmeegotouchextensions0, libmeegotouchsettings0, libqt4-dbus (>= 4.7.4~git20110517), libqt4-declarative (>= 4.7.4~git20110517), libqt4-network (>= 4.7.4~git20110517), libqt4-xml (>= 4.7.4~git20110517), libqtcore4 (>= 4.7.4~git20110517), libqtgui4 (>= 4.7.4~git20110517), libqtm-messaging (>= 1.2.1+193+0m6), libqtm-systeminfo (>= 1.2.1+193+0m6), libstdc++6 (>= 4.4.0), python-dbus, python-pyside, python-qtmobility, python-accounts, python-dateutil, python-imaging, python-context.provider
 Description: Wazapp is an IM client that uses Whatsapp protocol
  Wazapp allows you to communicate with your friends who use Whatsapp on their phones.
 XSBC-Maemo-Display-Name: Wazapp

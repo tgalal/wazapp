@@ -25,12 +25,12 @@ Item {
 		subtitle = res.charAt(0).toUpperCase() + res.slice(1);
 		subtitle = subtitle.split('.')[0]
 		if (subtitle=="No sound") subtitle = qsTr("(no sound)")
-	}
+    }
 
 	Connections {
 		target: appWindow
 		onSetRingtone: {
-			if (currentSelectionProfile==profile) {
+            if (currentSelectionProfile==profile) { //retarded!
 				initialValue = ringtonevalue
 				getSubtitle()
 				MySettings.setSetting(currentSelectionProfile, ringtonevalue)

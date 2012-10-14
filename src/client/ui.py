@@ -156,9 +156,6 @@ class WAUI(QDeclarativeView):
 		
 	
 	def focusChanged(self,old,new):
-		if not self.initializationDone:
-			return
-		
 		if new is None:
 			self.onUnfocus();
 		else:
@@ -167,6 +164,10 @@ class WAUI(QDeclarativeView):
 	def onUnfocus(self):
 		self._d("FOCUS OUT")
 		self.focus = False
+		
+		if not self.initializationDone:
+			return
+		
 		self.rootObject().appFocusChanged(False);
 		self.idleTimeout = Timer(5,self.whatsapp.eventHandler.onUnavailable)
 		self.idleTimeout.start()
@@ -174,14 +175,19 @@ class WAUI(QDeclarativeView):
 		
 	
 	def onFocus(self):
+		self._d("FOCUS IN")
 		self.focus = True
+		
+		if not self.initializationDone:
+			return
+
+		self.whatsapp.eventHandler.notifier.stopSound();
 		self.rootObject().appFocusChanged(True);
 		if self.idleTimeout is not None:
 			self.idleTimeout.cancel()
 		
 		self.whatsapp.eventHandler.onFocus();
 		self.whatsapp.eventHandler.onAvailable();
-		self.whatsapp.eventHandler.notifier.stopSound();
 	
 	def closeEvent(self,e):
 		self._d("HIDING")

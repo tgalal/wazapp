@@ -29,6 +29,8 @@ import "../Profile"
 WAPage {
     id: root
 
+    property bool loaded:false
+
     //property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
     property string profilePicture:currentProfilePicture?currentProfilePicture:"../"+defaultProfilePicture
 
@@ -36,9 +38,29 @@ WAPage {
 							 qsTr("You are trying it at your own risk.") + "\n" + 
 							 qsTr("Please report any bugs to") + "\n" + "tarek@wazapp.im"
 
+
+    onStatusChanged: {
+        if(status == PageStatus.Activating){
+            if(!loaded){
+                MySettings.initialize()
+                getRingtones()
+
+                currentSelectionProfile = "PersonalRingtone"
+                setRingtone(MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
+
+                currentSelectionProfile = "GroupRingtone"
+                setRingtone(MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
+
+                loaded = true
+
+            }
+        }
+    }
+
+
     Component.onCompleted: {
-		MySettings.initialize()
-		getRingtones()
+      //  MySettings.initialize()
+        //getRingtones()
     }
 
 
@@ -442,13 +464,13 @@ WAPage {
 			anchors.top: parent.top
 			anchors.topMargin: 73
 			height: parent.height -73
-			anchors.left: parent.left
+            anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
 
 			Connections {
 				target: appWindow
-				onRingtonesUpdated: {
+                onRingtonesUpdated: {
 					personalTone.initialValue = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
 					groupTone.initialValue = MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
 				}
@@ -474,7 +496,7 @@ WAPage {
 						id: personalTone
 					    title: qsTr("Notification tone")
 						profile: "PersonalRingtone"
-					    initialValue: personalRingtone
+                        initialValue: personalRingtone
 					}
 					SwitchItem {
 						title: qsTr("Vibrate")
@@ -493,7 +515,7 @@ WAPage {
 						id: groupTone
 					    title: qsTr("Notification tone")
 						profile: "GroupRingtone"
-					    initialValue: groupRingtone
+                        initialValue: groupRingtone
 					}
 					SwitchItem {
 						id: groupVibra

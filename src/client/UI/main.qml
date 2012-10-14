@@ -214,6 +214,7 @@ WAStackWindow {
         id: ringtoneModel
     }
     function pushRingtones(files) {
+        consoleDebug("Pushing ringtones")
         ringtoneModel.clear()
         var nosound = qsTr("(no sound)")
         var browse = qsTr("Browse")
@@ -312,6 +313,7 @@ WAStackWindow {
         var conversation = waChats.getOrCreateConversation(jid);
         conversation.pushGroupInfo(data);
         conversation.onChange();
+
     }
     function onGroupSubjectChanged(gJid) {
         getGroupInfo(gJid); //@@TODO, in case I changed group subject, why re-fetch everything?!
@@ -455,6 +457,7 @@ WAStackWindow {
 
         return 0;
     }
+
 
 
     property string contactForStatus

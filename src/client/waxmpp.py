@@ -45,7 +45,7 @@ import shutil, datetime
 import Image
 from PIL.ExifTags import TAGS
 import subprocess
-
+from Context.Provider import *
 
 class WAEventHandler(WAEventBase):
 	
@@ -161,6 +161,7 @@ class WAEventHandler(WAEventBase):
 		del self.conn.login
 		del self.conn.stanzaReader'''
 		#del self.conn
+		WAXMPP.contextproperty.setValue('offline')
 		self.doQuit.emit();
 		
 	
@@ -1712,6 +1713,12 @@ class StanzaReader(QThread):
 
 class WAXMPP():
 	message_store = None
+	
+	myService = Service(SessionBus, 'org.tgalal.wazapp')
+	myService.setAsDefault()
+	contextproperty = Property('Wazapp.Online')
+	contextproperty.setValue('offline')
+		
 	def __init__(self,domain,resource,user,push_name,password):
 		
 		WADebug.attach(self);
@@ -1781,6 +1788,8 @@ class WAXMPP():
 		self.sendAvailableForChat();
 		self.eventHandler.connected.emit();
 		
+		WAXMPP.contextproperty.setValue('online')
+		
 		
 
 	def onConnectionError(self):
@@ -1802,6 +1811,7 @@ class WAXMPP():
 	
 	def disconnect(self):
 		self.conn.close()
+		WAXMPP.contextproperty.setValue('offline')
 	
 	def retryLogin(self):
 		self.changeState(3);
@@ -1880,6 +1890,9 @@ class WAXMPP():
 		
 		self.login.connectionError.connect(self.onConnectionError)
 		self.login.start();
+		
+		
+		WAXMPP.contextproperty.setValue('connecting')
 		
 		'''try:
 			self.login.login();

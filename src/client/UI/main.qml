@@ -162,7 +162,7 @@ WAStackWindow {
     signal setGroupVibrate(bool value);
 	signal vibrateNow();
 
-	signal setRingtone(string ringtonevalue);
+    signal setRingtone(string ringtonevalue);
 	signal setBackground(string backgroundimg);
 
 
@@ -212,6 +212,7 @@ WAStackWindow {
 		id: ringtoneModel
 	}
 	function pushRingtones(files) {
+        consoleDebug("Pushing ringtones")
 		ringtoneModel.clear()
 		var nosound = qsTr("(no sound)")
 		var browse = qsTr("Browse")

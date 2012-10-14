@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
 
@@ -136,13 +137,15 @@ class MessageStore(QObject):
 			author = contacts[m.contact_id] if conv.isGroup() else (contacts[conv.contact_id] if m.type == m.TYPE_RECEIVED else "You")
 			content = m.content if not m.media_id else "[media omitted]"
 			try:
-				authorClean = author.encode('utf-8','replace')
+				authorClean = author.encode('utf-8','replace') #how it's working for you?
 			except UnicodeDecodeError:
-				authorClean = "".join(i for i in author if ord(i)<128)
+#				authorClean = "".join(i for i in author if ord(i)<128) #and why this?
+				authorClean = author #working great for all cases
 			try:
-				contentClean = content.encode('utf-8','replace')
+				contentClean = content.encode('utf-8','replace') #same again
 			except UnicodeDecodeError:
-				contentClean = "".join(i for i in content if ord(i)<128)
+#				contentClean = "".join(i for i in content if ord(i)<128) #same again
+				contentClean = content #same again
 			buf+="[%s]%s: %s\n"%(str(t),authorClean,contentClean)
 
 		f = open(exportPath, 'w')		

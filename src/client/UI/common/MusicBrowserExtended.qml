@@ -17,7 +17,7 @@ WAPage {
     SheetButtonAccentStyle {
         id: mySheetButtonAccentStyle
         background: "image://theme/color3-meegotouch-sheet-button-accent-background"
-        disabledBackground: "image://theme/color3-meegotouch-sheet-button-accent-disabled"
+        disabledBackground: "image://theme/color3-meegotouch-sheet-button-accent-background-disabled"
         pressedBackground: "image://theme/color3-meegotouch-sheet-button-accent-background-pressed"
     }
 
@@ -156,6 +156,7 @@ WAPage {
 			enabled: enableBackInBrowser
 			opacity: enabled? 1 : 0.4
             onClicked: {
+				stopSoundFile()
 				var i = currentBrowserFolder.lastIndexOf("/");
 				var f = currentBrowserFolder.slice(0,i)
 				appWindow.browseFiles(f, "mp3, MP3, wav, WAV");

@@ -46,8 +46,8 @@ Item {
 
         Label {
             id: title
-		    font.pixelSize: 24
-		    font.bold: true
+            font.pixelSize: 24
+            font.bold: true
             color: theme.inverted? "white" : "black"
             verticalAlignment: Text.AlignVCenter
         }
@@ -73,11 +73,11 @@ Item {
 
         anchors.fill: parent
         onClicked: {
-			selectionDialog.open()
-		}
+            selectionDialog.open()
+        }
     }
 
-	SelectionDialog {
+    SelectionDialog {
         id: selectionDialog
         titleText: title.text
         delegate: Item {

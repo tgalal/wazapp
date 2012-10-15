@@ -16,25 +16,19 @@ Dialog {
 
     function get32(code){
         var c = ""+code;
-        if(c.length == 2)
-            c="0"+code;
-
-        return emojiPath+"32/emoji-E"+c+".png";
+        return emojiPath+"32/"+c+".png";
     }
 
     function get20(code){
         var c = ""+code;
-        if(c.length == 2)
-            c="0"+code;
-
-         return emojiPath+"20/emoji-E"+c+".png";
+        return emojiPath+"20/"+c+".png";
     }
 
     function openDialog(){
 
         emojiSelector.open();
 		emojiCategory.checkedButton = peopleEmoji
-        emojiSelector.loadEmoji(0,109);
+        emojiSelector.loadEmoji(0,189);
 
     }
 
@@ -117,36 +111,36 @@ Dialog {
 		    Button {
 		    	id: peopleEmoji
 			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(415);
-			 	onClicked: emojiSelector.loadEmoji(0,109);
+                iconSource: get32("E057");
+			 	onClicked: emojiSelector.loadEmoji(0,188);
 		    }
 
 		    Button {
 		        id: natureEmoji
 			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(303);
-			 	onClicked: emojiSelector.loadEmoji(109,162)
+                iconSource: get32("E303");
+			 	onClicked: emojiSelector.loadEmoji(189,305)
 		    }
 
 		    Button {
-		        id: eventsEmoji
+		        id: placesEmoji
 			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(325)
-			 	onClicked: emojiSelector.loadEmoji(162,297)
+                iconSource: get32("E325")
+			 	onClicked: emojiSelector.loadEmoji(305,535)
 		    }
 		
 			Button {
-		        id: placesEmoji
+		        id: objectsEmoji
 			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(36)
-			 	onClicked: emojiSelector.loadEmoji(297,367)
+                iconSource: get32("E036")
+			 	onClicked: emojiSelector.loadEmoji(535,637)
 		    }
 
 		    Button {
 		        id: symbolsEmoji
 			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(210)
-			 	onClicked: emojiSelector.loadEmoji(367,466)
+                iconSource: get32("E210")
+			 	onClicked: emojiSelector.loadEmoji(637,846)
 		    }
 		}
 
@@ -202,7 +196,7 @@ Dialog {
 							anchors.fill: parent
 							onClicked: {
 								var codeX = emojiDelegate.codeS;
-                                //addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+codeX+'.png" />'
+                                //addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/'+codeX+'.png" />'
 
                                 console.log("SELECTED INSIDE DIALOG "+codeX);
 

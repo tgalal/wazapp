@@ -121,7 +121,7 @@ class WAUI(QDeclarativeView):
 		self.rootObject().playRecording.connect(self.playRecording)
 		self.rootObject().deleteRecording.connect(self.deleteRecording)
 		self.rootObject().breathe.connect(self.onProcessEventsRequested)
-
+		self.rootObject().browseFiles.connect(self.browseFiles)
 
 		self.rootObject().openContactPicker.connect(self.openContactPicker)
 

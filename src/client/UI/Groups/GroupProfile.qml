@@ -340,7 +340,7 @@ WAPage {
             font.pixelSize: 22
             text: qsTr("Change group subject")
             enabled: !working && groupSubjectOwner!=""
-            onClicked: pageStack.push(Qt.resolvedUrl("ChangeSubject.qml"))
+            onClicked: pageStack.push(groupSubjectChanger)
         }
 
         Button {

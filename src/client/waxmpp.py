@@ -40,7 +40,16 @@ import Image
 from PIL.ExifTags import TAGS
 import subprocess
 from Context.Provider import *
+from HTMLParser import HTMLParser
 
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
 
 
 class WAEventHandler(QObject):
@@ -143,6 +152,14 @@ class WAEventHandler(QObject):
 		
 		
 	############### NEW BACKEND STUFF
+	def strip(self, text):
+		n = text.find("</body>")
+		text = text[:n]
+		s = MLStripper()
+		s.feed(text)
+		text = s.get_data().replace("p, li { white-space: pre-wrap; }","")
+		text = text.strip()
+		return text;
 
 	def authSuccess(self, username):
 		WAXMPP.contextproperty.setValue('online')

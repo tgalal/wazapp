@@ -11,6 +11,7 @@ WAPage {
     orientationLock: PageOrientation.LockPortrait
 
     function setCurrentOperation(op) {
+		progress.visible = false
         subOperation = ""
         operation = qsTr(op)
     }
@@ -18,6 +19,19 @@ WAPage {
     function setSubOperation(subop) {
         subOperation = subop
     }
+
+	function setProgressMax(val) {
+		progress.maximumValue = val
+	}
+
+	function setProgress(val) {
+		progress.value = val
+	}
+
+	function resetProgress() {
+        //progress.visible = true
+		progress.value = 0
+	}
 
     onStatusChanged: {
       /*  if(status == PageStatus.Activating){
@@ -39,6 +53,7 @@ WAPage {
 
     Column{
         width:parent.width
+		spacing: 20
         y:450
 
         Label{
@@ -47,6 +62,17 @@ WAPage {
             horizontalAlignment: Text.AlignHCenter
             font.bold: true
             width:parent.width
+        }
+
+		ProgressBar{
+			id: progress
+			width: 360
+            visible:false
+			anchors.horizontalCenter: parent.horizontalCenter
+			minimumValue: 0
+			platformStyle: ProgressBarStyle {
+				knownTexture: "../common/images/splashprogress.png"
+			}
         }
 
         Label{

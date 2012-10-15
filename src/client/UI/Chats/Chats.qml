@@ -222,7 +222,7 @@ WAPage {
 					if (contactNumberGroup)
                     {
                         //mainPage.pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
-                        var conversation = waChats.getOrCreateConversation(jid)
+                        var conversation = waChats.getOrCreateConversation(chatMenu.jid)
 
                         conversation.openProfile();
                     }

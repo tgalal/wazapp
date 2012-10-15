@@ -63,7 +63,48 @@ WAPage {
         //getRingtones()
     }
 
+	Connections {
+		target: appWindow
 
+		onSetBackground: {
+			var result = backgroundimg.replace("file://","")
+			myBackgroundImage = result
+			MySettings.setSetting("Background", result)
+			backgroundSelector.subtitle = getBackgroundSubtitle()
+		}
+
+		onSetRingtone: {
+			MySettings.setSetting(currentSelectionProfile, ringtonevalue)
+			currentSelectionProfileValue = ringtonevalue
+			if (currentSelectionProfile=="GroupRingtone") {
+				setGroupRingtone(ringtonevalue)
+				groupRingtone = ringtonevalue
+				groupTone.subtitle = getRingtoneSubtitle(ringtonevalue)
+			} else {
+				setPersonalRingtone(ringtonevalue)
+				personalRingtone = ringtonevalue
+				personalTone.subtitle = getRingtoneSubtitle(ringtonevalue)
+			}
+		}
+	}
+
+	function getBackgroundSubtitle() {
+		var res = MySettings.getSetting("Background", "none")
+		res = res.split('/')
+		res = res[res.length-1]
+		res = res.charAt(0).toUpperCase() + res.slice(1);
+		if (res=="None") res = qsTr("(no background)")
+		return res
+	}
+
+	function getRingtoneSubtitle(ringtone) {
+		var res = ringtone.split('/')
+		res = res[res.length-1]
+		res = res.charAt(0).toUpperCase() + res.slice(1);
+		res = res.split('.')[0]
+		if (res=="No sound") res = qsTr("(no sound)")
+		return res
+	}
     tools: ToolBarLayout {
         id: toolBar
 
@@ -304,24 +345,26 @@ WAPage {
 					SelectionItem {
 						id: backgroundSelector
 					    title: qsTr("Image")
-					    initialValue: MySettings.getSetting("Background", "none")
+					    subtitle: getBackgroundSubtitle()
 						onClicked: pageStack.push(Qt.resolvedUrl("SetBackground.qml") );
 					}
 
+					Row {
+						width: parent.width
+						spacing: 16
 
 					Label {
+							id: sliderText
 						verticalAlignment: Text.AlignBottom
 						text: qsTr("Opacity:")
-						y: 24
 						height: 50
 					}
 		            Slider {
-		                //visible:settingsPage.status!=PageStatus.Inactive
 		                id: themeslider
-						x: 20; width: parent.width -40
 		                maximumValue: 10
 		                minimumValue: 0
 		                stepSize: 1
+							width: parent.width - sliderText.paintedWidth-16
 		                value: MySettings.getSetting("BackgroundOpacity", "0.5")
 		                platformStyle: mySliderStyle
 		                onValueChanged: {
@@ -330,8 +373,7 @@ WAPage {
 		                }
 
 		            }
-
-
+					}
 
 					GroupSeparator {
 						title: qsTr("Appearance")
@@ -468,15 +510,6 @@ WAPage {
 			anchors.leftMargin: 16
 			width: parent.width -32
 
-			Connections {
-				target: appWindow
-                onRingtonesUpdated: {
-					personalTone.initialValue = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
-					groupTone.initialValue = MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
-				}
-			}
-
-
 			Flickable {
 				id: flickArea3
 				anchors.fill: parent
@@ -492,11 +525,15 @@ WAPage {
 					GroupSeparator {
 						title: qsTr("Personal messages")
 					}
-					SelectionItemTrSound {
+					SelectionItem {
 						id: personalTone
 					    title: qsTr("Notification tone")
-						profile: "PersonalRingtone"
-                        initialValue: personalRingtone
+					    subtitle: getRingtoneSubtitle(personalRingtone)
+						onClicked: {
+							currentSelectionProfile = "PersonalRingtone"
+							currentSelectionProfileValue = personalRingtone
+							pageStack.push(Qt.resolvedUrl("../common/MusicBrowserDialog.qml"))
+						}
 					}
 					SwitchItem {
 						title: qsTr("Vibrate")
@@ -511,11 +548,16 @@ WAPage {
 					GroupSeparator {
 						title: qsTr("Group messages")
 					}
-					SelectionItemTrSound {
+
+					SelectionItem {
 						id: groupTone
 					    title: qsTr("Notification tone")
-						profile: "GroupRingtone"
-                        initialValue: groupRingtone
+					    subtitle: getRingtoneSubtitle(groupRingtone)
+						onClicked: {
+							currentSelectionProfile = "GroupRingtone"
+							currentSelectionProfileValue = groupRingtone
+							pageStack.push(Qt.resolvedUrl("../common/MusicBrowserDialog.qml"))
+						}
 					}
 					SwitchItem {
 						id: groupVibra

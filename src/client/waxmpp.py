@@ -46,6 +46,17 @@ import Image
 from PIL.ExifTags import TAGS
 import subprocess
 from Context.Provider import *
+from HTMLParser import HTMLParser
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
 
 class WAEventHandler(WAEventBase):
 	
@@ -135,11 +146,11 @@ class WAEventHandler(WAEventBase):
 		self.removeParticipants.connect(self.conn.sendRemoveParticipants);
 		self.getGroupParticipants.connect(self.conn.sendGetParticipants);
 		self.endGroupChat.connect(self.conn.sendEndGroupChat);
-		self.setGroupSubject.connect(self.conn.sendSetGroupSubject);
+		self.setGroupSubject.connect(lambda gjid,subject: self.conn.sendSetGroupSubject(gjid,self.strip(subject)));
 		self.getPictureIds.connect(self.conn.sendGetPictureIds);
 		self.getPicture.connect(self.conn.sendGetPicture);
 		self.setPicture.connect(self.conn.sendSetPicture);
-		self.changeStatus.connect(self.conn.sendChangeStatus);
+		self.changeStatus.connect(lambda status: self.conn.sendChangeStatus(self.strip(status)));
 
 		self.connected.connect(self.conn.resendUnsent);
 		
@@ -149,7 +160,16 @@ class WAEventHandler(WAEventBase):
 		
 		#self.connMonitor.start();
 		
-	
+
+	def strip(self, text):
+		n = text.find("</body>")
+		text = text[:n]
+		s = MLStripper()
+		s.feed(text)
+		text = s.get_data().replace("p, li { white-space: pre-wrap; }","")
+		text = text.strip()
+		return text;
+
 	def quit(self):
 		
 		#self.connMonitor.exit()
@@ -404,7 +424,8 @@ class WAEventHandler(WAEventBase):
 		
 	
 	def sendMessage(self,jid,msg_text):
-		self._d("sending message now")
+		msg_text = self.strip(msg_text);
+		self._d("sending message to: " + jid + ":\n" + msg_text)
 		fmsg = WAXMPP.message_store.createMessage(jid);
 		
 		

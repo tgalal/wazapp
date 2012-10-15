@@ -51,7 +51,7 @@ WAPage {
         if(conversationProfile.progress == 0)
             bindProfile();
 
-        pageStack.push(conversationProfile.item)
+        appWindow.pageStack.push(conversationProfile.item)
     }
 
     /****conversation info properties****/
@@ -742,11 +742,12 @@ WAPage {
                         forceFocusToChatText()
 
                         var toSend = cleanText(chat_text.text);
-                        toSend = toSend.trim();
-                        if (toSend != "")
+                        var res = toSend[0];
+                        if (res.trim() != "")
                         {
+							var cleanedmessage = Helpers.getCode(chat_text.text);
+							appWindow.sendMessage(jid,cleanedmessage);
                             chat_text.text = "";
-                            appWindow.sendMessage(jid,toSend);
                         }
                         forceFocusToChatText()
 
@@ -755,16 +756,9 @@ WAPage {
                     onEmojiSelected:{
                         consoleDebug("GOT EMOJI "+emojiCode);
 
-                        /*var str = cleanText(chat_text.text);
-
-                        var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/32/emoji-E'+emojiCode+'.png" />'
-                        str = str.substring(0,chat_text.lastPosition) + emojiImg + str.slice(chat_text.lastPosition)
-
-                        chat_text.text = str;
-                        chat_text.cursorPosition = chat_text.lastPosition + 1
-                        forceFocusToChatText()*/
-
-                       	var str = cleanText(chat_text.text)
+                       	var cresult = cleanText(chat_text.text)
+						var str = cresult[0]
+						var npos = cresult[1]
 
 						var pos = str.indexOf("&quot;")
 						var newPosition = chat_text.lastPosition
@@ -794,8 +788,10 @@ WAPage {
 							pos = str.indexOf("<br />", pos+1)
 						}
 
-						var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
-						str = str.substring(0,chat_text.lastPosition) + cleanText(emojiImg) + str.slice(chat_text.lastPosition)
+						chat_text.lastPosition = chat_text.lastPosition + parseInt(npos);
+
+						var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/'+emojiCode+'.png" />'
+						str = str.substring(0,chat_text.lastPosition) + emojiImg + str.slice(chat_text.lastPosition)
 						chat_text.text = Helpers.emojify2(str)
 						chat_text.cursorPosition = newPosition + 1
 						forceFocusToChatText()
@@ -808,9 +804,8 @@ WAPage {
                     width:parent.width -60
                     x: 54
                     y: 0
-                    placeholderText: blockedContacts.indexOf(jid)>-1 ?
-									 qsTr("Contact blocked") : 
-									 (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : qsTr("Write your message here")
+                    placeholderText: blockedContacts.indexOf(jid)>-1 ? qsTr("Contact blocked") :
+									 (showSendButton || cleanText(chat_text.text)[0].trim()!="") ? "" : qsTr("Write your message here")
                     platformStyle: myTextFieldStyle
                     wrapMode: TextEdit.Wrap
                     textFormat: Text.RichText
@@ -819,16 +814,17 @@ WAPage {
                     property bool alreadyFocused: false
 
 					function cleanTextWithoutLines(txt){
-						//consoleDebug("LAST POSITION: " + lastPosition)
 						var repl = "p, li { white-space: pre-wrap; }";
 						var res = txt;
-						res = Helpers.getCode(res);
+						var pos = 0;
+						var result = Helpers.getCode(res);
+						res = result[0]
+						pos = result[1]
 						while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
 						res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
 						res = res.replace(/^\s+/,"");
 						while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-						//consoleDebug("PREVIOUS TEXT: "  + res)
-						return res;
+						return [res, pos];
 					}
 
 					onHeightChanged: {
@@ -964,13 +960,15 @@ WAPage {
     function cleanText(txt){
         var repl = "p, li { white-space: pre-wrap; }";
         var res = txt;
-        res = Helpers.getCode(res);
+		var result = Helpers.getCode(res);
+        res = result[0]
+		var pos = result[1]
 		res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
 		while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
 		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
 		res = res.replace(/^\s+/,"");
 		while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-		return res;
+		return [res, pos];
     }
 
 
@@ -1008,7 +1006,7 @@ WAPage {
 		    //platformStyle: ButtonStyle { inverted: true }
 		    width:50
 		    height:50
-            iconSource: "../common/images/emoji/32/emoji-E415.png"
+            iconSource: "../common/images/emoji/32/E415.png"
 		    anchors.left: parent.left
 			anchors.leftMargin: 16
 		    anchors.verticalCenter: send_button.verticalCenter

@@ -9,6 +9,7 @@ WAPage {
     Component.onCompleted: {
         dialogOpened = true
 		var currentValue = ""
+		consoleDebug("TONE: " + currentSelectionProfileValue)
 		if (currentSelectionProfileValue.indexOf("/home/user/MyDocs/")>-1) {
 			var res = currentSelectionProfileValue.split('/')
 			res = res[res.length-1]
@@ -39,7 +40,7 @@ WAPage {
     SheetButtonAccentStyle {
         id: mySheetButtonAccentStyle
         background: "image://theme/color3-meegotouch-sheet-button-accent-background"
-        disabledBackground: "image://theme/color3-meegotouch-sheet-button-accent-disabled"
+        disabledBackground: "image://theme/color3-meegotouch-sheet-button-accent-background-disabled"
         pressedBackground: "image://theme/color3-meegotouch-sheet-button-accent-background-pressed"
     }
 
@@ -98,8 +99,6 @@ WAPage {
    }
 
     function reject() {
-		setRingtone(currentSelectionProfileValue)
-        stopSoundFile()
         dialogOpened = false
 		if (ringtoneModel.get(1).value.indexOf("/home/user/MyDocs")>-1)
 			ringtoneModel.remove(1)

@@ -280,7 +280,7 @@ Rectangle{
 					smooth: true
                     y: 5
  				}
-                Label {
+                Text {
                     id:last_msg
                     text: lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
                           (lastMessage.type==20 ? qsTr("%1 joined the group").arg(getAuthor(lastMessage.content)) :

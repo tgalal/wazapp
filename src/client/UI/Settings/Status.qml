@@ -40,9 +40,12 @@ Item {
 	function cleanText(txt) {
         var repl = "p, li { white-space: pre-wrap; }";
         var res = txt;
-        res = Helpers.getCode(res);
+		var result = Helpers.getCode(res);
+        res = result[0]
+		var pos = result[1]
         res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-        return res.replace(/^\s+/,"");
+        res = res.replace(/^\s+/,"");
+		return [res, pos];
 	}	
 
     Emojidialog{
@@ -59,21 +62,45 @@ Item {
 		onEmojiSelected: {
 		    consoleDebug("GOT EMOJI "+emojiCode);
 
-		   	var str = cleanText(status_text.text)
+           	var cresult = cleanText(status_text.text)
+			var str = cresult[0]
+			var npos = cresult[1]
+
+			consoleDebug("RESULT TEXT: " + str)
+			consoleDebug("RESULT SPACES: " + npos)
+
 			var pos = str.indexOf("&quot;")
 			var newPosition = status_text.lastPosition
 			while(pos>-1 && pos<status_text.lastPosition) {
 				status_text.lastPosition = status_text.lastPosition +5
 				pos = str.indexOf("&quot;", pos+1)
+
 			}
 			pos = str.indexOf("&amp;")
 			while(pos>-1 && pos<status_text.lastPosition) {
 				status_text.lastPosition = status_text.lastPosition +4
 				pos = str.indexOf("&amp;", pos+1)
 			}
+			pos = str.indexOf("&lt;")
+			while(pos>-1 && pos<status_text.lastPosition) {
+				status_text.lastPosition = status_text.lastPosition +3
+				pos = str.indexOf("&lt;", pos+1)
+			}
+			pos = str.indexOf("&gt;")
+			while(pos>-1 && pos<status_text.lastPosition) {
+				status_text.lastPosition = status_text.lastPosition +3
+				pos = str.indexOf("&gt;", pos+1)
+			}
+			pos = str.indexOf("<br />")
+			while(pos>-1 && pos<status_text.lastPosition) {
+				status_text.lastPosition = status_text.lastPosition +5
+				pos = str.indexOf("<br />", pos+1)
+			}
 
-			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
-			str = str.substring(0,status_text.lastPosition) + cleanText(emojiImg) + str.slice(status_text.lastPosition)
+			status_text.lastPosition = status_text.lastPosition + parseInt(npos);
+
+			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/'+emojiCode+'.png" />'
+			str = str.substring(0,status_text.lastPosition) + emojiImg + str.slice(status_text.lastPosition)
 			status_text.text = Helpers.emojify2(str)
 			status_text.cursorPosition = newPosition + 1
 			status_text.forceActiveFocus()
@@ -134,11 +161,14 @@ Item {
 				//platformStyle: ButtonStyle { inverted: true }
 				width:50
 				height:50
-                iconSource: "../common/images/emoji/32/emoji-E415.png"
+                iconSource: "../common/images/emoji/32/E415.png"
 				anchors.left: parent.left
 				anchors.leftMargin: 0
 				anchors.verticalCenter: send_button.verticalCenter
-				onClicked: emojiDialog.openDialog()
+                onClicked: {
+                    emojiDialog.openDialog()
+                    status_text.lastPosition = status_text.cursorPosition
+                }
 			}
 
 		
@@ -155,12 +185,13 @@ Item {
 				y: 0
 				onClicked:{
 					var toSend = cleanText(status_text.text);
-					toSend = toSend.trim();
-					if ( toSend != "")
+                    var res = toSend[0];
+					if ( res.trim() != "")
                     {
                         requested = true;
-						tempStatus = toSend;
-                        changeStatus(toSend);
+						tempStatus = res.trim();
+						var cleanedmessage = Helpers.getCode(status_text.text);
+						changeStatus(cleanedmessage);
                         send_button.text = qsTr("Updating") + "..."
                         send_button.enabled = false
                         status_text.enabled = false

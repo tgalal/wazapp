@@ -41,6 +41,9 @@ WAPage {
 
     onStatusChanged: {
         if(status == PageStatus.Activating){
+
+            myStatus.text = Helpers.emojify2(currentStatus); //reset status to cancel unsaved modifications
+
             if(!loaded){
                 MySettings.initialize()
                 getRingtones()
@@ -645,7 +648,7 @@ WAPage {
 						//height: 140
 						clip: true
 						width: parent.width
-                        text: Helpers.emojify(currentStatus)
+                        text: Helpers.emojify2(currentStatus)
 					}
 
 

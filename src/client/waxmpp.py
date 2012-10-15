@@ -93,7 +93,7 @@ class WAEventHandler(QObject):
 	endGroupChat = QtCore.Signal(str);
 	groupEnded = QtCore.Signal();
 	setGroupSubject = QtCore.Signal(str, str);
-	groupSubjectChanged = QtCore.Signal();
+	groupSubjectChanged = QtCore.Signal(str);
 	getPictureIds = QtCore.Signal(str);
 	profilePictureUpdated = QtCore.Signal(str);
 	setPushName = QtCore.Signal(str, str);
@@ -144,9 +144,9 @@ class WAEventHandler(QObject):
 		self.removeParticipants.connect(lambda *args: self.interfaceHandler.call("group_removeParticipants", args));
 		self.getGroupParticipants.connect(lambda *args: self.interfaceHandler.call("group_getParticipants", args));
 		self.endGroupChat.connect(lambda *args: self.interfaceHandler.call("group_end", args));
-		self.setGroupSubject.connect(lambda *args: self.interfaceHandler.call("group_setSubject", args));
+		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, self.strip(subject))));
 		self.getPictureIds.connect(lambda *args: self.interfaceHandler.call("picture_getIds", args));
-		self.changeStatus.connect(lambda *args: self.interfaceHandler.call("profile_setStatus", args));
+		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (self.strip(status),)));
 
 		self.state = 0
 		
@@ -907,6 +907,7 @@ class WAEventHandler(QObject):
 		
 	
 	def sendMessage(self,jid,msg_text):
+		msg_text = self.strip(msg_text);
 		self._d("sending message now")
 		fmsg = WAXMPP.message_store.createMessage(jid);
 		

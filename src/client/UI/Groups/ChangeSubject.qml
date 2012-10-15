@@ -38,6 +38,13 @@ WAPage {
         subject_text.forceActiveFocus();
     }
 
+
+    onStatusChanged: {
+        if(status == PageStatus.Activating){
+            subject_text.text = Helpers.emojify2(currentSubject) //reset unsaved modifications
+        }
+    }
+
 	function cleanText(txt) {
         var repl = "p, li { white-space: pre-wrap; }";
         var res = txt;
@@ -82,7 +89,7 @@ WAPage {
 				wrapMode: TextEdit.Wrap
 				textFormat: Text.RichText
 				textColor: "black"
-                text: currentSubject
+                text: Helpers.emojify2(currentSubject)
 				onActiveFocusChanged: { 
 					lastPosition = subject_text.cursorPosition 
 				}

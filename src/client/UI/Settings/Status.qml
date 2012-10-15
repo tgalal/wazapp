@@ -114,7 +114,7 @@ Item {
 
             if(requested) {
                 MySettings.setSetting("Status", tempStatus)
-                myStatus.text = Helpers.emojify(tempStatus)
+                myStatus.text = Helpers.emojify2(tempStatus)
                 send_button.text=qsTr("Done")
                 send_button.enabled = true
                 status_text.enabled = true

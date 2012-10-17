@@ -67,7 +67,7 @@ WAPage {
 
     BusyIndicator {
         id: busyIndicatorGridCollection
-        implicitWidth: 96
+        platformStyle: BusyIndicatorStyle { size: "large";}
         anchors.centerIn: parent
         visible: view.count==0
         running: visible

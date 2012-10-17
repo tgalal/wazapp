@@ -35,7 +35,7 @@ Menu {
 
 		MenuItem {
             text: qsTr("Create group");
-			enabled: connectionStatus=="online"
+            enabled: connectionStatus=="online"
             onClicked: {
                 //selectedContacts = ""
                 //participantsModel.clear()

@@ -95,6 +95,7 @@ WAPage {
 
     function pushParticipants(jids){
         console.log("REAL PUSH")
+        bindProfile()
         conversationProfile.item.pushParticipants(jids)
     }
 
@@ -109,6 +110,7 @@ WAPage {
         }
         getPicture(jid, "image")
 
+        bindProfile();
         conversationProfile.item.pushGroupInfo(gdata);
     }
 

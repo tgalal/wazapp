@@ -74,7 +74,7 @@ Item {
 
     BusyIndicator{
         id:pictureLoadingIndicator
-        implicitWidth: 96
+        platformStyle: BusyIndicatorStyle { size: "large";}
         anchors.centerIn: parent
         visible:false
         running:visible

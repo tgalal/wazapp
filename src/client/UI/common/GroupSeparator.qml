@@ -5,7 +5,7 @@ Item {
     property string title
 
     width: parent.width
-    height: 50
+    //height: 50
 	clip: true
 
         Rectangle {

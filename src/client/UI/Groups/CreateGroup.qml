@@ -36,14 +36,7 @@ WAPage {
 	property bool creatingGroup: false
 	signal emojiSelected(string emojiCode);
     property string selectedPicture
-
-
-
-
-
-
-
-
+    busy: creatingGroup
 
     state: (screen.currentOrientation == Screen.Portrait) ? "portrait" : "landscape"
 
@@ -162,7 +155,6 @@ WAPage {
             title: qsTr("Create group")
             width:parent.width
             height: 73
-            state:creatingGroup?"busy":""
         }
         Label {
             color: theme.inverted ? "white" : "black"
@@ -304,7 +296,7 @@ WAPage {
 			id: createButton
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 300
-            text: qsTr("Create")
+            text: creatingGroup?qsTr("Creating"):qsTr("Create");
 			enabled: status_text.text!=="" && participantsModel.count>0 && !creatingGroup
             onClicked: {
 				creatingGroup = true
@@ -332,7 +324,7 @@ WAPage {
 		}
 		onAddedParticipants: {
 
-            if(selectedPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+            if(selectedPicture && selectedPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
                 setPicture(groupId, selectedPicture)
         	openConversation(groupId);
 		}

@@ -18,7 +18,7 @@ function initSectionData(list) {
     if (list.section.criteria == ViewSection.FullString) {
         for (var i = 0, count = list.model.count; i < count; i++) {
             item = list.model.get(i);
-            if(item.norender)
+            if(item.norender && item.norender == true)
                 continue;
             if (item[prop] !== current) {
                 current = item[prop];
@@ -29,7 +29,7 @@ function initSectionData(list) {
     } else if (list.section.criteria == ViewSection.FirstCharacter) {
         for (var i = 0, count = list.model.count; i < count; i++) {
             item = list.model.get(i)
-            if(item.norender)
+            if(item.norender && item.norender == true)
                 continue;
             if (item[prop].substring(0, 1) !== current) {
                 current = item[prop].substring(0, 1);

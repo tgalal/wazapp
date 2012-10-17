@@ -23,19 +23,17 @@ Item {
         section.property: "name"
         section.criteria: ViewSection.FirstCharacter
 
-        section.delegate: GroupSeparator {
+        section.delegate: SectionDelegate{
             anchors.left: parent.left
             anchors.leftMargin: 16
-            width: parent.width - 44
-            height: 50//searchInput.text==="" ? 50 : 0
-            title: section
+            width:parent.width-44
+            renderSection: fast.sectionExists(section)
+            height:renderSection?50:0
+            currSection: section
         }
 
         Component.onCompleted: {  fast.listViewChanged();}
-        onCountChanged: { fast.listViewChanged();
-
-        }
-
+        onCountChanged: { fast.listViewChanged();}
     }
 
     FastScroll {

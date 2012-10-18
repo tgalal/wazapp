@@ -90,7 +90,9 @@ WAPage {
 	signal textHeightChanged;
     signal sendButtonClicked;
 	signal forceFocusToChatText;
-    signal emojiSelected(string emojiCode);
+
+
+
 
 
     function pushParticipants(jids){
@@ -405,14 +407,6 @@ WAPage {
         conv_items.positionViewAtIndex(conv_items.count-1, ListView.Contain)
     }
 
-    Emojidialog{
-        id:emojiDialog
-
-        Component.onCompleted: {
-            emojiDialog.emojiSelected.connect(conversation_view.emojiSelected);
-        }
-
-    }
 
     Rectangle{
         id:top_bar
@@ -743,7 +737,7 @@ WAPage {
                         showSendButton=true;
                         forceFocusToChatText()
 
-                        var toSend = cleanText(chat_text.text);
+                        var toSend = chat_text.getCleanText();
                         var res = toSend[0];
                         if (res.trim() != "")
                         {
@@ -754,51 +748,6 @@ WAPage {
                         forceFocusToChatText()
 
                     }
-
-                    onEmojiSelected:{
-                        consoleDebug("GOT EMOJI "+emojiCode);
-
-                       	var cresult = cleanText(chat_text.text)
-						var str = cresult[0]
-						var npos = cresult[1]
-
-						var pos = str.indexOf("&quot;")
-						var newPosition = chat_text.lastPosition
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +5
-							pos = str.indexOf("&quot;", pos+1)
-							
-						}
-						pos = str.indexOf("&amp;")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +4
-							pos = str.indexOf("&amp;", pos+1)
-						}
-						pos = str.indexOf("&lt;")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +3
-							pos = str.indexOf("&lt;", pos+1)
-						}
-						pos = str.indexOf("&gt;")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +3
-							pos = str.indexOf("&gt;", pos+1)
-						}
-						pos = str.indexOf("<br />")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +5
-							pos = str.indexOf("<br />", pos+1)
-						}
-
-						chat_text.lastPosition = chat_text.lastPosition + parseInt(npos);
-
-						var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/'+emojiCode+'.png" />'
-						str = str.substring(0,chat_text.lastPosition) + emojiImg + str.slice(chat_text.lastPosition)
-						chat_text.text = Helpers.emojify2(str)
-						chat_text.cursorPosition = newPosition + 1
-						forceFocusToChatText()
-                    }
-
                 }
 
                 WATextArea {
@@ -807,7 +756,7 @@ WAPage {
                     x: 54
                     y: 0
                     placeholderText: blockedContacts.indexOf(jid)>-1 ? qsTr("Contact blocked") :
-									 (showSendButton || cleanText(chat_text.text)[0].trim()!="") ? "" : qsTr("Write your message here")
+                                     (showSendButton || chat_text.getCleanText()[0].trim()!="") ? "" : qsTr("Write your message here")
                     platformStyle: myTextFieldStyle
                     wrapMode: TextEdit.Wrap
                     textFormat: Text.RichText
@@ -959,19 +908,6 @@ WAPage {
 	}
 
 
-    function cleanText(txt){
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-		var result = Helpers.getCode(res);
-        res = result[0]
-		var pos = result[1]
-		res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
-		while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
-		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-		res = res.replace(/^\s+/,"");
-		while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-		return [res, pos];
-    }
 
 
 	Rectangle {
@@ -1014,9 +950,9 @@ WAPage {
 		    anchors.verticalCenter: send_button.verticalCenter
             onClicked: {
 				sendMediaWindow.opacity = 0
-                emojiDialog.openDialog();
+                emojiDialog.openDialog(chat_text);
 				showSendButton=true; 
-                chat_text.lastPosition = chat_text.cursorPosition
+                //chat_text.lastPosition = chat_text.cursorPosition
 		    }
 		}
 

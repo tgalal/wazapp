@@ -30,19 +30,9 @@ WAPage {
 
 	id: content
 
-	signal emojiSelected(string emojiCode);
-
     Component.onCompleted: {
         status_text.forceActiveFocus();
     }
-
-	function cleanText(txt) {
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-        res = Helpers.getCode(res);
-        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-        return res.replace(/^\s+/,"");
-	}	
 
 	tools: statusTool
 
@@ -51,41 +41,6 @@ WAPage {
         anchors.top:parent.top
         width:parent.width
 		height: 73
-    }
-
-    Emojidialog{
-        id:emojiDialog
-
-        Component.onCompleted: {
-            emojiDialog.emojiSelected.connect(content.emojiSelected);
-        }
-
-    }
-
-	Connections {
-		target: content
-		onEmojiSelected: {
-		    consoleDebug("GOT EMOJI "+emojiCode);
-
-		   	var str = cleanText(status_text.text)
-			var pos = str.indexOf("&quot;")
-			var newPosition = status_text.lastPosition
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +5
-				pos = str.indexOf("&quot;", pos+1)
-			}
-			pos = str.indexOf("&amp;")
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +4
-				pos = str.indexOf("&amp;", pos+1)
-			}
-
-			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
-			str = str.substring(0,status_text.lastPosition) + cleanText(emojiImg) + str.slice(status_text.lastPosition)
-			status_text.text = Helpers.emojify2(str)
-			status_text.cursorPosition = newPosition + 1
-			status_text.forceActiveFocus()
-		}
     }
 
     Rectangle {
@@ -136,7 +91,9 @@ WAPage {
 					anchors.left: parent.left
 					anchors.leftMargin: 0
 					anchors.verticalCenter: send_button.verticalCenter
-					onClicked: emojiDialog.openDialog()
+                    onClicked: {
+                        emojiDialog.openDialog(status_text);
+                    }
 				}
 
 			
@@ -149,10 +106,9 @@ WAPage {
 					text: qsTr("Done")
 					anchors.right: parent.right
 					anchors.rightMargin: 0
-					//enabled: cleanText(status_text.text).trim() !=""
 					y: 0
 					onClicked:{
-						var toSend = cleanText(status_text.text);
+                        var toSend = status_text.getCleanText();
 						toSend = toSend.trim();
 						if ( toSend != "")
 						{

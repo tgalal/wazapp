@@ -33,6 +33,7 @@ import "Conversations"
 import "Profile"
 import "Groups"
 import "Misc"
+import "EmojiDialog"
 import "common/js/settings.js" as MySettings
 
 //import com.nokia.extras 1.0
@@ -395,10 +396,20 @@ WAStackWindow {
     }
 
     function onInitDone(){
+
+        //remaining inits
+        //init emoji dialog
+        //emojiDialog.loadEmoji(0,189);
+
+        //splashPage.setCurrentOperation(qsTr("Loading Emoji"));
+
+        //emojiDialog.loadAll();
+
         initializationDone = true
         pageStack.pop(mainPage,true)
         //pageStack.replace(mainPage)
     }
+
 
 
     function onConversationExported(jid, path){
@@ -845,6 +856,10 @@ WAStackWindow {
 
     WAUpdate{
         id:updatePage
+    }
+
+    Emojidialog{
+        id:emojiDialog
     }
 
     SettingsNew{

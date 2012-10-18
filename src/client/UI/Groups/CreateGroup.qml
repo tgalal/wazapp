@@ -34,7 +34,6 @@ WAPage {
 
 	property string groupId
 	property bool creatingGroup: false
-	signal emojiSelected(string emojiCode);
     property string selectedPicture
     busy: creatingGroup
 
@@ -60,7 +59,7 @@ WAPage {
         //participantsModel.clear()
         //selectedContacts = ""
 
-        status_text.forceActiveFocus();
+        subject_text.forceActiveFocus();
 
         genericSyncedContactsSelector.resetSelections()
         genericSyncedContactsSelector.unbindSlots()
@@ -81,54 +80,12 @@ WAPage {
 		}
 	}
 
-    function cleanText(txt) {
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-        res = Helpers.getCode(res);
-        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-        return res.replace(/^\s+/,"");
-	}	
-
 	tools: statusTool
 
-    Emojidialog{
-        id:emojiDialog
 
-        Component.onCompleted: {
-            emojiDialog.emojiSelected.connect(content.emojiSelected);
-        }
-
-    }
 
     ListModel {
         id: participantsModel
-    }
-
-
-	Connections {
-		target: content
-		onEmojiSelected: {
-		    consoleDebug("GOT EMOJI "+emojiCode);
-
-		   	var str = cleanText(status_text.text)
-			var pos = str.indexOf("&quot;")
-			var newPosition = status_text.lastPosition
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +5
-				pos = str.indexOf("&quot;", pos+1)
-			}
-			pos = str.indexOf("&amp;")
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +4
-				pos = str.indexOf("&amp;", pos+1)
-			}
-
-			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
-			str = str.substring(0,status_text.lastPosition) + cleanText(emojiImg) + str.slice(status_text.lastPosition)
-			status_text.text = Helpers.emojify2(str)
-			status_text.cursorPosition = newPosition + 1
-			status_text.forceActiveFocus()
-		}
     }
 
 
@@ -162,7 +119,7 @@ WAPage {
         }
 
         WATextArea {
-            id: status_text
+            id: subject_text
             width:parent.width
             wrapMode: TextEdit.Wrap
             //textFormat: Text.RichText
@@ -297,10 +254,10 @@ WAPage {
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 300
             text: creatingGroup?qsTr("Creating"):qsTr("Create");
-			enabled: status_text.text!=="" && participantsModel.count>0 && !creatingGroup
+            enabled: subject_text.text!=="" && participantsModel.count>0 && !creatingGroup
             onClicked: {
 				creatingGroup = true
-                createGroupChat(status_text.text)
+                createGroupChat(subject_text.text)
 			}
         }
        

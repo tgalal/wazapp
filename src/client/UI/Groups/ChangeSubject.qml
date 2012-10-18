@@ -32,8 +32,6 @@ WAPage {
     property string jid;
     property string currentSubject;
 
-	signal emojiSelected(string emojiCode);
-
     Component.onCompleted: {
         subject_text.forceActiveFocus();
     }
@@ -44,17 +42,6 @@ WAPage {
             subject_text.text = Helpers.emojify2(currentSubject) //reset unsaved modifications
         }
     }
-
-	function cleanText(txt) {
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-		var result = Helpers.getCode(res);
-        res = result[0]
-		var pos = result[1]
-        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-        res = res.replace(/^\s+/,"");
-		return [res, pos];
-	}	
 
 	tools: statusTool
 
@@ -114,8 +101,7 @@ WAPage {
 					anchors.leftMargin: 0
 					anchors.verticalCenter: send_button.verticalCenter
                     onClicked: {
-                        emojiDialog.openDialog();
-                        subject_text.lastPosition = subject_text.cursorPosition;
+                        emojiDialog.openDialog(subject_text);
                     }
 				}
 
@@ -129,10 +115,9 @@ WAPage {
 					text: qsTr("Done")
 					anchors.right: parent.right
 					anchors.rightMargin: 0
-					//enabled: cleanText(subject_text.text).trim() !=""
 					y: 0
 					onClicked: {
-						var toSend = cleanText(subject_text.text);
+                        var toSend = subject_text.getCleanText();
                         var res = toSend[0];
 						//consoleDebug("Setting subject: " + toSend)
 						//toSend = toSend.trim();
@@ -148,64 +133,6 @@ WAPage {
 
     }
 
-    Emojidialog{
-        id:emojiDialog
-
-        Component.onCompleted: {
-            emojiDialog.emojiSelected.connect(content.emojiSelected);
-        }
-
-    }
-
-	Connections {
-		target: content
-		onEmojiSelected: {
-		    consoleDebug("GOT EMOJI "+emojiCode);
-
-           	var cresult = cleanText(subject_text.text)
-			var str = cresult[0]
-			var npos = cresult[1]
-
-			consoleDebug("RESULT TEXT: " + str)
-			consoleDebug("RESULT SPACES: " + npos)
-
-			var pos = str.indexOf("&quot;")
-			var newPosition = subject_text.lastPosition
-			while(pos>-1 && pos<subject_text.lastPosition) {
-				subject_text.lastPosition = subject_text.lastPosition +5
-				pos = str.indexOf("&quot;", pos+1)
-
-			}
-			pos = str.indexOf("&amp;")
-			while(pos>-1 && pos<subject_text.lastPosition) {
-				subject_text.lastPosition = subject_text.lastPosition +4
-				pos = str.indexOf("&amp;", pos+1)
-			}
-			pos = str.indexOf("&lt;")
-			while(pos>-1 && pos<subject_text.lastPosition) {
-				subject_text.lastPosition = subject_text.lastPosition +3
-				pos = str.indexOf("&lt;", pos+1)
-			}
-			pos = str.indexOf("&gt;")
-			while(pos>-1 && pos<subject_text.lastPosition) {
-				subject_text.lastPosition = subject_text.lastPosition +3
-				pos = str.indexOf("&gt;", pos+1)
-			}
-			pos = str.indexOf("<br />")
-			while(pos>-1 && pos<subject_text.lastPosition) {
-				subject_text.lastPosition = subject_text.lastPosition +5
-				pos = str.indexOf("<br />", pos+1)
-			}
-
-			subject_text.lastPosition = subject_text.lastPosition + parseInt(npos);
-
-			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/'+emojiCode+'.png" />'
-			str = str.substring(0,subject_text.lastPosition) + emojiImg + str.slice(subject_text.lastPosition)
-			subject_text.text = Helpers.emojify2(str)
-			subject_text.cursorPosition = newPosition + 1
-			subject_text.forceActiveFocus()
-		}
-    }
 
 	ToolBarLayout {
         id:statusTool

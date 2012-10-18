@@ -34,78 +34,7 @@ Item {
 	property alias text: status_text.text
 	property string tempStatus: ""
     property bool requested:false
-	
-	signal emojiSelected(string emojiCode);
 
-	function cleanText(txt) {
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-		var result = Helpers.getCode(res);
-        res = result[0]
-		var pos = result[1]
-        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-        res = res.replace(/^\s+/,"");
-		return [res, pos];
-	}	
-
-    Emojidialog{
-        id:emojiDialog
-
-        Component.onCompleted: {
-            emojiDialog.emojiSelected.connect(content.emojiSelected);
-        }
-
-    }
-
-	Connections {
-		target: content
-		onEmojiSelected: {
-		    consoleDebug("GOT EMOJI "+emojiCode);
-
-           	var cresult = cleanText(status_text.text)
-			var str = cresult[0]
-			var npos = cresult[1]
-
-			consoleDebug("RESULT TEXT: " + str)
-			consoleDebug("RESULT SPACES: " + npos)
-
-			var pos = str.indexOf("&quot;")
-			var newPosition = status_text.lastPosition
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +5
-				pos = str.indexOf("&quot;", pos+1)
-
-			}
-			pos = str.indexOf("&amp;")
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +4
-				pos = str.indexOf("&amp;", pos+1)
-			}
-			pos = str.indexOf("&lt;")
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +3
-				pos = str.indexOf("&lt;", pos+1)
-			}
-			pos = str.indexOf("&gt;")
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +3
-				pos = str.indexOf("&gt;", pos+1)
-			}
-			pos = str.indexOf("<br />")
-			while(pos>-1 && pos<status_text.lastPosition) {
-				status_text.lastPosition = status_text.lastPosition +5
-				pos = str.indexOf("<br />", pos+1)
-			}
-
-			status_text.lastPosition = status_text.lastPosition + parseInt(npos);
-
-			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/'+emojiCode+'.png" />'
-			str = str.substring(0,status_text.lastPosition) + emojiImg + str.slice(status_text.lastPosition)
-			status_text.text = Helpers.emojify2(str)
-			status_text.cursorPosition = newPosition + 1
-			status_text.forceActiveFocus()
-		}
-    }
 
 	Connections {
 		target: appWindow
@@ -140,7 +69,7 @@ Item {
 		    width:parent.width
 			wrapMode: TextEdit.Wrap
 			textFormat: Text.RichText
-			textColor: "black"
+            textColor: "black"
 			onActiveFocusChanged: { 
 				lastPosition = status_text.cursorPosition 
 				consoleDebug("LAST POSITION: " + lastPosition)
@@ -166,8 +95,7 @@ Item {
 				anchors.leftMargin: 0
 				anchors.verticalCenter: send_button.verticalCenter
                 onClicked: {
-                    emojiDialog.openDialog()
-                    status_text.lastPosition = status_text.cursorPosition
+                    emojiDialog.openDialog(status_text);
                 }
 			}
 
@@ -181,10 +109,9 @@ Item {
 				text: qsTr("Done")
 				anchors.right: parent.right
                 anchors.rightMargin: 0
-				//enabled: cleanText(status_text.text).trim() !=""
 				y: 0
 				onClicked:{
-					var toSend = cleanText(status_text.text);
+                    var toSend = status_text.getCleanText();
                     var res = toSend[0];
 					if ( res.trim() != "")
                     {

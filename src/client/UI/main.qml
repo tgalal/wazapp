@@ -33,6 +33,7 @@ import "Conversations"
 import "Profile"
 import "Groups"
 import "Misc"
+import "EmojiDialog"
 import "common/js/settings.js" as MySettings
 
 //import com.nokia.extras 1.0
@@ -849,6 +850,10 @@ WAStackWindow {
 
     WAUpdate{
         id:updatePage
+    }
+
+    Emojidialog{
+        id:emojiDialog
     }
 
     SettingsNew{

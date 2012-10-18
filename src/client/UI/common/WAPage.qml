@@ -28,6 +28,8 @@ Page {
    orientationLock: appWindow.orientation==2 ? PageOrientation.LockLandscape:
                 appWindow.orientation==1 ? PageOrientation.LockPortrait : PageOrientation.Automatic
 
+   property alias busy:busyIndicator.running
+
 	Connections {
 		target: appWindow
 		onSetBackground: {
@@ -58,6 +60,17 @@ Page {
 		else if (value=="0") return 0;
 
 	}
+
+    BusyIndicator {
+        id: busyIndicator
+        //implicitWidth: 30
+        anchors.right: parent.right
+        anchors.rightMargin: 30
+        anchors.top:parent.top
+        anchors.topMargin: 30
+        visible: running
+        running: false
+    }
 
 
 }

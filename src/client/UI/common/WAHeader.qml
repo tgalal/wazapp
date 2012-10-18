@@ -30,25 +30,6 @@ Rectangle{
     color:"transparent"
 	clip: true
 
-    states: [
-        State {
-            name: ""
-            PropertyChanges {
-                target: busyIndicator
-                visible:false
-            }
-        },
-
-        State {
-            name: "busy"
-            PropertyChanges {
-                target: busyIndicator
-                visible:true
-
-            }
-        }
-    ]
-
     Image{
 	    id:wazapp_icon
 	    anchors.left: parent.left
@@ -84,17 +65,4 @@ Rectangle{
 		color: theme.inverted ? "lightgray" : "white"
 		opacity: 0.8
     }
-
-    BusyIndicator {
-        id: busyIndicator
-        implicitWidth: 30
-        anchors.right: parent.right
-        anchors.rightMargin: 10
-        anchors.verticalCenter: parent.verticalCenter
-
-        visible:false
-        running: visible
-    }
-
-
 }

@@ -19,6 +19,16 @@ Item {
 
     property Style platformStyle: FastScrollStyle {}
 
+    function sectionExists(sectionName){
+
+        if(!Sections._sections.length)
+            Sections.initSectionData(listView)
+
+
+       // consoleDebug("Check "+sectionName +" IN "+Sections._sections.join(","))
+        return Sections._sections.indexOf(sectionName)>=0;
+    }
+
     // This function ensures that we always anchor the decorator correctly according
     // to the page margins.
     function __updatePageMargin() {

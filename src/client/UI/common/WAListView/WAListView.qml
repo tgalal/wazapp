@@ -167,7 +167,7 @@ Rectangle {
 
     BusyIndicator {
         id: busyIndicator
-        implicitWidth: 96
+        platformStyle: BusyIndicatorStyle { size: "large";}
         anchors.centerIn: parent
         visible:false
         running: visible
@@ -188,9 +188,8 @@ Rectangle {
             id:item
 
             Component.onCompleted: {
-                WAlvhelper.items.push(item)
-
-                item.isSelected = walistviewroot.isSelected(index);
+                    WAlvhelper.items.push(item)
+                    item.isSelected = walistviewroot.isSelected(index);
             }
 
            /* Connections{
@@ -213,10 +212,10 @@ Rectangle {
 
             property bool isSelected
             property bool isRemoved
-
+            property bool render:!model.norender || model.norender == false;
 
             //height: filtered ? 80 : 0
-            height:(model.norender && model.norender == true) || isRemoved?0:80
+            height:!render || isRemoved?0:80
             visible:!isRemoved
             width: parent.width
             color: "transparent"

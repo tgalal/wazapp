@@ -184,7 +184,7 @@ WAPage {
 		anchors.right: header.right
 		anchors.rightMargin: 16
 		anchors.verticalCenter: header.verticalCenter 
-        implicitWidth: 32
+        platformStyle: BusyIndicatorStyle { size: "medium";}
         visible: !refreshPics.visible
         running: visible
     }
@@ -296,13 +296,23 @@ WAPage {
             section.property: "name"
             section.criteria: ViewSection.FirstCharacter
 
-            section.delegate: GroupSeparator {
+            /*section.delegate: GroupSeparator {
 				anchors.left: parent.left
 				anchors.leftMargin: 16
-				width: parent.width - 44
-				height: searchInput.text==="" ? 50 : 0
+                width: parent.width - 44
+                visible: fast.sectionExists(section)
+                height: visible && searchInput.text==="" ? 50 : 0
 				title: section
-			}
+            }*/
+
+            section.delegate: SectionDelegate{
+                anchors.left: parent.left
+                anchors.leftMargin: 16
+                width:parent.width-44
+                renderSection: fast.sectionExists(section) && searchInput.text===""
+                height:renderSection?50:0
+                currSection: section
+            }
 
 			Component.onCompleted: fast.listViewChanged()
 

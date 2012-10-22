@@ -290,7 +290,7 @@ var emoji_code = [
 
 ];
 
-var multiByteEmojiRegex = new RegExp("("+emoji_code.filter(function(el){return el.indexOf("1F")==0}).map(function(el){var uni =getUnicodeCharacter("0x"+el)[0]; return "\\u"+uni.charCodeAt(0).toString(16)+"|"+uni.charCodeAt(1).toString(16) }).join("|").split("|").getUnique().join("|\\u")+")", "g")
+var multiByteEmojiRegex = new RegExp("("+"\\u"+emoji_code.filter(function(el){return el.indexOf("1F")==0}).map(function(el){var uni =getUnicodeCharacter("0x"+el)[0]; return uni.charCodeAt(0).toString(16)+"|"+uni.charCodeAt(1).toString(16) }).join("|").split("|").getUnique().join("|\\u")+")", "g")
 
 
 

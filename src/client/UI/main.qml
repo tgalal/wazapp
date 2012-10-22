@@ -741,7 +741,8 @@ WAStackWindow {
 
 		if (reorder) reorderConversation(messages.jid)
 
-		onPaused(messages.jid)
+        if(messages.data.length == 1 && messages.data[0].type == 0)
+            onPaused(messages.jid)
 
     }
 

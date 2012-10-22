@@ -86,10 +86,15 @@ WAPage {
 	property int currentTextHeight
 	property bool loadReverse: false
 	property int positionToAdd: conv_data.count
+
+    property alias ustatusState:ustatus.state
+
+    signal ustatusChanged(string ustatusState);
 	
 	signal textHeightChanged;
     signal sendButtonClicked;
 	signal forceFocusToChatText;
+
 
 
 
@@ -321,14 +326,16 @@ WAPage {
     signal typing(string jid);
     signal paused(string jid);
 
-    function setOnline(){ustatus.setOnline();}
-    function setTyping(){ustatus.setTyping();}
-    function setPaused(){ustatus.setPaused();}
+    function setOnline(){ustatus.setOnline(); ustatusChanged(ustatus.state)}
+    function setTyping(){ustatus.setTyping(); ustatusChanged(ustatus.state)}
+    function setPaused(){ustatus.setPaused(); ustatusChanged(ustatus.state)}
     function setOffline(seconds){
         if(seconds)
             ustatus.setOffline(seconds);
         else
             ustatus.setOffline();
+
+        ustatusChanged(ustatus.state)
     }
 
     function getBubble(msg_id){

@@ -13,6 +13,7 @@ Dialog {
 
     property string titleText: qsTr("Select Emoji")
     property string emojiPath:"../common/images/emoji/";
+    property string emojiRelativePath; //relative to textfield
 
     /*function setCallback(func){
 
@@ -30,13 +31,21 @@ Dialog {
         return emojiPath+"20/"+c+".png";
     }
 
-    function openDialog(textarea){
+    function get24(code){
+        var c = ""+code;
+        return emojiPath+"24/"+c+".png";
+    }
+
+    function openDialog(textarea, relativePath){
         if(!textarea){
             consoleDebug("NO TEXTAREA SPECIFIED FOR EMOJI, NOT OPENING!")
             return;
         }
         textarea.lastPosition = textarea.cursorPosition
         EmojiHelper.emojiTextarea = textarea
+
+
+        emojiRelativePath = relativePath?relativePath:"/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji"
 
         emojiSelector.open();
 		emojiCategory.checkedButton = peopleEmoji
@@ -271,13 +280,16 @@ Dialog {
 
         textarea.lastPosition = textarea.lastPosition + parseInt(npos);
 
-        var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/'+emojiCode+'.png" />'
+        var emojiImg = '<img src="'+emojiRelativePath+'/24/'+emojiCode+'.png" />'
         str = str.substring(0,textarea.lastPosition) + emojiImg + str.slice(textarea.lastPosition)
-        textarea.text = Helpers.emojify2(str)
+
+        //console.log(str);
+       // console.log("_______")
+        textarea.text = Helpers.emojify2(str,emojiRelativePath)
         textarea.cursorPosition = newPosition + 1
         textarea.forceActiveFocus();
 
-
+       // console.log(textarea.text)
         emojiSelector.accept();
         hideAll();
     }

@@ -28,6 +28,18 @@
 
 var prevCode = 0
 
+Array.prototype.getUnique = function(){
+   var u = {}, a = [];
+   for(var i = 0, l = this.length; i < l; ++i){
+      if(u.hasOwnProperty(this[i])) {
+         continue;
+      }
+      a.push(this[i]);
+      u[this[i]] = 1;
+   }
+   return a;
+}
+
 function decimalToHex(d, padding) {
     var hex = Number(d).toString(16);
     padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
@@ -75,8 +87,8 @@ function emojify(stringInput) {
 	return '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/'+eChar.charCodeAt(0).toString(16).toUpperCase()+'.png" />';
 	});
 
-	var replaceRegex = /([\u0080-\uFFFF])/g;
-	return replacedText.replace(replaceRegex, emoji_replacer);
+    //var replaceRegex = /([\u0080-\uFFFF])/g;
+    return replacedText.replace(multiByteEmojiRegex, emoji_replacer);
 }
 
 function emoji_replacer(str, p1) {
@@ -88,33 +100,30 @@ function emoji_replacer(str, p1) {
 		else
 			return p1
 	} else {
-		return ''
+        return ''
 	}
 }
 
-function emojify2(stringInput) { //for textArea
-	prevCode = 0
+function emojify2(stringInput, emojiPath) { //for textArea
+    prevCode = 0
     var replacedText;
-	var regx = /([\ue001-\ue537])/g
-	replacedText = stringInput.replace(regx, function(s, eChar){
-	return '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/'+eChar.charCodeAt(0).toString(16).toUpperCase()+'.png">';
-	});
+    var regx = /([\ue001-\ue537])/g
+    replacedText = stringInput.replace(regx, function(s, eChar){
+    return '<img src="'+emojiPath+'/24/'+eChar.charCodeAt(0).toString(16).toUpperCase()+'.png">';
+    });
 
-	var replaceRegex = /([\u0080-\uFFFF])/g;
-	return replacedText.replace(replaceRegex, emoji_replacer2);
-}
-
-function emoji_replacer2(str, p1) {
-	var p = ord(p1.toString(16))
-	if (p>0) {
-		var res = decimalToHex(p).toString().toUpperCase()
-		if (p>8252)
-			return res.replace(/^([\da-f]+)$/i,'<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/24/$1.png">');
-		else
-			return p1
-	} else {
-		return ''
-	}
+    return replacedText.replace(multiByteEmojiRegex, function(str, p1) {
+             var p = ord(p1.toString(16))
+             if (p>0) {
+                 var res = decimalToHex(p).toString().toUpperCase()
+                 if (p>8252)
+                     return res.replace(/^([\da-f]+)$/i,'<img src="'+emojiPath+'/24/$1.png">');
+                 else
+                     return p1
+             } else {
+                 return ''
+             }
+        });
 }
 
 function emojifyBig(stringInput) {
@@ -125,8 +134,8 @@ function emojifyBig(stringInput) {
 	return '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/32/'+eChar.charCodeAt(0).toString(16).toUpperCase()+'.png" />';
 	});
 
-	var replaceRegex = /([\u0080-\uFFFF])/g;
-	return replacedText.replace(replaceRegex, emoji_replacer3);
+    //var replaceRegex = /([\u0080-\uFFFF])/g;
+    return replacedText.replace(multiByteEmojiRegex, emoji_replacer3);
 }
 
 function emoji_replacer3(str, p1) {
@@ -138,7 +147,7 @@ function emoji_replacer3(str, p1) {
 		else
 			return p1
 	} else {
-		return ''
+        return ''
 	}
 }
 
@@ -156,23 +165,27 @@ function getUnicodeCharacter(cp) {
 
 
 function getCode(inputText) {
-	var replacedText;
-	var positions = 0;
-    var regx = /<img src="\/opt\/waxmppplugin\/bin\/wazapp\/UI\/common\/images\/emoji\/24\/(\w{4,6}).png" \/>/g
+
+    var replacedText,
+        positions = 0,
+        regx = /<img src="([\w\:\\\w /]+\w+\.\w+)" \/>/g
+
     replacedText = inputText.replace( regx, function(s, eChar){
-		var result = getUnicodeCharacter('0x'+eChar);
-		var n = result[0]
-		positions = positions + result[1]
-        return n;
+            var tmp = s.split(' />')[0].split('/'),
+                filenameArr = tmp[tmp.length-1].split('.'),
+                emojiChar,
+                result,
+                n;
+
+            if(filenameArr.length != 2) return s;
+
+            emojiChar = filenameArr[0]
+
+            result = getUnicodeCharacter('0x'+emojiChar);
+            n = result[0]
+            positions = positions + result[1]
+            return n;
     });
-	regx = /<img src="..\/images\/emoji\/24\/(\w{4,6}).png" \/>/g
-    replacedText = replacedText.replace( regx, function(s, eChar){
-		var result = getUnicodeCharacter('0x'+eChar);
-		var n = result[0]
-		positions = positions + result[1]
-        return n;
-    });
-	//console.log("JS: REPLACED TEXT: " + replacedText + " - Chars:" + positions)
     return [replacedText, positions]
 
 }
@@ -276,6 +289,9 @@ var emoji_code = [
 
 
 ];
+
+var multiByteEmojiRegex = new RegExp("("+"\\u"+emoji_code.filter(function(el){return el.indexOf("1F")==0}).map(function(el){var uni =getUnicodeCharacter("0x"+el)[0]; return uni.charCodeAt(0).toString(16)+"|"+uni.charCodeAt(1).toString(16) }).join("|").split("|").getUnique().join("|\\u")+")", "g")
+
 
 
 

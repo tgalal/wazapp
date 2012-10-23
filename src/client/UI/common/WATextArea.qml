@@ -10,15 +10,15 @@ import "js/Global.js" as Helpers
 FocusScope {
     id: root
 
-	signal textPasted
-	signal enterKeyClicked
-	signal inputPanelChanged
-	property int lastPosition:0
+    signal textPasted
+    signal enterKeyClicked
+    signal inputPanelChanged
+    property int lastPosition:0
 
     // Common public API
     property alias text: textEdit.text
     property alias placeholderText: prompt.text
-	property alias textColor: textEdit.color
+    property alias textColor: textEdit.color
 
     property alias font: textEdit.font
     property alias cursorPosition: textEdit.cursorPosition
@@ -86,7 +86,7 @@ FocusScope {
 
     function paste() {
         textEdit.paste()
-		textPasted()
+        textPasted()
     }
 
     function cut() {
@@ -186,10 +186,10 @@ FocusScope {
         font: root.platformStyle.textFont
         color: "gray"
         elide: Text.ElideRight
-		onVisibleChanged: {
-			if (prompt.visible) platformCloseSoftwareInputPanel()
-			else platformOpenSoftwareInputPanel()
-		}
+        onVisibleChanged: {
+            if (prompt.visible) platformCloseSoftwareInputPanel()
+            else platformOpenSoftwareInputPanel()
+        }
     }
 
     MouseArea {
@@ -211,8 +211,8 @@ FocusScope {
         property alias preedit: inputMethodObserver.preedit
         property alias preeditCursorPosition: inputMethodObserver.preeditCursorPosition
 
-		Keys.onEnterPressed: { enterKeyClicked() }
-		Keys.onReturnPressed: { enterKeyClicked() }
+        Keys.onEnterPressed: { enterKeyClicked() }
+        Keys.onReturnPressed: { enterKeyClicked() }
 
 
         x: UI.PADDING_XLARGE
@@ -263,20 +263,20 @@ FocusScope {
             target: inputContext
 
             onSoftwareInputPanelVisibleChanged: {
-				inputPanelChanged()
+                inputPanelChanged()
                 if (activeFocus)
                     TextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
 
             onSoftwareInputPanelRectChanged: {
-				inputPanelChanged()
+                inputPanelChanged()
                 if (activeFocus)
                     TextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
         }
 
         onCursorPositionChanged: {
-			if(activeFocus) {
+            if(activeFocus) {
                 TextAreaHelper.repositionFlickable(contentMovingAnimation)
             }
 
@@ -342,7 +342,7 @@ FocusScope {
                 );
                 attemptToActivate = !pressOnPreedit && !root.readOnly && !preeditDisabled && root.activeFocus && !(mousePosition == 0 || TextAreaHelper.atSpace(mousePosition - 1));
                 mouse.filtered = true;*/
-				inputContext.reset()
+                inputContext.reset()
                 parent.selectByMouse = true
                 attemptToActivate = false
             }

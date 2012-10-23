@@ -133,6 +133,7 @@ WAPage {
 			text: qsTr("Send")
 			enabled: currentSelected>-1 && (browserModel.get(currentSelected).filetype=="send-audio")
 	        onClicked: { 
+                stopSoundFile()
 				sendMediaAudioFile(currentJid, browserModel.get(currentSelected).filepath)
 				pageStack.pop()
 			}

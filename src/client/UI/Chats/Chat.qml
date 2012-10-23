@@ -50,7 +50,6 @@ Rectangle{
 
     state:(!lastMessage)?"":(lastMessage.type==1?(isGroup && lastMessage.status == "pending"?"delivered":lastMessage.status):"received")
 
-
 	Connections {
 		target: appWindow
 
@@ -84,21 +83,6 @@ Rectangle{
 				}
 			}
 		}
-
-		onOnTyping: {
-			if (jid == ujid) {
-				last_msg.visible = false
-				isWriting.visible = true
-			}
-		}
-
-		onOnPaused: {
-			if (jid == ujid) {
-				last_msg.visible = true
-				isWriting.visible = false
-			}
-		}
-
 	}
 
     function getAuthor(inputText) {
@@ -120,8 +104,19 @@ Rectangle{
 
     function setConversation(c){
         ChatHelper.conversation = c;
+        c.ustatusChanged.connect(ustatusChanged)
         c.addObserver(container);
         rebind();
+    }
+
+    function ustatusChanged(s){
+        if(s=="typing"){
+            last_msg.visible = false
+            isWriting.visible = true
+        } else {
+            last_msg.visible = true
+            isWriting.visible = false
+        }
     }
 
     function getConversation(){return ChatHelper.conversation;}
@@ -301,7 +296,7 @@ Rectangle{
                 }
 				Label {
 					id: isWriting
-					visible: false
+                    visible: false
 					text: "<i>" + qsTr("is writing a message...") + "</i>"
                     elide: Text.ElideRight
                     font.pixelSize: 20

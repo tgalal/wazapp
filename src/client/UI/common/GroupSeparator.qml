@@ -5,7 +5,7 @@ Item {
     property string title
 
     width: parent.width
-    //height: 50
+    height: sortingLabel.height
 	clip: true
 
         Rectangle {

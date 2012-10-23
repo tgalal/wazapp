@@ -206,6 +206,8 @@ class WAEventHandler(QObject):
 
 		self.interfaceHandler.connectToSignal("contact_gotProfilePictureId", self.onProfilePictureIdReceived)
 		self.interfaceHandler.connectToSignal("contact_gotProfilePicture", self.onGetPictureDone)
+		self.interfaceHandler.connectToSignal("contact_typing", self.typing_received)
+		self.interfaceHandler.connectToSignal("contact_paused", self.paused_received)
 
 		self.interfaceHandler.connectToSignal("group_gotParticipants", self.onGroupParticipants)
 		self.interfaceHandler.connectToSignal("group_createSuccess", self.onGroupCreated)

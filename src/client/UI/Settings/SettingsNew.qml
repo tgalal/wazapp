@@ -32,7 +32,7 @@ WAPage {
     property bool loaded:false
 
     //property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
-    property string profilePicture:currentProfilePicture?currentProfilePicture:"../"+defaultProfilePicture
+    property string profilePicture:currentProfilePicture?currentProfilePicture:defaultProfilePicture
 
     property string message: qsTr("This is a %1 version.").arg(waversiontype) + "\n" +
 							 qsTr("You are trying it at your own risk.") + "\n" + 

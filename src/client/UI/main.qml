@@ -91,8 +91,8 @@ WAStackWindow {
 
     property string currentProfilePicture: currentPicture;
     property string currentStatus:MySettings.getSetting("Status", "Hi there I'm using Wazapp")
-    property string defaultProfilePicture: "common/images/user.png"
-    property string defaultGroupPicture: "common/images/group.png"
+    property string defaultProfilePicture: WAConstants.DEFAULT_CONTACT_PICTURE//"common/images/user.png"
+    property string defaultGroupPicture: WAConstants.DEFAULT_GROUP_PICTURE//"common/images/group.png"
 
     /****** Signal and Slot definitions *******/
 
@@ -283,8 +283,9 @@ WAStackWindow {
             }
 
             if(conversation){
-                conversation.picture = ""
+                conversation.picture = conversation.groupIcon = ""
                 conversation.onChange();
+                conversation.groupIcon =  WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".jpg";
                 conversation.picture = conversation.getPicture();
                 conversation.onChange();
             }
@@ -691,7 +692,7 @@ WAStackWindow {
         if(conversation.isGroup()) {
             consoleDebug("SUBJET IS "+conv.subject);
             conversation.subject = conv.subject || "";
-            conversation.groupIcon = conv.picture || "";
+            conversation.groupIcon = conv.picture || defaultGroupPicture
             consoleDebug("Picture is "+conv.picture );
 
             /*for(var i=0; i<conv.contacts.length; i++) {

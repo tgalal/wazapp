@@ -133,7 +133,7 @@ WAPage {
             }
 
             jid: model.jid
-            picture: model.picture
+            contactPicture: model.picture?model.picture:defaultProfilePicture
             contactName: model.name
 			contactShowedName: searchInput.text.length>0 ? replaceText(model.name, searchInput.text) : model.name
             contactStatus: model.status? model.status : ""

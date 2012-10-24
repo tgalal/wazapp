@@ -173,14 +173,6 @@ class MessageStore(QObject):
 			self.conversations[jid] = c
 
 			if len(c.messages) > 0:
-
-				singleList = []
-				if "@g.us" in jid:
-					jname = jid.replace("@g.us","")
-					if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
-						img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-						img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
-
 				convList.append({"jid":jid,"message":c.messages[0],"lastdate":c.messages[0].created})
 
 		convList = sorted(convList, key=lambda k: k['lastdate']);
@@ -208,7 +200,6 @@ class MessageStore(QObject):
 	
 	def sendConversationReady(self,jid):
 		#self._d("SENDING CONV READY %s"%jid)
-		tmp = {}
 		'''
 			jid,subject,id,contacts..etc
 			messages
@@ -218,7 +209,8 @@ class MessageStore(QObject):
 		#self._d(tmp)
 		tmp["isGroup"] = c.isGroup()
 		tmp["jid"]=c.getJid();
-		
+		picturePath =  WAConstants.CACHE_CONTACTS + "/" + jid.split('@')[0] + ".png"
+		tmp["picture"] = picturePath if os.path.isfile(picturePath) else None
 		#self._d("Checking if group")
 		if c.isGroup():
 			#self._d("yes, fetching contacts")
@@ -298,10 +290,6 @@ class MessageStore(QObject):
 				conv = self.store.Groupconversation.create()
 				conv.setData({"jid":jid})
 				conv.save()
-				jname = jid.replace("@g.us","")
-				if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
-					img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-					img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
 			
 		else:
 			contact = self.store.Contact.getOrCreateContactByJid(jid)

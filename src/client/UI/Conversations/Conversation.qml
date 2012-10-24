@@ -58,13 +58,12 @@ WAPage {
     property int conversation_id;
     property string jid;
     property string title:getTitle();
-    property string picture:getPicture();
+    property string picture:conversation_view.getPicture();
     property variant contacts;
     property variant lastMessage;
     property string subject;
 	property string owner;
     property string groupIcon;
-    property string defaultGroupIcon:"../"+defaultGroupPicture
     property int unreadCount;
     property int remainingMessagesCount;
     property bool hasMore:remainingMessagesCount?true:false
@@ -95,11 +94,6 @@ WAPage {
     signal sendButtonClicked;
 	signal forceFocusToChatText;
 
-
-
-
-
-
     function pushParticipants(jids){
         console.log("REAL PUSH")
         bindProfile()
@@ -115,7 +109,7 @@ WAPage {
             owner = data[1]
             title = getTitle()
         }
-        getPicture(jid, "image")
+        appWindow.getPicture(jid, "image")
 
         bindProfile();
         conversationProfile.item.pushGroupInfo(gdata);
@@ -209,7 +203,7 @@ WAPage {
         var pic="";
 
         if(isGroup())
-            pic = WAConstants.CACHE_CONTACTS + "/" + jid.split('@')[0] + ".png"
+            pic = groupIcon
         else if(contacts && contacts.length)
             pic = getAuthorPicture(jid) //contacts[0].contactPicture;
 
@@ -241,8 +235,8 @@ WAPage {
     }
 
     function rebind(){
-        title:getTitle();
-        picture:getPicture();
+        title = getTitle();
+        picture = conversation_view.getPicture();
     }
 
     function bindProfile(){
@@ -557,7 +551,8 @@ WAPage {
 				break;
 			}
         }
-        return resp.split('@')[0]
+
+        return resp?resp.split('@')[0]:defaultProfilePicture
     }
 
 
@@ -1079,7 +1074,7 @@ WAPage {
         id:groupProfile
         GroupProfile{
             groupSubject: conversation_view.subject
-            groupPicture: conversation_view.picture
+            groupPicture: conversation_view.groupIcon
             groupOwnerJid: conversation_view.owner
             jid:conversation_view.jid
         }

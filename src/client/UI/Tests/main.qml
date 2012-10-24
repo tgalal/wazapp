@@ -13,6 +13,9 @@ WAStackWindow{
     showToolBar: true;
     property string myBackgroundImage;
     property int myBackgroundOpacity;
+    property string defaultProfilePicture: "common/images/user.png"
+
+    property int count:0;
 
     signal setBackground;
 
@@ -25,11 +28,19 @@ WAStackWindow{
 
         Column{
             anchors.centerIn: parent
+            spacing:5
 
             Button{
                 text: "Test WAListView"
                 onClicked: {
                     appWindow.pageStack.push(walistviewtest)
+                }
+            }
+
+            Button{
+                text: "Test WAImageViewer"
+                onClicked: {
+                    appWindow.pageStack.push(waimageviwertest)
                 }
             }
 
@@ -42,8 +53,6 @@ WAStackWindow{
         }
     }
 
-
-
     WATextAreaTest{
         id:watextareatest
     }
@@ -52,6 +61,8 @@ WAStackWindow{
         id:walistviewtest
     }
 
-
+    WAImageViewerTest{
+        id:waimageviwertest
+    }
 
 }

@@ -216,8 +216,13 @@ class WAContacts(QObject):
 	def checkPicture(self, jname, sourcePath):
 
 		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+			#Don't overwrite if profile picture exists
+			if os.path.isfile(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg"):
+				return
 			user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 		else:
+			if os.path.isfile(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg"):
+				os.remove(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg")
 			user_img = QImage(QUrl(sourcePath).toString().replace("file://",""))
 
 		mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")

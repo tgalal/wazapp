@@ -117,8 +117,8 @@ Item {
                     {
                         requested = true;
 						tempStatus = res.trim();
-						var cleanedmessage = Helpers.getCode(status_text.text);
-						changeStatus(cleanedmessage);
+                        var cleanedmessage = Helpers.getCode(status_text.text);
+                        changeStatus(cleanedmessage);
                         send_button.text = qsTr("Updating") + "..."
                         send_button.enabled = false
                         status_text.enabled = false

@@ -791,10 +791,10 @@ class WAEventHandler(WAEventBase):
 
 						
 			if fmsg.Conversation.type == "single":
-				if msg_contact.jid is not None:
+				if msg_contact.jid is not None and os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + msg_contact.jid.replace("@s.whatsapp.net","") + ".png"):
 					msgPicture = WAConstants.CACHE_PATH+"/contacts/" + msg_contact.jid.replace("@s.whatsapp.net","") + ".png"
 				else:
-					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png"
+					msgPicture = WAConstants.DEFAULT_CONTACT_PICTURE
 
 				self.notifier.newSingleMessage(msg_contact.jid, contactName, newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 
@@ -804,7 +804,7 @@ class WAEventHandler(WAEventBase):
 				if msg_contact.jid is not None and os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + jjid + ".png"):
 					msgPicture = WAConstants.CACHE_PATH+"/contacts/" + jjid + ".png"
 				else:
-					msgPicture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
+					msgPicture = WAConstants.DEFAULT_GROUP_PICTURE
 
 				self.notifier.newGroupMessage(conversation.jid, "%s - %s"%(contactName,conversation.subject.decode("utf8")), newContent, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			

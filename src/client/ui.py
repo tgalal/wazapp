@@ -153,6 +153,10 @@ class WAUI(QDeclarativeView):
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
 		self.rootObject().removeSingleContact.connect(self.messageStore.removeSingleContact)
 		self.rootObject().exportConversation.connect(self.messageStore.exportConversation)
+		self.rootObject().getConversationGroupsByJid.connect(self.messageStore.getConversationGroups)
+		self.messageStore.conversationGroups.connect(self.rootObject().onConversationGroups)
+		self.rootObject().getConversationMediaByJid.connect(self.messageStore.getConversationMedia)  
+		self.messageStore.conversationMedia.connect(self.rootObject().onConversationMedia)
 		self.dbusService = WAService(self);
 		
 	

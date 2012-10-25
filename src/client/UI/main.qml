@@ -148,6 +148,8 @@ WAStackWindow {
 	signal playRecording();
 	signal deleteRecording();
     signal exportConversation(string jid);
+    signal getConversationMediaByJid(string jid)
+    signal getConversationGroupsByJid(string jid)
 	signal breathe()
 	signal playSoundFile(string soundfile);
 	signal stopSoundFile();
@@ -417,6 +419,48 @@ WAStackWindow {
         consoleDebug(jid+":::"+path)
     }
 
+    ListModel {
+		id: conversationMediaModel
+    }
+
+	function onConversationMedia(tmp) {
+		conversationMediaModel.clear()
+		tmp.sort(function(a, b) {
+			return a.id - b.id;
+		})
+		var media = tmp.reverse()
+		for(var i=0; i<media.length; i++) {
+			conversationMediaModel.append({ "local_path": media[i].local_path,
+											"mediatype_id": media[i].mediatype_id,
+											"id": media[i].id,
+											"preview": media[i].preview
+			})
+		}
+	}
+
+
+
+    ListModel {
+        id: conversationGroupsModel
+    }
+    function onConversationGroups(tmp) {
+		conversationGroupsModel.clear()
+		var groups = tmp;
+		for(var i=0; i<groups.length; i++) {
+			var contacts = groups[i].contacts
+			for(var j=0; j<contacts.length; j++) {
+				if ((contacts[j]+"@s.whatsapp.net") == myAccount)
+					contacts[j] = qsTr("You")
+				}
+				groups[i].contacts = contacts.join(", ")
+		        conversationGroupsModel.append({"jid":groups[i].jid,
+		                                        "pic": groups[i].pic,
+		                                        "subject": groups[i].subject,
+		                                        "contacts": groups[i].contacts
+		        })
+            }
+    }
+    
 	function onContactsChanged() {
 
         /*@@TODO: invalid way and should be removed. When a contact changes, only that changed contact should be synced silently

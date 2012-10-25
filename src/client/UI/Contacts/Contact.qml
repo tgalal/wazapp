@@ -57,6 +57,8 @@ Item{
             contactProfileLoader.sourceComponent = contactProfileComponent
 
         appWindow.pageStack.push(contactProfileLoader.item)
+	getConversationMediaByJid(jid)
+	getConversationGroupsByJid(jid)
     }
 
     function unsetConversation(){

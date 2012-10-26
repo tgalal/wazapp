@@ -238,13 +238,9 @@ class WAUI(QDeclarativeView):
 
 	def sendSMS(self, num):
 		print "SENDING SMS TO " + num
-		m = QMessage()
-		m.setType(QMessage.Sms)
-		a = QMessageAddress(QMessageAddress.Phone, num)
-		m.setTo(a)
-		m.setBody("")
-		s = QMessageService()
-		s.compose(m)
+		bus = dbus.SessionBus()
+		messaging_if = dbus.Interface(bus.get_object('com.nokia.Messaging', '/'), 'com.nokia.MessagingIf')
+		messaging_if.showMessageEditor("sms", [num], "", "", [])
 
 
 	def makeCall(self, num):

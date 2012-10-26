@@ -465,12 +465,12 @@ WAPage {
                     width: parent.width
                     font.bold: true
                     font.pixelSize: 24
-                    text: contactNumber
+                    text: "+"+contactNumber
                 }
                 MouseArea {
                     id: bArea
                     anchors.fill: parent
-                    onClicked: makeCall(contactNumber)
+                    onClicked: makeCall("+"+contactNumber)
                 }
             }
 
@@ -490,7 +490,7 @@ WAPage {
                 MouseArea {
                     id: bcArea
                     anchors.fill: parent
-                    onClicked: sendSMS(contactNumber)
+                    onClicked: sendSMS("+"+contactNumber)
                 }
             }
         }

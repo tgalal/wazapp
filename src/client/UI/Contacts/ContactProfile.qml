@@ -187,7 +187,7 @@ WAPage {
         anchors.top: column1.bottom
         anchors.topMargin: 12
         width: parent.width
-        height: parent.height - column1.height
+        height: parent.height - column1.height - 32 //toolbar
         contentWidth: parent.width
         contentHeight: buttonColumn.height+separator1.height+blockLabel.height+telephonyItem.height+separator2.height+groupsList.height+separator3.height+mediaList.height
         clip: true

@@ -276,6 +276,7 @@ WAPage {
         GroupSeparator {
 			id: separator3
 		        anchors.left: parent.left
+		        anchors.top: buttonColumn.bottom
 		        width: parent.width -4
 		        height: conversationMediaModel.count>0? 36 : 0
 		        title: qsTr("Media")
@@ -313,6 +314,7 @@ WAPage {
 				width: parent.width -32
 				anchors.left: parent.left
 				anchors.leftMargin: 16
+				anchors.top: separator3.bottom
 				height: conversationMediaModel.count>0 ? 90 : 0
 				model: conversationMediaModel
 
@@ -352,6 +354,7 @@ WAPage {
 			GroupSeparator {
 				id: separator2
 				anchors.left: parent.left
+				anchors.top: mediaList.bottom
 				width: parent.width -4
 				visible: groupsRepeater.model.count==0 ? false : true
 				height: visible ? 36 : 0
@@ -363,6 +366,7 @@ WAPage {
 				width: parent.width
 				clip: true
 				anchors.left: parent.left
+				anchors.top: separator2.bottom
 
 				Repeater {
 					id: groupsRepeater

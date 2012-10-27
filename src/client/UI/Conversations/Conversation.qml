@@ -1032,8 +1032,8 @@ WAPage {
 				height: visible ? 80 : 0
                 text: qsTr("View contact profile")
                 onClicked:{
-					profileUser = selectedMessage.author.jid
-					pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+					var contact = waContacts.getOrCreateContact({"jid":selectedMessage.author.jid});
+					contact.openProfile();
 				}
             }
 

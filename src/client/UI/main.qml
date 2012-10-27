@@ -91,8 +91,8 @@ WAStackWindow {
 
     property string currentProfilePicture: currentPicture;
     property string currentStatus:MySettings.getSetting("Status", "Hi there I'm using Wazapp")
-    property string defaultProfilePicture: "common/images/user.png"
-    property string defaultGroupPicture: "common/images/group.png"
+    property string defaultProfilePicture: WAConstants.DEFAULT_CONTACT_PICTURE//"common/images/user.png"
+    property string defaultGroupPicture: WAConstants.DEFAULT_GROUP_PICTURE//"common/images/group.png"
 
     /****** Signal and Slot definitions *******/
 

@@ -60,7 +60,7 @@ Rectangle {
             }
         }
         else{
-             //lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
+             lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
              prevState = container.state="offline"
         }
     }

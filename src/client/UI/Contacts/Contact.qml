@@ -30,9 +30,7 @@ Item{
     id:container
 
     property string jid;
-    property string picture;
-    property string defaultPicture:"../common/images/user.png"
-    property string contactPicture:getPicture()
+    property string contactPicture: defaultProfilePicture
     property string contactName;
     property string contactShowedName;
     property string contactStatus;
@@ -71,13 +69,6 @@ Item{
 
     function getConversation(){
         return ContactHelper.conversation;
-    }
-
-    function getPicture(){
-        if(!picture || picture == "none")
-            return defaultPicture;
-
-        return picture;
     }
 
 	Connections {
@@ -181,7 +172,7 @@ Item{
             id:contactProfile
             contactName: container.contactName
             contactNumber: container.contactNumber
-            contactPicture: container.picture
+            contactPicture: container.contactPicture
             contactStatus: container.contactStatus
             contactJid: container.jid
         }

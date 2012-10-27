@@ -40,7 +40,7 @@ WAPage {
     property string contactJid;
     property string contactName
     property string contactNumber
-    property string contactPicture: "../common/images/user.png"
+    property string contactPicture
     property string contactStatus
     property bool inContacts
 
@@ -122,7 +122,7 @@ WAPage {
     Image {
         id: bigImage
         visible: false
-        source: contactPicture//WAConstants.CACHE_PROFILE + "/" + profileUser.split('@')[0] + ".jpg"
+        source: contactPicture == defaultProfilePicture?"":contactPicture.replace(".png",".jpg").replace("contacts","profile");
         cache: false
     }
 
@@ -149,9 +149,7 @@ WAPage {
                 y: 0
                 imgsource: contactPicture
                 onClicked: {
-                    if (bigImage.width>0) {
-                        Qt.openUrlExternally(bigImage.source)
-                    }
+                     pageStack.push(contactPictureViewer)
                 }
             }
 
@@ -386,5 +384,10 @@ WAPage {
                 }
             }
         }
+    }
+
+    WAImageViewer{
+        id:contactPictureViewer
+        imagePath: bigImage.width?bigImage.source:(contactPicture != defaultProfilePicture?contactPicture:"")
     }
 }

@@ -52,14 +52,15 @@ Rectangle {
             var lastOnlineSetSecsAgo = Math.round((new Date()).getTime() / 1000) - lastOnlineSet;
 
             d.setSeconds(Qt.formatDateTime ( d, "ss" )-secondsAgo)
+            lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
 
             if((container.state != "online" && container.state!="typing") || Math.min(secondsAgo, lastOnlineSetSecsAgo) > (60*5)) { //5 minutes timeout
-                 lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
+
                  prevState = container.state="offline"
             }
         }
         else{
-             //lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
+             lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
              prevState = container.state="offline"
         }
     }

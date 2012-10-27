@@ -106,8 +106,11 @@ function emoji_replacer(str, p1) {
 
 function emojify2(stringInput, emojiPath) { //for textArea
     prevCode = 0
-    var replacedText;
-    var regx = /([\ue001-\ue537])/g
+    var replacedText,
+        regx = /([\ue001-\ue537])/g;
+
+    emojiPath = typeof emojiPath =="undefined"?"/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji":emojiPath
+
     replacedText = stringInput.replace(regx, function(s, eChar){
     return '<img src="'+emojiPath+'/24/'+eChar.charCodeAt(0).toString(16).toUpperCase()+'.png">';
     });

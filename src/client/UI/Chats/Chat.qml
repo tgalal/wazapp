@@ -127,7 +127,7 @@ Rectangle{
         jid = c.jid;
         subject = c.subject;
         title = c.title;
-        picture = c.picture.indexOf("/home")>-1? c.picture : (isGroup? "../common/images/group.png" : "../common/images/user.png")
+        picture = c.picture//.indexOf("/home")>-1? c.picture : (isGroup? defaultGroupPicture : defaultProfilePicture)
         lastMessage = c.lastMessage;
         unreadCount = c.unreadCount;
 		isOpenend = c.opened;

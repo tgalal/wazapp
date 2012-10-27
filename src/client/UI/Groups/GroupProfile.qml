@@ -37,16 +37,11 @@ WAPage {
     property string jid;
 	property string groupSubject
 	property string groupDate
-    property string groupPicture: defaultPicture
-    property string defaultPicture: "../common/images/group.png"
+    property string groupPicture;
 	property string groupOwner
 	property string groupOwnerJid
 	property string groupSubjectOwner
 	property bool working: false
-	property string currentParticipants
-    property string selectedContacts
-	property string addparticipants
-	property string removeparticipants
     property bool loaded;
     property int addedCount;
     property int removedCount;
@@ -96,8 +91,6 @@ WAPage {
 
         groupParticipants.model = participantsModel
         groupParticipants.state = "loaded"
-
-       // currentParticipants = selectedContacts
     }
 
     function resetEdits(){
@@ -136,11 +129,7 @@ WAPage {
         if(status == PageStatus.Activating){
 
             if(!loaded){
-                selectedContacts = ""
-                currentParticipants = ""
-                addparticipants = "";
-                removeparticipants = "";
-                getInfo()
+                //getInfo()
                 loaded = true
             }
 
@@ -181,9 +170,6 @@ WAPage {
 
     }
 
-
-
-
 	function getInfo() {
         resetEdits()
         addedCount = 0;
@@ -214,38 +200,10 @@ WAPage {
 		return check;
 	}
 
-	Connections {
-		target: appWindow
-	
-
-        /*onRemovedParticipants: {
-			if(addparticipants!=="")
-                addParticipants(jid,addparticipants)
-			else
-				pageStack.pop()
-		}
-
-		onAddedParticipants: {
-			working = false
-			pageStack.pop()
-        }*/
-		
-        /*onOnContactPictureUpdated: {
-			if (profileUser == ujid) {
-				picture.imgsource = ""
-				picture.imgsource = groupPicture
-				bigImage.source = ""
-				bigImage.source = groupPicture.replace(".png",".jpg").replace("contacts","profile")
-			}
-        }*/
-
-	}
-
-
 	Image {
 		id: bigImage
 		visible: false
-		source: groupPicture.replace(".png",".jpg").replace("contacts","profile")
+        source: groupPicture == defaultGroupPicture?"":groupPicture.replace(".png",".jpg").replace("contacts","profile");
 	}
 
 
@@ -277,13 +235,9 @@ WAPage {
                 size: 80
                 height: size
                 width: size
-                imgsource: groupPicture
+                imgsource: groupPicture//?groupPicture:"../" + defaultGroupIcon
                 onClicked: {
-                    if (bigImage.height>0) {
-                        //bigProfileImage = groupPicture.replace(".png",".jpg").replace("contacts","profile")
-                        //pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-                        Qt.openUrlExternally(groupPicture.replace(".png",".jpg").replace("contacts","profile"))
-                    }
+                    pageStack.push(groupPictureViewer)
                 }
             }
 
@@ -443,7 +397,7 @@ WAPage {
 
         WAListView{
             id:groupParticipants
-            defaultPicture: "../common/images/user.png"
+            defaultPicture:defaultProfilePicture
             anchors.top:participantsHeader.bottom
             anchors.topMargin: 5
             anchors.bottom: parent.bottom
@@ -481,11 +435,6 @@ WAPage {
 
     }
 
-
-
-
-
-
 	function getUserAuthor(inputText) {
 		if (inputText==myAccount)
 			return qsTr("You")
@@ -501,85 +450,6 @@ WAPage {
 	    }
 	    return resp.split('@')[0]
 	}
-
-
-	Component {
-		id: participantsDelegate
-
-		Rectangle
-		{
-			height: 80
-			width: parent.width -32
-			color: "transparent"
-			clip: true
-
-			property int cindex: model.index
-
-		    RoundedImage {
-				x: 0
-		        size:62
-		        imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
-		        opacity: 1
-				y: 8
-		    }
-
-		    Column{
-				//y: 9
-				x: 74
-				width: parent.width -74
-				anchors.verticalCenter: parent.verticalCenter
-				Label{
-					y: 2
-		            text: getUserAuthor(contactJid)
-				    font.pointSize: 18
-					elide: Text.ElideRight
-					width: parent.width -48
-					font.bold: true
-				}
-				Label{
-		            text: Helpers.emojify(contactStatus)
-				    font.pixelSize: 20
-				    color: "gray"
-					width: parent.width -48
-					elide: Text.ElideRight
-					height: 24
-					clip: true
-					visible: contactStatus!==""
-			   }
-
-		    }
-
-			BorderImage {
-				id: removeButton
-				visible: myAccount==groupOwnerJid && !working && contactJid!=myAccount
-				width: 42
-				height: 42
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.right: parent.right
-				source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
-						"background" + (bcArea.pressed? "-pressed" : "")
-				border { left: 22; right: 22; bottom: 22; top: 22; }
-				Image {
-					y: 2
-					source: "image://theme/icon-m-toolbar-cancle"+(theme.inverted?"-white":"")
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-				}
-				MouseArea {
-					id: bcArea
-					anchors.fill: parent
-					onClicked: {
-						consoleDebug("REMOVING " +contactJid)
-						selectedContacts = selectedContacts.replace(contactJid,"")
-						selectedContacts = selectedContacts.replace(/,,/g,",")
-						participantsModel.remove(cindex)
-						consoleDebug("NEW PARTICIPANTS RESULT: " +selectedContacts)
-					}
-				}
-			}
-
-		}
-    }
 
     ListModel {
         id: participantsModel
@@ -650,6 +520,13 @@ WAPage {
             }
         }
 
+    }
+
+
+    WAImageViewer{
+        id:groupPictureViewer
+        imagePath: bigImage.width?bigImage.source:""
+        defaultImage: defaultGroupPicture
     }
 
 }

@@ -190,39 +190,16 @@ class WAContacts(QObject):
 		
 		
 	def updateContact(self,jid):
-		if "@g.us" in jid:
-			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-		else:
-			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
+		#if "@g.us" in jid:
+		#	user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+		#else:
+		#	user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
 
 		jname = jid.replace("@s.whatsapp.net","").replace("@g.us","")
-		user_img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
+		#user_img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
 		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
 			user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 			user_img.save(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg", "JPEG")
-		mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
-		preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
-		PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
-		Mask = QPixmap.fromImage(mask_img);
-		Painter = QPainter(PixmapToBeMasked);
-		Painter.drawPixmap(0, 0, 96, 96, preimg);
-		Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
-		Painter.drawPixmap(0, 0, 96, 96, Mask);
-		Painter.end()
-		PixmapToBeMasked.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
-		#os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
-		self.contactPictureUpdated.emit(jid);
-
-
-
-	def checkPicture(self,jname,imagepath):
-		if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
-			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
-			if imagepath is not "":
-				if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
-					user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
-				else:
-					user_img = QImage(QUrl(imagepath).toString().replace("file://",""))
 			mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
 			preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
 			PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
@@ -233,8 +210,33 @@ class WAContacts(QObject):
 			Painter.drawPixmap(0, 0, 96, 96, Mask);
 			Painter.end()
 			PixmapToBeMasked.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
-			if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
-				os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
+			#os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
+			self.contactPictureUpdated.emit(jid);
+
+	def checkPicture(self, jname, sourcePath):
+
+		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+			#Don't overwrite if profile picture exists
+			if os.path.isfile(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg"):
+				return
+			user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
+		else:
+			if os.path.isfile(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg"):
+				os.remove(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg")
+			user_img = QImage(QUrl(sourcePath).toString().replace("file://",""))
+
+		mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
+		preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
+		PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
+		Mask = QPixmap.fromImage(mask_img);
+		Painter = QPainter(PixmapToBeMasked);
+		Painter.drawPixmap(0, 0, 96, 96, preimg);
+		Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
+		Painter.drawPixmap(0, 0, 96, 96, Mask);
+		Painter.end()
+		PixmapToBeMasked.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
+		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+			os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 
 
 
@@ -254,20 +256,23 @@ class WAContacts(QObject):
 			jname = wc.jid.replace("@s.whatsapp.net","")
 			founded = False
 			myname = ""
+			picturePath = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
 			for c in phoneContacts:
 				if wc.number[-8:] == c['number'][-8:]:
 					founded = True
-					self.checkPicture(jname,c['picture'])
-					c['picture'] = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
+					if c['picture']:
+						self.checkPicture(jname,c['picture'])
+
+					c['picture'] = picturePath if os.path.isfile(picturePath) else None;
 					myname = c['name']
 					wc.setRealTimeData(myname,c['picture'],"yes");
 					QtCore.QCoreApplication.processEvents()
 					break;
 
 			if founded is False and wc.number is not None:
-				self.checkPicture(jname,"")
+				#self.checkPicture(jname,"")
 				myname = wc.pushname.decode("utf8") if wc.pushname is not None else ""
-				mypicture = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
+				mypicture = picturePath if os.path.isfile(picturePath) else None;
 				wc.setRealTimeData(myname,mypicture,"no");
 
 			if wc.status is not None:
@@ -353,7 +358,7 @@ class ContactsManager(QObject):
 		self.contacts = []
 		for contact in contacts:
 			avatars = contact.details(QContactAvatar.DefinitionName);
-			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else WAConstants.DEFAULT_CONTACT_PICTURE;
+			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else None;
 			label =  contact.displayLabel();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 
@@ -368,7 +373,7 @@ class ContactsManager(QObject):
 		self.contacts = []
 		for contact in contacts:
 			avatars = contact.details(QContactAvatar.DefinitionName);
-			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else WAConstants.DEFAULT_CONTACT_PICTURE;
+			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else None;
 			label =  contact.displayLabel();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 			allnumbers = []

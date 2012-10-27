@@ -285,8 +285,9 @@ WAStackWindow {
             }
 
             if(conversation){
-                conversation.picture = ""
+                conversation.picture = conversation.groupIcon = ""
                 conversation.onChange();
+                conversation.groupIcon =  WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".jpg";
                 conversation.picture = conversation.getPicture();
                 conversation.onChange();
             }
@@ -397,10 +398,20 @@ WAStackWindow {
     }
 
     function onInitDone(){
+
+        //remaining inits
+        //init emoji dialog
+        //emojiDialog.loadEmoji(0,189);
+
+        //splashPage.setCurrentOperation(qsTr("Loading Emoji"));
+
+        //emojiDialog.loadAll();
+
         initializationDone = true
         pageStack.pop(mainPage,true)
         //pageStack.replace(mainPage)
     }
+
 
 
     function onConversationExported(jid, path){
@@ -685,7 +696,7 @@ WAStackWindow {
         if(conversation.isGroup()) {
             consoleDebug("SUBJET IS "+conv.subject);
             conversation.subject = conv.subject || "";
-            conversation.groupIcon = conv.picture || "";
+            conversation.groupIcon = conv.picture || defaultGroupPicture
             consoleDebug("Picture is "+conv.picture );
 
             /*for(var i=0; i<conv.contacts.length; i++) {

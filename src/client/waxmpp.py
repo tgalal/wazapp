@@ -354,12 +354,13 @@ class WAEventHandler(QObject):
 			if os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + jid + ".png"):
 				picture = WAConstants.CACHE_PATH+"/contacts/" + jid + ".png"
 			else:
-				picture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
+				picture =  WAConstants.DEFAULT_GROUP_PICTURE
 
 		except ValueError:
-			if jid is not None:
+			if jid is not None and os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + jid.replace("@s.whatsapp.net","") + ".png"):
 				picture = WAConstants.CACHE_PATH+"/contacts/" + jid.replace("@s.whatsapp.net","") + ".png"
-
+			else:
+				picture = WAConstants.DEFAULT_CONTACT_PICTURE
 		return picture
 
 

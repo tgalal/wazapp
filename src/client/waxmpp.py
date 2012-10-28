@@ -1210,7 +1210,7 @@ class StanzaReader(QThread):
 			if c.getAttributeValue("id") is not None:
 				contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(c.getAttributeValue("jid"))
 				cjid = c.getAttributeValue("jid").replace("@s.whatsapp.net","").replace("@g.us","")
-				if contact.pictureid != str(c.getAttributeValue("id")) or not os.path.isfile("%s/%s.jpg"%(WAConstants.CACHE_PROFILE, cjid)):
+				if contact.pictureid != str(c.getAttributeValue("id")) or not os.path.isfile("%s/%s.jpg"%(WAConstants.CACHE_PROFILE, cjid)) or not os.path.isfile("%s/%s.png"%(WAConstants.CACHE_CONTACTS, cjid)):
 					jids.append(c.getAttributeValue("jid"))
 					contact.setData({"pictureid":c.getAttributeValue("id")})
 					contact.save()

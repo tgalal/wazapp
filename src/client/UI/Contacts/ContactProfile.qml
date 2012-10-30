@@ -191,6 +191,9 @@ WAPage {
         contentWidth: parent.width
         contentHeight: buttonColumn.height+separator1.height+blockLabel.height+telephonyItem.height+separator2.height+groupsList.height+separator3.height+mediaList.height
         clip: true
+        
+        Column{
+	    width: parent.width
 
         Label {
             id: blockLabel
@@ -208,7 +211,6 @@ WAPage {
         ButtonColumn{
             id: buttonColumn
             width: parent.width
-            anchors.top: blockLabel.bottom
 
             Button {
                 id: statusButton
@@ -276,11 +278,11 @@ WAPage {
         GroupSeparator {
 			id: separator3
 		        anchors.left: parent.left
-		        anchors.top: buttonColumn.bottom
-		        width: parent.width -4
+			anchors.right: parent.right
+			anchors.rightMargin: 5
 		        height: conversationMediaModel.count>0? 36 : 0
 		        title: qsTr("Media")
-				visible: conversationMediaModel.count>0
+			visible: conversationMediaModel.count>0
 		    }
 
 		    ListView {
@@ -294,7 +296,7 @@ WAPage {
 							break
 						}
 						case 4: {
-							thumb = "image://theme/icon-m-content-videos"
+							thumb = "image://theme/icon-m-content-videos"+(theme.inverted?"-inverse":"")
 							break
 						}
 						case 5: {
@@ -302,7 +304,7 @@ WAPage {
 							break
 						}
 						case 6: {
-							thumb = "image://theme/icon-m-content-avatar-placeholder"
+							thumb = "image://theme/icon-m-content-avatar-placeholder"+(theme.inverted?"-inverse":"")
 							break
 							}
 					}
@@ -314,7 +316,6 @@ WAPage {
 				width: parent.width -32
 				anchors.left: parent.left
 				anchors.leftMargin: 16
-				anchors.top: separator3.bottom
 				height: conversationMediaModel.count>0 ? 90 : 0
 				model: conversationMediaModel
 
@@ -354,8 +355,8 @@ WAPage {
 			GroupSeparator {
 				id: separator2
 				anchors.left: parent.left
-				anchors.top: mediaList.bottom
-				width: parent.width -4
+				anchors.right: parent.right
+				anchors.rightMargin: 5
 				visible: groupsRepeater.model.count==0 ? false : true
 				height: visible ? 36 : 0
 				title: qsTr("Groups")
@@ -366,7 +367,6 @@ WAPage {
 				width: parent.width
 				clip: true
 				anchors.left: parent.left
-				anchors.top: separator2.bottom
 
 				Repeater {
 					id: groupsRepeater
@@ -435,18 +435,16 @@ WAPage {
 			}
 
         GroupSeparator {
-            id: separator1
-            anchors.top: groupsList.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            width: parent.width - 44
-            height: 50
-            title: qsTr("Phone")
+		id: separator1
+		anchors.left: parent.left
+		anchors.right: parent.right
+		anchors.rightMargin: 5
+		height: 50
+		title: qsTr("Phone")
         }
 
         Item {
             id: telephonyItem
-            anchors.top: separator1.bottom
             height: 84
             width: parent.width
             x: 0
@@ -498,6 +496,7 @@ WAPage {
                 }
             }
         }
+	}
     }
 
     WAImageViewer{

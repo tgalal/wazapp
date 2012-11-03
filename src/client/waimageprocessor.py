@@ -1,3 +1,4 @@
+import sys
 from PIL import Image, ImageOps, ImageFilter
 from wadebug import WADebug
 
@@ -31,23 +32,27 @@ class WAImageProcessor():
 
 
 	def maskImage(self, source, destination, mask, frame):
-		if type(source) in (str, unicode):
-			source = Image.open(source)
-			source.load()
-		
-		if type(mask) in (str,unicode):
-			mask = Image.open(mask)
-			mask.load()
-		
-		if type(frame) in (str, unicode):
-			frame = Image.open(frame)
-			frame.load()
+		try:
+			if type(source) in (str, unicode):
+				source = Image.open(source)
+				source.load()
 
-		mask = mask.filter(ImageFilter.SMOOTH)
-		croppedImage = ImageOps.fit(source, mask.size, method=Image.ANTIALIAS)
-		croppedImage = croppedImage.convert("RGBA")
-		
-		r,g,b,a = mask.split()
-		
-		croppedImage.paste(frame, mask=a)
-		croppedImage.save(destination)
+			if type(mask) in (str,unicode):
+				mask = Image.open(mask)
+				mask.load()
+
+			if type(frame) in (str, unicode):
+				frame = Image.open(frame)
+				frame.load()
+
+			mask = mask.filter(ImageFilter.SMOOTH)
+			croppedImage = ImageOps.fit(source, mask.size, method=Image.ANTIALIAS)
+			croppedImage = croppedImage.convert("RGBA")
+
+			r,g,b,a = mask.split()
+
+			croppedImage.paste(frame, mask=a)
+			croppedImage.save(destination)
+		except:
+			self._d("Error creating mask")
+			self._d(sys.exc_info()[1])

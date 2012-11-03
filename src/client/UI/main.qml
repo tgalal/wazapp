@@ -346,10 +346,13 @@ WAStackWindow {
     signal appFocusOut()
 
     function appFocusChanged(focus){
-        if (!focus) appFocusOut()
-        var user_id = getActiveConversation()
-        if (user_id){
-            conversationActive(user_id);
+        if (!focus) {
+            appFocusOut()
+        } else {
+            var user_id = getActiveConversation()
+            if (user_id){
+                conversationActive(user_id);
+            }
         }
     }
 

@@ -1,3 +1,8 @@
+wazapp (0.9.11) testing; urgency=normal
+  * <Add change description here>
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sat, 03 Nov 2012 15:08:46 +0200
+
 wazapp (0.8.11) testing; urgency=normal
   * Fixed group and profile pictures updating
 

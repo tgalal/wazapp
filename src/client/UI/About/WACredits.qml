@@ -29,7 +29,7 @@ WAPage {
            anchors.topMargin: 10
            anchors.left:parent.left
            anchors.right: parent.right
-           spacing:5
+           spacing:15
 
 
            GroupSeparator{

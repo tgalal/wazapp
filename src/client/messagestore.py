@@ -34,6 +34,8 @@ class MessageStore(QObject):
 	messagesReady = QtCore.Signal(dict,bool);
 	conversationReady = QtCore.Signal(dict);
 	conversationExported = QtCore.Signal(str, str); #jid, exportePath
+	conversationMedia = QtCore.Signal(list);
+	conversationGroups = QtCore.Signal(list);
 	
 	currKeyId = 0
 
@@ -160,6 +162,66 @@ class MessageStore(QObject):
 		share = shareService.get_dbus_method('share', 'com.nokia.maemo.meegotouch.ShareUiInterface')
 		share([item,])		
 			
+			
+	def getConversationMedia(self,jid):
+		tmp = []
+		media = []
+		gMedia = []
+
+		conversation = self.getOrCreateConversationByJid(jid)
+
+		messages = self.store.Message.findAll({"conversation_id":conversation.id,"NOT media_id":0})
+		for m in messages:
+			media.append(m.getMedia())
+
+		if media:
+			for ind in media:
+				if ind.transfer_status == 2:
+					tmp.append(ind.getModelData());
+
+		gMessages = self.store.Groupmessage.findAll({"contact_id":conversation.contact_id,"NOT media_id":0})
+		for m in gMessages:
+			gMedia.append(m.getMedia())
+
+		if gMedia:
+			for gind in gMedia:
+				if gind.transfer_status == 2:
+					tmp.append(gind.getModelData());
+
+		self.conversationMedia.emit(tmp)
+
+	def getConversationGroups(self,jid):
+
+		contact = self.store.Contact.getOrCreateContactByJid(jid)
+		groups = self.store.GroupconversationsContacts.findGroups(contact.id)
+		cachedContacts = self.store.getCachedContacts()
+		
+		tmp = []
+		
+		for group in groups:
+			if group.jid is None:
+				continue
+			groupInfo = {}
+			groupInfo["jid"] = str(group.jid)
+			jname = group.jid.replace("@g.us","")
+			groupInfo["pic"] = WAConstants.CACHE_CONTACTS+"/"+jname+".png" if os.path.isfile(WAConstants.CACHE_CONTACTS+"/"+jname+".png") else WAConstants.DEFAULT_GROUP_PICTURE
+			groupInfo["subject"] = str(group.subject)
+			groupInfo["contacts"] = ""
+			
+			contacts = group.getContacts()
+			resultContacts = []
+			for c in contacts:
+				try:
+					contact = cachedContacts[c.number].name or c.number
+				except:
+					contact = c.number
+				resultContacts.append(contact.encode('utf-8'))
+				
+			groupInfo["contacts"] = resultContacts
+			
+			tmp.append(groupInfo)
+
+		self.conversationGroups.emit(tmp)
 	
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();
@@ -419,6 +481,14 @@ class MessageStore(QObject):
 		
 		self.conversations[jid] = conversation;
 		self.sendConversationReady(jid)
+
+
+	def messageExists(self, jid, msgId):
+		k = Key(jid, False, msgId)
+		return self.get(k) is not None
+
+	def keyExists(self, k):
+		return self.get(k) is not None
 		
 		
 		
@@ -427,49 +497,6 @@ class Key():
 		self.remote_jid = remote_jid;
 		self.from_me = from_me;
 		self.id = idd;
-
-	
-	def exists(self, paramKey):
-		try:
-			WAXMPP.message_store.get(paramKey)
-			return 1
-		except KeyError:
-			return 0
-     
-
-
-	def equals(obj):
-		if self == obj:
-			return True;
-		if self is None:
-			return false;
-		if type(self) != type(obj):
-			return False;
-		other = obj;
-		if self.from_me != other.from_me:
-			return false;
-		if self.id is None:
-			if other.id is not None:
-				return False;
-		elif self.id != other.id:
-			return False;
-		if self.remote_jid is None:
-			if other.remote_jid is not None:
-				return False;
-		elif self.remote_jid != other.remote_jid:
-			return False;
-
-		return True;
-
-
-	def hashCode(self):
-		prime = 31;
-		result = 1;
-		result = 31 * result + (1231 if self.from_me else 1237)
-		result = 31 * result + (0 if self.id is None else Utilities.hashCode(self.id));
-		result = 31 * result + (0 if self.remote_jid is None else Utilities.hashCode(self.remote_jid));
-	
-
 
 	def toString(self):
 		return "Key(idd=\"" + self.id + "\", from_me=" + str(self.from_me) + ", remote_jid=\"" + self.remote_jid + "\")";

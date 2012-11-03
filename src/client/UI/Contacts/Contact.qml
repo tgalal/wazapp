@@ -57,6 +57,8 @@ Item{
             contactProfileLoader.sourceComponent = contactProfileComponent
 
         appWindow.pageStack.push(contactProfileLoader.item)
+	getConversationMediaByJid(jid)
+	getConversationGroupsByJid(jid)
     }
 
     function unsetConversation(){
@@ -126,7 +128,7 @@ Item{
             source: contactPicture
             opacity: 1
             anchors.topMargin: -2
-			y: -1
+            y: -1
 			//onClicked: mouseArea.clicked()
         }
 

@@ -16,23 +16,22 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
-import sys
+
 from PySide import QtCore
-from PySide.QtCore import *
-from PySide.QtGui import *
+from PySide.QtCore import QUrl
 from PySide.QtDeclarative import QDeclarativeView,QDeclarativeProperty
 from QtMobility.Messaging import *
 from contacts import WAContacts
 from waxmpp import WAXMPP
 from utilities import Utilities
 #from registration import Registration
-from contacts import ContactsSyncer
+
 from messagestore import MessageStore
 from threading import Timer
 from waservice import WAService
 import dbus
 from wadebug import UIDebug
-import os, shutil, glob, time, hashlib
+import os, shutil, time, hashlib
 from subprocess import call
 import Image
 from PIL.ExifTags import TAGS
@@ -153,6 +152,10 @@ class WAUI(QDeclarativeView):
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
 		self.rootObject().removeSingleContact.connect(self.messageStore.removeSingleContact)
 		self.rootObject().exportConversation.connect(self.messageStore.exportConversation)
+		self.rootObject().getConversationGroupsByJid.connect(self.messageStore.getConversationGroups)
+		self.messageStore.conversationGroups.connect(self.rootObject().onConversationGroups)
+		self.rootObject().getConversationMediaByJid.connect(self.messageStore.getConversationMedia)  
+		self.messageStore.conversationMedia.connect(self.rootObject().onConversationMedia)
 		self.dbusService = WAService(self);
 		
 	
@@ -234,13 +237,9 @@ class WAUI(QDeclarativeView):
 
 	def sendSMS(self, num):
 		print "SENDING SMS TO " + num
-		m = QMessage()
-		m.setType(QMessage.Sms)
-		a = QMessageAddress(QMessageAddress.Phone, num)
-		m.setTo(a)
-		m.setBody("")
-		s = QMessageService()
-		s.compose(m)
+		bus = dbus.SessionBus()
+		messaging_if = dbus.Interface(bus.get_object('com.nokia.Messaging', '/'), 'com.nokia.MessagingIf')
+		messaging_if.showMessageEditor("sms", [num], "", "", [])
 
 
 	def makeCall(self, num):
@@ -591,8 +590,9 @@ class WAUI(QDeclarativeView):
 		
 		WAXMPP.message_store = self.messageStore;
 	
-		whatsapp.setReceiptAckCapable(True);
 		whatsapp.setContactsManager(self.c);
+		
+		self.rootContext().setContextProperty("interfaceVersion", whatsapp.eventHandler.interfaceVersion)
 		
 		whatsapp.eventHandler.connected.connect(self.rootObject().onConnected);
 		whatsapp.eventHandler.typing.connect(self.rootObject().onTyping)
@@ -655,7 +655,8 @@ class WAUI(QDeclarativeView):
 		self.rootObject().setGroupSubject.connect(whatsapp.eventHandler.setGroupSubject)
 		self.rootObject().getPictureIds.connect(whatsapp.eventHandler.getPictureIds)
 		self.rootObject().getPicture.connect(whatsapp.eventHandler.getPicture)
-		self.rootObject().setPicture.connect(whatsapp.eventHandler.setPicture)
+		self.rootObject().setGroupPicture.connect(whatsapp.eventHandler.setGroupPicture)
+		self.rootObject().setMyProfilePicture.connect(whatsapp.eventHandler.setProfilePicture)
 		self.rootObject().sendMediaImageFile.connect(whatsapp.eventHandler.sendMediaImageFile)
 		self.rootObject().sendMediaVideoFile.connect(whatsapp.eventHandler.sendMediaVideoFile)
 		self.rootObject().sendMediaAudioFile.connect(whatsapp.eventHandler.sendMediaAudioFile)

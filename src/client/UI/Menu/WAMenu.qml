@@ -68,11 +68,10 @@ Menu {
         }
 
 
-        /*MenuItem {
+        MenuItem {
            text: qsTr("About")
-           onClicked: appWindow.aboutInit();
-		}*/
-
+           onClicked: aboutDialog.open()
+        }
 
         MenuItem{
             text:qsTr("Quit")

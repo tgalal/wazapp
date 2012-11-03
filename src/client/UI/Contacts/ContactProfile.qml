@@ -187,10 +187,13 @@ WAPage {
         anchors.top: column1.bottom
         anchors.topMargin: 12
         width: parent.width
-        height: parent.height - column1.height
+        height: parent.height - column1.height - 32 //toolbar
         contentWidth: parent.width
         contentHeight: buttonColumn.height+separator1.height+blockLabel.height+telephonyItem.height+separator2.height+groupsList.height+separator3.height+mediaList.height
         clip: true
+        
+        Column{
+	    width: parent.width
 
         Label {
             id: blockLabel
@@ -208,7 +211,6 @@ WAPage {
         ButtonColumn{
             id: buttonColumn
             width: parent.width
-            anchors.top: blockLabel.bottom
 
             Button {
                 id: statusButton
@@ -274,65 +276,175 @@ WAPage {
         }
 
         GroupSeparator {
-            id: separator3
-            anchors.top: buttonColumn.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            width: parent.width - 44
-            height: 50
-            title: qsTr("Media")
-        }
+			id: separator3
+		        anchors.left: parent.left
+			anchors.right: parent.right
+			anchors.rightMargin: 5
+		        height: conversationMediaModel.count>0? 36 : 0
+		        title: qsTr("Media")
+			visible: conversationMediaModel.count>0
+		    }
 
-        ListView {
-            id: mediaList
-            Component.onCompleted: {
-                //getContactMediaByJid(profileUser)
-                //for (var i=0; i<result.length;i++) {
-                //    console.log(i,result[i].local_path)
-                //}
-            }
-            orientation: ListView.Horizontal
-            width: parent.width -32
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.top: separator3.bottom
-            height: 96
-            //delegate: Image {source: local_path}
-        }
+		    ListView {
+		        id: mediaList
+
+				function mediaTypePicker(type) {
+					var thumb = ""
+					switch(type){
+						case 3: {
+							thumb = "image://theme/icon-m-content-audio"+(theme.inverted?"-inverse":"")
+							break
+						}
+						case 4: {
+							thumb = "image://theme/icon-m-content-videos"+(theme.inverted?"-inverse":"")
+							break
+						}
+						case 5: {
+							thumb = "../common/images/content-location.png"
+							break
+						}
+						case 6: {
+							thumb = "image://theme/icon-m-content-avatar-placeholder"+(theme.inverted?"-inverse":"")
+							break
+							}
+					}
+					return thumb
+				}
+
+				cacheBuffer: 100
+				orientation: ListView.Horizontal
+				width: parent.width -32
+				anchors.left: parent.left
+				anchors.leftMargin: 16
+				height: conversationMediaModel.count>0 ? 90 : 0
+				model: conversationMediaModel
+
+				delegate: Rectangle {
+					id: mediaDelgate
+					property int prefixType: mediatype_id
+					color: mediaMouseArea.pressed ? (theme.inverted? "darkgray" : "lightgray") : "transparent"
+					opacity: mediaMouseArea.pressed ? (theme.inverted? 0.2 : 0.8) : 1.0
+					height: parent.height
+					width: height
+					RoundedImage {
+						id: mediaPreview
+						x: mediaList.height-height
+						y: x
+						 width: istate=="Loaded!" ? 86 : 0
+						 size: istate=="Loaded!" ? 80 : 0
+						 height: width
+						//opacity: mediaMouseArea.pressed ? 0.8 : 1.0
+						imgsource: preview ? "data:image/jpg;base64,"+preview : mediaList.mediaTypePicker(mediatype_id)
+					}
+					MouseArea {
+						id: mediaMouseArea
+						anchors.fill: parent
+						onClicked: {
+							var prefix = ""
+							if (parent.prefixType == 5) {
+								prefix = "geo:"
+							} else {
+								prefix = "file://"
+							}
+							Qt.openUrlExternally(prefix+local_path)
+						}
+					}
+				}
+			}
+
+			GroupSeparator {
+				id: separator2
+				anchors.left: parent.left
+				anchors.right: parent.right
+				anchors.rightMargin: 5
+				visible: groupsRepeater.model.count==0 ? false : true
+				height: visible ? 36 : 0
+				title: qsTr("Groups")
+			}
+
+			Column {
+				id: groupsList
+				width: parent.width
+				clip: true
+				anchors.left: parent.left
+
+				Repeater {
+					id: groupsRepeater
+					model: conversationGroupsModel
+
+					Item {
+						property string jidString: jid
+						height: 80
+						width: groupsList.width
+
+						Rectangle {
+							anchors.fill: parent
+							color: groupMouseArea.pressed? (theme.inverted?"darkgray":"lightgray"):"transparent"
+							opacity: groupMouseArea.pressed? (theme.inverted? 0.2 : 0.8) : 1.0
+						}
+
+						RoundedImage {
+							id:picture
+							width:62
+							height: 62
+							size:62
+							imgsource: "file://"+pic
+							anchors.verticalCenter: parent.verticalCenter
+							anchors.left: parent.left
+							anchors.leftMargin: 12
+							//opacity:appWindow.stealth?0.2:1
+						}
+
+						Column{
+							width: parent.width -100
+							x: 86; y: 12;
+							Label {
+								y: 2
+								id: subjectItem
+								text: Helpers.emojify(subject)
+								font.pointSize: 18
+								elide: Text.ElideRight
+								width: parent.width -16
+								font.bold: true
+								//color: isNew? "green" : (theme.inverted? "white":"black")
+							}
+							Label {
+								id: contactsItem
+								text: contacts
+								font.pixelSize: 20
+								color: "gray"
+								width: parent.width -16
+								elide: Text.ElideRight
+								height: 24
+								clip: true
+								visible: contactStatus!==""
+							}
+						}
+
+
+						MouseArea {
+							id: groupMouseArea
+							anchors.fill: parent
+							onClicked: {
+								var conversation = waChats.getConversation(parent.jidString);
+								conversation.open();
+							}
+						}
+					}
+				}
+			}
 
         GroupSeparator {
-            id: separator2
-            anchors.top: mediaList.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            width: parent.width - 44
-            height: 50
-            title: qsTr("Groups")
-        }
-
-        ListView {
-            id: groupsList
-            orientation: ListView.Vertical
-            width: parent.width -32
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.top: separator2.bottom
-            height: 200
-        }
-
-        GroupSeparator {
-            id: separator1
-            anchors.top: groupsList.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            width: parent.width - 44
-            height: 50
-            title: qsTr("Phone")
+		id: separator1
+		anchors.left: parent.left
+		anchors.right: parent.right
+		anchors.rightMargin: 5
+		height: 50
+		title: qsTr("Phone")
         }
 
         Item {
             id: telephonyItem
-            anchors.top: separator1.bottom
             height: 84
             width: parent.width
             x: 0
@@ -355,12 +467,12 @@ WAPage {
                     width: parent.width
                     font.bold: true
                     font.pixelSize: 24
-                    text: contactNumber
+                    text: "+"+contactNumber
                 }
                 MouseArea {
                     id: bArea
                     anchors.fill: parent
-                    onClicked: makeCall(contactNumber)
+                    onClicked: makeCall("+"+contactNumber)
                 }
             }
 
@@ -380,10 +492,11 @@ WAPage {
                 MouseArea {
                     id: bcArea
                     anchors.fill: parent
-                    onClicked: sendSMS(contactNumber)
+                    onClicked: sendSMS("+"+contactNumber)
                 }
             }
         }
+	}
     }
 
     WAImageViewer{

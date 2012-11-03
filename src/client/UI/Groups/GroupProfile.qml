@@ -319,7 +319,7 @@ WAPage {
         onSelected: {
             pageStack.pop()
             breathe();
-            setPicture(jid, path)
+            setGroupPicture(jid, path)
         }
     }
 

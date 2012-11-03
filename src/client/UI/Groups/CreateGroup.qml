@@ -78,7 +78,7 @@ WAPage {
 		for (var i=0; i<participantsModel.count; ++i) {
 			selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + participantsModel.get(i).contactJid;
 		}
-	}
+	}	
 
 	tools: statusTool
 
@@ -281,8 +281,8 @@ WAPage {
 		}
 		onAddedParticipants: {
 
-            if(selectedPicture && selectedPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-                setPicture(groupId, selectedPicture)
+            if(selectedPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+                setGroupPicture(groupId, selectedGroupPicture)
         	openConversation(groupId);
 		}
 	}

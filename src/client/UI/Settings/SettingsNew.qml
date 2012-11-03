@@ -139,10 +139,10 @@ WAPage {
 		        tab: profileTab
 		    }
 
-		    TabButton {
+            /*TabButton {
 		        iconSource: "../common/images/about" + (theme.inverted ? "-white" : "") + ".png";
 		        tab: aboutTab
-		    }
+            }*/
 		}
 
     }
@@ -643,7 +643,7 @@ WAPage {
 						title: qsTr("Status")
 					}
 
-                    Status {
+					Status {
 						id: myStatus
 						//height: 140
 						clip: true
@@ -738,7 +738,7 @@ WAPage {
             pageStack.pop()
             picture.state = "loading"
             breathe()
-            setPicture(myAccount, path)
+            setMyProfilePicture(path)
         }
     }
 

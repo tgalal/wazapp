@@ -20,7 +20,7 @@ import sys,os
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView
-from utilities import Utilities;
+
 from ui import WAUI;
 from litestore import LiteStore as DataStore
 from accountsmanager import AccountsManager;
@@ -146,8 +146,6 @@ class WAManager():
 		gui.setMyAccount(account.jid);
 
 		self.gui = gui;
-		print "INITIAL CONNECTION CHECK"
-		self.gui.whatsapp.eventHandler.initialConnCheck()
 		
 		self.gui.whatsapp.eventHandler.setMyAccount(account.jid)
 		

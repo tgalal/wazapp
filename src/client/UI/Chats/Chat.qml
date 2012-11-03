@@ -210,17 +210,14 @@ Rectangle{
 		width: parent.width
 		anchors.verticalCenter: parent.verticalCenter
 
-		RoundedImage {
+        Image {
             id:chat_picture
-            width:80
-            height: 80
-            size:72
-            imgsource: picture
+            width:64
+            height: 64
+            source: picture
             x: 2;
-			anchors.verticalCenter: parent.verticalCenter
+            anchors.top:parent.top
 			opacity:appWindow.stealth?0.2:1
-			//onClicked: mouseArea.clicked()
-			//onPressAndHold: mouseArea.pressAndHold()
         }
 
         Column{

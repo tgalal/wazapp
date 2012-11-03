@@ -39,9 +39,10 @@ WAPage{
 
     WAListView{
         id: contactlist
-        defaultPicture: "../common/images/user.png"
+        defaultPicture: defaultProfilePicture
         anchors.top:header.bottom
         model: getContacts()
+        useRoundedImages: false
 
         onSelected:{ consoleDebug("from contacts"); contactsSelectorPage.selected(selectedItem);}
     }

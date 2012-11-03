@@ -262,8 +262,7 @@ WAStackWindow {
 
         if(jid == myAccount) {
             var path = WAConstants.CACHE_CONTACTS + "/" + myAccount.split("@")[0] + ".jpg";
-            currentProfilePicture=""
-            currentProfilePicture = path
+            currentProfilePicture = path+"?id="+Math.random();
 
             profilePictureUpdated()
         } else {
@@ -279,16 +278,15 @@ WAStackWindow {
                     var c = contacts.get(i);
                     if(c.jid == jid){
                         consoleDebug("Updating contact picture now")
-                        c.picture = ""
-                        c.picture = WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".jpg";
+                        c.picture = WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".png?id="+Math.random();
                     }
                 }
             }
 
             if(conversation){
-                conversation.picture = conversation.groupIcon = ""
-                conversation.onChange();
-                conversation.groupIcon =  WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".jpg";
+                //conversation.picture = conversation.groupIcon = ""
+                //conversation.onChange();
+                conversation.groupIcon =  WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".png?id="+Math.random();
                 conversation.picture = conversation.getPicture();
                 conversation.onChange();
             }

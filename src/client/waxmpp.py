@@ -1453,8 +1453,9 @@ class WAEventHandler(QObject):
 	def onProfilePictureIdReceived(self,jid, pictureId):
 		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(jid)
 
-		if contact.pictureid != str(pictureId):
-			contact.pictureid = pictureId
+		cjid = jid.replace("@s.whatsapp.net","").replace("@g.us","")
+		if contact.pictureid != str(pictureId) or not os.path.isfile("%s/%s.jpg"%(WAConstants.CACHE_PROFILE, cjid)) or not os.path.isfile("%s/%s.png"%(WAConstants.CACHE_CONTACTS, cjid)):
+			contact.setData({"pictureid":pictureId})
 			contact.save()
 			self.interfaceHandler.call("contact_getProfilePicture", (jid,))
 

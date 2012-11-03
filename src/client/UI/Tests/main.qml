@@ -5,6 +5,8 @@ import com.nokia.meego 1.0
 
 import "../common"
 import "../EmojiDialog"
+import "../About"
+import "../Misc"
 
 
 WAStackWindow{
@@ -14,6 +16,7 @@ WAStackWindow{
     property string myBackgroundImage;
     property int myBackgroundOpacity;
     property string defaultProfilePicture: "common/images/user.png"
+    property string connectionStatus:"online"
 
     property int count:0;
 
@@ -50,6 +53,27 @@ WAStackWindow{
                     appWindow.pageStack.push(watextareatest)
                 }
             }
+
+            Button{
+                text: "Test About Dialog"
+                onClicked: {
+                    aboutDialog.open();
+                }
+            }
+
+            Button{
+                text: "Support Wazapp"
+                onClicked: {
+                   appWindow.pageStack.push(supportPage)
+                }
+            }
+
+            Button{
+                text: "Test Splash"
+                onClicked: {
+                   appWindow.pageStack.push(splashPage)
+                }
+            }
         }
     }
 
@@ -64,5 +88,25 @@ WAStackWindow{
     WAImageViewerTest{
         id:waimageviwertest
     }
+
+    AboutDialog{
+        id:aboutDialog
+        wazappVersion: "0.9.2"
+        yowsupVersion: "0.1"
+    }
+
+    WASupport{
+        id:supportPage
+    }
+
+    WACredits{
+        id:creditsPage
+    }
+
+    WASplash{
+        id:splashPage
+    }
+
+
 
 }

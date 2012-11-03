@@ -35,6 +35,7 @@ import "Groups"
 import "Misc"
 import "EmojiDialog"
 import "common/js/settings.js" as MySettings
+import "About"
 
 //import com.nokia.extras 1.0
 
@@ -383,9 +384,6 @@ WAStackWindow {
         quitConfirm.open();
     }
 
-    function aboutInit(){
-        aboutDialog.open();
-    }
 
     function showNotification(text){
         osd_notify.parent = pageStack.currentPage
@@ -857,6 +855,21 @@ WAStackWindow {
 
     WASplash{
         id:splashPage
+        version:waversion
+    }
+
+    AboutDialog{
+        id:aboutDialog
+        wazappVersion: waversion
+        yowsupVersion: "0.1"
+    }
+
+    WACredits{
+        id:creditsPage
+    }
+
+    WASupport{
+        id:supportPage
     }
 
 
@@ -1021,17 +1034,6 @@ WAStackWindow {
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
         onAccepted: quit();
-    }
-
-    QueryDialog {
-        id:aboutDialog
-        icon: "common/images/icons/wazapp80.png"
-        titleText: "Wazapp" //This should not be translated!
-        message: qsTr("version") + " " + waversion + "\n\n" +
-                 qsTr("This is a %1 version.").arg(waversiontype) + "\n" +
-                 qsTr("You are trying it at your own risk.") + "\n" +
-                 qsTr("Please report any bugs to") + "\n" + "tarek@wazapp.im"
-
     }
 
     QueryDialog {

@@ -2,12 +2,11 @@
 import QtQuick 1.1
 import "../common"
 import com.nokia.meego 1.0
-import com.nokia.extras 1.0
 WAPage {
 
     property string operation:qsTr("Initializing")
     property string subOperation:""
-    property string version:waversion
+    property string version
     orientationLock: PageOrientation.LockPortrait
 
     function setCurrentOperation(op) {

@@ -139,10 +139,10 @@ WAPage {
 		        tab: profileTab
 		    }
 
-		    TabButton {
+            /*TabButton {
 		        iconSource: "../common/images/about" + (theme.inverted ? "-white" : "") + ".png";
 		        tab: aboutTab
-		    }
+            }*/
 		}
 
     }

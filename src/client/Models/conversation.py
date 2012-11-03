@@ -176,6 +176,18 @@ class GroupconversationsContacts(Model):
 			contacts.append(contact)
 		
 		return contacts
+	
+	
+	def findGroups(self, contact_id):
+		inter = self.findAll({"contact_id":contact_id})
+		
+		groups = []
+		
+		for g in inter:
+			group = g.Groupconversation.read(g.groupconversation_id)
+			groups.append(group)
+		
+		return groups
 		
 
 	

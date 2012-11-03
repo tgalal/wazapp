@@ -190,6 +190,7 @@ class WAEventHandler(QObject):
 
 	def authFail(self, username, err):
 		self.state = 0
+		self.loginFailed.emit()
 		print "AUTH FAILED FOR %s!!" % username
 
 

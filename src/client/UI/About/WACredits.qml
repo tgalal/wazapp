@@ -40,7 +40,7 @@ WAPage {
                id:tgalalCredit
                image: "images/contribs/tarek.png"
                label: "Tarek Galal (tgalal)"
-               role: "Main author"
+               role: qsTr("Official author, Wazapp creator")
                twitter: "@tgalal"
                url: "http://www.wazapp.im"
                jid:"4915225256022@s.whatsapp.net"
@@ -55,7 +55,7 @@ WAPage {
            CreditItem{
                image: "images/contribs/matias.png"
                label: "Matias Perez (Cepiperez)"
-               role: "UI Champion"
+               role: qsTr("UI Champion")
                twitter: "@tgalal"
                url: "http://www.wazapp.im"
            }
@@ -63,7 +63,7 @@ WAPage {
            CreditItem{
                image: "images/contribs/bojan.png"
                label: "Bojan Komljenovic (Knobtviker)"
-               role: "Developer"
+               role: qsTr("Developer")
                twitter: "@tgalal"
                url: "http://www.wazapp.im"
            }
@@ -71,7 +71,7 @@ WAPage {
            CreditItem{
                image: "images/contribs/andrey.png"
                label: "Andrey Kozhevnikov (Coderus)"
-               role: "Developer"
+               role: qsTr("Developer")
                twitter: "@tgalal"
                url: "http://www.wazapp.im"
            }

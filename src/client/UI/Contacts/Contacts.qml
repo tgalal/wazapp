@@ -171,6 +171,7 @@ WAPage {
 		anchors.rightMargin: 16
 		anchors.verticalCenter: header.verticalCenter 
 		source: "../common/images/refresh.png"
+        visible:false//for now
 		MouseArea {
 			anchors.fill: parent
 			onClicked: {

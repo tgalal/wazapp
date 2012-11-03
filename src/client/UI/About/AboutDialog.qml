@@ -43,6 +43,7 @@ Dialog {
 
         Row{
             id:landscapeRow
+            spacing:5
 
             anchors.verticalCenter: parent.verticalCenter
             anchors.horizontalCenter: parent.horizontalCenter
@@ -63,7 +64,7 @@ Dialog {
                 Image{
                     id:wazappIcon
                     //anchors.horizontalCenter: parent.horizontalCenter
-                    source: "../common/images/icons/wazapp80.png"
+                    source: "../common/images/icons/wazapp128.png"
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 

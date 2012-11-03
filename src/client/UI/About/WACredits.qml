@@ -15,7 +15,7 @@ WAPage {
        anchors.leftMargin: 2
        anchors.rightMargin: 10
 
-       contentHeight:header.height + creditsContainer.height
+       contentHeight:header.height + creditsContainer.height+10
 
        WAHeader{
            id:header
@@ -26,6 +26,7 @@ WAPage {
        Column{
            id:creditsContainer
            anchors.top:header.bottom
+           anchors.topMargin: 10
            anchors.left:parent.left
            anchors.right: parent.right
            spacing:5
@@ -41,9 +42,8 @@ WAPage {
                image: "images/contribs/tarek.png"
                label: "Tarek Galal (tgalal)"
                role: qsTr("Official author, Wazapp creator")
-               twitter: "@tgalal"
+               twitter: "http://twitter.com/tgalal"
                url: "http://www.wazapp.im"
-               jid:"4915225256022@s.whatsapp.net"
                github: "https://github.com/tgalal"
            }
 
@@ -56,24 +56,24 @@ WAPage {
                image: "images/contribs/matias.png"
                label: "Matias Perez (Cepiperez)"
                role: qsTr("UI Champion")
-               twitter: "@tgalal"
-               url: "http://www.wazapp.im"
+               twitter: "http://twitter.com/negrocepi"
+               //url: "http://www.wazapp.im"
            }
 
            CreditItem{
                image: "images/contribs/bojan.png"
                label: "Bojan Komljenovic (Knobtviker)"
                role: qsTr("Developer")
-               twitter: "@tgalal"
-               url: "http://www.wazapp.im"
+               twitter: "http://twitter.com/knobtviker"
+               url: ""
            }
 
            CreditItem{
                image: "images/contribs/andrey.png"
                label: "Andrey Kozhevnikov (Coderus)"
                role: qsTr("Developer")
-               twitter: "@tgalal"
-               url: "http://www.wazapp.im"
+               twitter: "http://twitter.com/iCODeRUS"
+               //url: "http://www.wazapp.im"
            }
 
        }

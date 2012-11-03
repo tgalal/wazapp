@@ -23,14 +23,14 @@ Row{
         id:contribImg
         //fillMode: Image.PreserveAspectFit
         imgsource: "../About/"+image
-        size: 130
-        height:130
-        width:130
+        size: 120
+        height:120
+        width:120
     }
 
     Column{
 
-        spacing:5
+        spacing:3
         Label{
             id:contribLabel
         }

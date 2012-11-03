@@ -1,11 +1,53 @@
-// import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
+/***************************************************************************
+**
+** Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
+**
+** This file is part of Wazapp, an IM application for Meego Harmattan
+** platform that allows communication with Whatsapp users.
+**
+** Wazapp is free software: you can redistribute it and/or modify it under
+** the terms of the GNU General Public License as published by the
+** Free Software Foundation, either version 2 of the License, or
+** (at your option) any later version.
+**
+** Wazapp is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+** See the GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with Wazapp. If not, see http://www.gnu.org/licenses/.
+**
+****************************************************************************/
+
+
+/*** WAListView **
+  *
+  * A customizable listview component
+  * Features:
+  *     -Fast section scrolling
+  *     -Single-selection
+  *     -Multi-selection
+  *     -Squircle masks for images
+  *     -Removing items
+  *     -Loading indicator (states: loading,loaded)
+  *
+  * Current Limitations:
+  *     -allowRemove is currently not compatible with fastscroll
+  *     -can't use allowRemove and selection(multi/single) at same time
+  * TODO:
+  *     -Make allowRemove compatible with fastscroll
+  *     -Add filtering textinput
+  *     -Make use of itemDescription
+  *     -Specifiable model properties to use
+**/
+
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
 import "Components"
 import "../../common"
 import "js/walistview.js" as WAlvhelper
-
 
 Rectangle {
     id:walistviewroot
@@ -69,14 +111,12 @@ Rectangle {
 
     function positionViewAtBeginning (){
         walistview.item.positionViewAtBeginning()
-         consoleDebug("Positioned to beginning!")
     }
 
     function resetSelections(){
 
         var selected = getSelected()
         for (var i=0; i<selected.length; i++){
-
             unSelect(selected[i].selectedIndex)
         }
 
@@ -89,11 +129,9 @@ Rectangle {
 
 
     function select(ind){
-        consoleDebug("In selector")
         if(isSelected())
             return
 
-        consoleDebug("SELECTING "+ind)
         WAlvhelper.selectedIndices.push(ind)
 
         if(ind < WAlvhelper.items.length)
@@ -105,19 +143,16 @@ Rectangle {
 
         var tmpind = WAlvhelper.selectedIndices.indexOf(ind)
         if(tmpind >= 0) {
-            consoleDebug("SPLICED! "+tmpind)
             WAlvhelper.selectedIndices.splice(tmpind,1)
         }
-        consoleDebug(ind+":::::>>>>>"+WAlvhelper.items.length)
+
         if(ind < WAlvhelper.items.length) {
-            consoleDebug("CHANGE!")
             WAlvhelper.items[ind].isSelected = false
 
          }
     }
 
     function isSelected(ind){
-        //return  WAlvhelper.items[ind].isSelected
         return (WAlvhelper.selectedIndices.indexOf(ind) >= 0)
     }
 
@@ -192,16 +227,6 @@ Rectangle {
                     item.isSelected = walistviewroot.isSelected(index);
             }
 
-           /* Connections{
-                target: walistviewroot
-                onItemClicked:{
-                    console.log("INSIDE CONNECTION")
-                    console.log(clickedIndex)
-                    if(clickedIndex == index){isSelected = walistviewroot.isSelected(index);}
-
-                }
-            }*/
-
             property variant modelData: model
             //property bool filtered: model.name.match(new RegExp(searchInput.text,"i")) != null
 
@@ -258,7 +283,6 @@ Rectangle {
                     anchors.topMargin: -2
                     y: 8
                 }
-
             }
 
             Column{
@@ -278,48 +302,38 @@ Rectangle {
 
             Item {
                 id: removeButton
-                width:100
-                height:parent.height
+                width:42
+                height:42
                 anchors.right: parent.right
-                //anchors.rightMargin: 5
+                anchors.rightMargin: 10
                 visible: !item.isSelected && allowRemove && !(model.noremove && model.noremove==true)
+                anchors.verticalCenter: parent.verticalCenter
+
 
 
                 BorderImage {
 
-                    anchors.centerIn: parent
-                    width: 42
-                    height: 42
-                    z:1
-
+                   anchors.fill: parent
+                   height:parent.height
 
                     source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
                             "background" + (rmArea.pressed? "-pressed" : "")
                     border { left: 22; right: 22; bottom: 22; top: 22; }
-                    Image {
-                        y: 2
+                    ImageButton{
+                        id:rmArea
                         source: "image://theme/icon-m-toolbar-cancle"+(theme.inverted?"-white":"")
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.horizontalCenter: parent.horizontalCenter
+                        onClicked: {
+                           item.isSelected = false
+                           item.isRemoved = true
+                            _removedCount++
+                           removed(index)
+                        }
                     }
-
                 }
 
-
-                MouseArea {
-                    id: rmArea
-                    anchors.fill: parent
-                    onClicked: {
-                       item.isSelected = false
-                       item.isRemoved = true
-                        _removedCount++
-                       removed(index)
-                    }
-                    z: 2
-                }
             }
-
-
 
             Image {
                 anchors.right: parent.right
@@ -331,13 +345,14 @@ Rectangle {
 
             MouseArea{
                 id:mouseArea
-                anchors.fill: parent
+                anchors.left:parent.left
+                anchors.top:parent.top
+                anchors.bottom: parent.bottom
                 anchors.right:removeButton.left
                 anchors.rightMargin: 10
                 onClicked:{
                     if(!allowSelect)
                         return
-                    consoleDebug("Clicked")
 
                     if(!multiSelectMode)
                         walistviewroot.selected(model)
@@ -349,7 +364,6 @@ Rectangle {
                     }
                 }
             }
-
         }
     }
 

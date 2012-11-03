@@ -37,9 +37,11 @@ WAPage {
     WAListView{
         id:mylist
         anchors.fill: parent
-        allowFastScroll: true
-        multiSelectMode: true
+        allowFastScroll: false
+       // multiSelectMode: true
         defaultPicture: "../common/images/user.png"
+        allowSelect: false
+        allowRemove: true
 
     }
 

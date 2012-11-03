@@ -18,16 +18,6 @@ Row{
         contribWazapp.pressed = false
     }
 
-    Connections{
-        target: creditsFlickable
-        onMovementStarted:{
-            var items = [contribWazapp, contribUrl, contribGithub, contribTwit];
-
-            for(var i in items){
-                items[i].pressed = false
-            }
-        }
-    }
 
     RoundedImage{
         id:contribImg

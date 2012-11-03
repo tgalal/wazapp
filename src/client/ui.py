@@ -152,6 +152,10 @@ class WAUI(QDeclarativeView):
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
 		self.rootObject().removeSingleContact.connect(self.messageStore.removeSingleContact)
 		self.rootObject().exportConversation.connect(self.messageStore.exportConversation)
+		self.rootObject().getConversationGroupsByJid.connect(self.messageStore.getConversationGroups)
+		self.messageStore.conversationGroups.connect(self.rootObject().onConversationGroups)
+		self.rootObject().getConversationMediaByJid.connect(self.messageStore.getConversationMedia)  
+		self.messageStore.conversationMedia.connect(self.rootObject().onConversationMedia)
 		self.dbusService = WAService(self);
 		
 	
@@ -233,13 +237,9 @@ class WAUI(QDeclarativeView):
 
 	def sendSMS(self, num):
 		print "SENDING SMS TO " + num
-		m = QMessage()
-		m.setType(QMessage.Sms)
-		a = QMessageAddress(QMessageAddress.Phone, num)
-		m.setTo(a)
-		m.setBody("")
-		s = QMessageService()
-		s.compose(m)
+		bus = dbus.SessionBus()
+		messaging_if = dbus.Interface(bus.get_object('com.nokia.Messaging', '/'), 'com.nokia.MessagingIf')
+		messaging_if.showMessageEditor("sms", [num], "", "", [])
 
 
 	def makeCall(self, num):

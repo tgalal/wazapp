@@ -34,6 +34,8 @@ class MessageStore(QObject):
 	messagesReady = QtCore.Signal(dict,bool);
 	conversationReady = QtCore.Signal(dict);
 	conversationExported = QtCore.Signal(str, str); #jid, exportePath
+	conversationMedia = QtCore.Signal(list);
+	conversationGroups = QtCore.Signal(list);
 	
 	currKeyId = 0
 
@@ -160,6 +162,79 @@ class MessageStore(QObject):
 		share = shareService.get_dbus_method('share', 'com.nokia.maemo.meegotouch.ShareUiInterface')
 		share([item,])		
 			
+			
+	def getConversationMedia(self,jid):
+		tmp = []
+		media = []
+		gMedia = []
+
+		conversation = self.getOrCreateConversationByJid(jid)
+
+		messages = self.store.Message.findAll({"conversation_id":conversation.id,"NOT media_id":0})
+		for m in messages:
+			media.append(m.getMedia())
+
+		if media:
+			for ind in media:
+				if ind.transfer_status == 2:
+					tmp.append(ind.getModelData());
+
+		gMessages = self.store.Groupmessage.findAll({"contact_id":conversation.contact_id,"NOT media_id":0})
+		for m in gMessages:
+			gMedia.append(m.getMedia())
+
+		if gMedia:
+			for gind in gMedia:
+				if gind.transfer_status == 2:
+					tmp.append(gind.getModelData());
+
+		self.conversationMedia.emit(tmp)
+
+
+	def getConversationGroups(self,jid):
+		tmp = []
+		groups = []
+		gIds = []
+
+		cachedContacts = self.store.getCachedContacts()
+
+		conversation = self.getOrCreateConversationByJid(jid)
+		groups = self.store.Groupmessage.findAll({"contact_id":conversation.contact_id});
+
+		for group in groups:
+			gIds.append(group.groupconversation_id)
+
+		gIds = list(set(gIds))
+
+		for uiq in gIds:
+			groupInfo = {}
+			groupInfo["jid"] = ""
+			groupInfo["pic"] = ""
+			groupInfo["subject"] = ""
+			groupInfo["contacts"] = ""
+
+			groupData = self.store.Groupconversation.findAll(conditions={"id":uiq})
+			for data in groupData:
+				groupInfo["jid"] = str(data.jid)
+				jname = data.jid.replace("@g.us","")
+				groupPic = WAConstants.CACHE_CONTACTS+"/"+jname+".png"
+				if not os.path.isfile(groupPic):
+					groupPic = "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png"
+				groupInfo["pic"] = str(groupPic)
+				groupInfo["subject"] = str(data.subject)
+				contacts = data.getContacts()
+				resultContacts = []
+				for c in contacts:
+					try:
+						contact = cachedContacts[c.number].name or c.number
+					except:
+						contact = c.number
+					resultContacts.append(contact.encode('utf-8'))
+
+			groupInfo["contacts"] = resultContacts
+			tmp.append(groupInfo)
+
+		self.conversationGroups.emit(tmp)
 	
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();

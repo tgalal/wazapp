@@ -130,6 +130,10 @@ class WAEventHandler(QObject):
 
 		self.interfaceHandler = LibInterfaceHandler(self.username)
 		self.registerInterfaceSignals()
+		
+		self.interfaceVersion = self.interfaceHandler.call("getVersion")
+		
+		self._d("Using Yowsup version %s"%self.interfaceVersion)
 
 		
 		self.listJids = [];

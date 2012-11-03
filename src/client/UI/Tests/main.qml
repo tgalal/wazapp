@@ -92,7 +92,7 @@ WAStackWindow{
     AboutDialog{
         id:aboutDialog
         wazappVersion: "0.9.2"
-        yowsupVersion: "0.1"
+        yowsupVersion: typeof(interfaceVersion)!="undefined"?interfaceVersion:"0.0"
     }
 
     WASupport{

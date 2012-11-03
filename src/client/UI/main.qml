@@ -903,7 +903,7 @@ WAStackWindow {
     AboutDialog{
         id:aboutDialog
         wazappVersion: waversion
-        yowsupVersion: "0.1"
+        yowsupVersion: typeof(interfaceVersion)!="undefined"?interfaceVersion:"0.0"
     }
 
     WACredits{

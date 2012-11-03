@@ -592,6 +592,8 @@ class WAUI(QDeclarativeView):
 	
 		whatsapp.setContactsManager(self.c);
 		
+		self.rootContext().setContextProperty("interfaceVersion", whatsapp.eventHandler.interfaceVersion)
+		
 		whatsapp.eventHandler.connected.connect(self.rootObject().onConnected);
 		whatsapp.eventHandler.typing.connect(self.rootObject().onTyping)
 		whatsapp.eventHandler.paused.connect(self.rootObject().onPaused)

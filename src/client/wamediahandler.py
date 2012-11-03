@@ -17,19 +17,24 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 
-import httplib,urllib2,os,sys
-from constants import WAConstants
-
 from PySide import QtCore
-from PySide.QtCore import QThread
-
-from PySide.QtCore import *
-from PySide.QtGui import *
-from wadebug import WADebug
-
-from connengine import MySocketConnection
-import os, mimetypes, socket, hashlib, ssl, urllib
+from PySide.QtCore import QObject, QThread, Qt
+from PySide.QtGui import QImage
+from constants import WAConstants
 from time import sleep
+from wadebug import WADebug
+import os
+import mimetypes
+import socket
+import hashlib
+import ssl
+import urllib2
+
+
+
+
+
+
 
 class WAMediaHandler(QObject):
 	progressUpdated = QtCore.Signal(int,int) #%,jid,message.id
@@ -94,28 +99,6 @@ class WAMediaHandler(QObject):
 			
 		return None
 
-class WAVCardHandler(WAMediaHandler):
-	
-	def __init__(self,jid,message_id,data):
-		
-		self.contactName = name
-		self.contactData = data
-		
-		super(WAVCardHandler,self).__init__(jid,message_id,data,WAConstants.MEDIA_TYPE_VCARD)
-	
-	def pull(self):
-		path = self.getSavePath(WAConstants.MEDIA_TYPE_VCARD);
-		savePath = "%s/%i-%s.vcf"%(path,self.message_id,self.contactName)
-		textFile = open(savePath, "w")
-		#n = msgdata.find(">") +1
-		#msgdata = msgdata[n:]
-		#text_file.write(msgdata.replace("</vcard>",""))
-		textFile.write(self.contactData)
-		textFile.close()
-		self.success.emit(self.jid,self.message_id,savePath)
-		
-		
-
 
 class WAHTTPHandler(QThread):
 	
@@ -146,7 +129,7 @@ class WAHTTPHandler(QThread):
 		#image = urllib.quote(image)
 		image = image.replace("file://","")
 
-		self.sock = MySocketConnection();
+		self.sock = socket.socket();
 		HOST, PORT = 'mms.whatsapp.net', 443
 		self.sock.connect((HOST, PORT));
 		ssl_sock = ssl.wrap_socket(self.sock)
@@ -292,28 +275,3 @@ class WAHTTPHandler(QThread):
 			
 		except:
 			self.error.emit()
-
-
-def onSuccess(jid,msgId,data):
-	print "SUCCESS: %s %s %i"%(data,jid,msgId)
-	
-def onError(jid,msgId):
-	print "ERROR: %s %i"%(jid,msgId)
-
-def onProgress(amnt, jid,message_id):
-	status = "%s %i: %i"%(jid,message_id,amnt)
-	#status += chr(8)*(len(status)+1)
-	print status
-
-if __name__=="__main__":
-	app = QApplication(sys.argv)
-	
-	wam = WAMediaHandler("tare2.galal@gmail.com", 12, "http://download.thinkbroadband.com/10MB.zip","downloaded.zip",2);
-	
-	wam.progressUpdated.connect(onProgress);
-	wam.success.connect(onSuccess)
-	wam.error.connect(onError)
-	
-	wam.pull();
-	sys.exit(app.exec_())
-	

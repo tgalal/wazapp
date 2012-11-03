@@ -16,6 +16,70 @@ Item {
     height: size
     width: size
 
+    states: [
+        State {
+            name: "loading"
+            PropertyChanges {
+                target: pictureLoadingIndicator
+                visible: true
+
+            }
+
+            PropertyChanges {
+                target: mask
+                visible: false
+
+            }
+
+
+            PropertyChanges {
+                target: img
+                visible: false
+
+            }
+            PropertyChanges {
+                target: mouseArea
+                enabled: false
+
+            }
+        },
+
+        State {
+            name: ""
+            PropertyChanges {
+                target: pictureLoadingIndicator
+                visible: false
+
+            }
+
+            PropertyChanges {
+                target: mask
+                visible: true
+
+            }
+
+
+            PropertyChanges {
+                target: img
+                visible: imgsource != "" && rounded
+
+            }
+            PropertyChanges {
+                target: mouseArea
+                enabled: true
+
+            }
+        }
+    ]
+
+    BusyIndicator{
+        id:pictureLoadingIndicator
+        platformStyle: BusyIndicatorStyle { size: "large";}
+        anchors.centerIn: parent
+        visible:false
+        running:visible
+    }
+
     MaskedItem {
         id: mask
         x:0; y:0
@@ -27,7 +91,7 @@ Item {
             height: size
             smooth: true
             fillMode: Image.Stretch
-            source: "images/usermask.png"
+            source: size>120? "images/usermask-large.png" : "images/usermask.png"
         }
 
         Image
@@ -49,13 +113,14 @@ Item {
 
     Image
     {
+        id:img
         x:0; y:0
         width: size
         height: size
         smooth: true
         asynchronous: true
         fillMode: Image.Stretch
-        source: "images/userborder.png"
+        source: size>120? "images/userborder-large.png" : "images/userborder.png"
         visible: imgsource != "" && rounded
     }
 

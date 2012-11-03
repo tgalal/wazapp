@@ -17,26 +17,17 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 import os
-from PySide.QtGui import *
-from utilities import Utilities
 from warequest import WARequest
 from xml.dom import minidom
-from PySide.QtCore import QObject
-from PySide.QtCore import QUrl
-from PySide.QtCore import Qt
-from PySide.QtCore import *
+from PySide import QtCore
+from PySide.QtCore import QObject, QUrl, QFile, QIODevice
 from PySide.QtGui import QImage
-from PySide import QtCore;
 from QtMobility.Contacts import *
 from QtMobility.Versit import *
-from litestore import LiteStore as DataStore
-from xml.dom import minidom
-from Models.contact import Contact
 from constants import WAConstants
-import thread
 from wadebug import WADebug;
 import sys
-from constants import WAConstants
+from waimageprocessor import WAImageProcessor
 
 class ContactsSyncer(WARequest):
 	'''
@@ -54,7 +45,6 @@ class ContactsSyncer(WARequest):
 		self.parts = []
 		self.cn = ""
 		if mode == "SYNC":
-			cn = ""
 			c = WAContacts(self.store);
 			phoneContacts = c.getPhoneContacts();
 			for c in phoneContacts:
@@ -172,6 +162,7 @@ class WAContacts(QObject):
 		self.contacts = [];
 		self.raw_contacts = None;
 		self.manager = ContactsManager();
+		self.imageProcessor = WAImageProcessor();
 		
 		
 	
@@ -189,53 +180,37 @@ class WAContacts(QObject):
 		
 		
 	def updateContact(self,jid):
-		if "@g.us" in jid:
-			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-		else:
-			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
+		#if "@g.us" in jid:
+		#	user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+		#else:
+		#	user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
 
 		jname = jid.replace("@s.whatsapp.net","").replace("@g.us","")
-		user_img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
 		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
 			user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
+			
 			user_img.save(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg", "JPEG")
-		mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
-		preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
-		PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
-		Mask = QPixmap.fromImage(mask_img);
-		Painter = QPainter(PixmapToBeMasked);
-		Painter.drawPixmap(0, 0, 96, 96, preimg);
-		Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
-		Painter.drawPixmap(0, 0, 96, 96, Mask);
-		Painter.end()
-		PixmapToBeMasked.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
-		#os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
-		self.contactPictureUpdated.emit(jid);
+		
+			self.imageProcessor.createSquircle(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg", WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
+			self.contactPictureUpdated.emit(jid);
 
+	def checkPicture(self, jname, sourcePath):
 
+		sourcePath = str(sourcePath)
+		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+			#Don't overwrite if profile picture exists
+			if os.path.isfile(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg"):
+				return
+			user_img = WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"
+		else:
+			if os.path.isfile(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg"):
+				os.remove(WAConstants.CACHE_PROFILE + "/" + jname + ".jpg")
+			user_img = sourcePath.replace("file://","")
 
-	def checkPicture(self,jname,imagepath):
-		if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
-			user_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png")
-			if imagepath is not "":
-				if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
-					user_img = QImage(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
-				else:
-					user_img = QImage(QUrl(imagepath).toString().replace("file://",""))
-			mask_img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/usermask.png")
-			preimg = QPixmap.fromImage(QImage(user_img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)));
-			PixmapToBeMasked = QImage(96, 96, QImage.Format_ARGB32_Premultiplied);
-			Mask = QPixmap.fromImage(mask_img);
-			Painter = QPainter(PixmapToBeMasked);
-			Painter.drawPixmap(0, 0, 96, 96, preimg);
-			Painter.setCompositionMode(QPainter.CompositionMode_DestinationIn);
-			Painter.drawPixmap(0, 0, 96, 96, Mask);
-			Painter.end()
-			PixmapToBeMasked.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png", "PNG")
-			if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
-				os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
+		self.imageProcessor.createSquircle(user_img, WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
 
-
+		if os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg"):
+			os.remove(WAConstants.CACHE_CONTACTS + "/" + jname + ".jpg")
 
 	def getContacts(self):
 		contacts = self.store.Contact.fetchAll();
@@ -248,29 +223,28 @@ class WAContacts(QObject):
 		phoneContacts = cm.getContacts();
 		tmp = []
 		self.contacts = {};
-		
-		if not os.path.exists(WAConstants.CACHE_CONTACTS):
-			os.makedirs(WAConstants.CACHE_CONTACTS)
-		if not os.path.exists(WAConstants.CACHE_PROFILE):
-			os.makedirs(WAConstants.CACHE_PROFILE)
 
 		for wc in contacts:
 			jname = wc.jid.replace("@s.whatsapp.net","")
 			founded = False
 			myname = ""
+			picturePath = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
 			for c in phoneContacts:
 				if wc.number[-8:] == c['number'][-8:]:
 					founded = True
-					self.checkPicture(jname,c['picture'])
-					c['picture'] = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
+					if c['picture']:
+						self.checkPicture(jname,c['picture'] if type(c['picture']) == str else c['picture'].toString())
+
+					c['picture'] = picturePath if os.path.isfile(picturePath) else None;
 					myname = c['name']
 					wc.setRealTimeData(myname,c['picture'],"yes");
+					QtCore.QCoreApplication.processEvents()
 					break;
 
 			if founded is False and wc.number is not None:
-				self.checkPicture(jname,"")
+				#self.checkPicture(jname,"")
 				myname = wc.pushname.decode("utf8") if wc.pushname is not None else ""
-				mypicture = WAConstants.CACHE_CONTACTS + "/" + jname + ".png";
+				mypicture = picturePath if os.path.isfile(picturePath) else None;
 				wc.setRealTimeData(myname,mypicture,"no");
 
 			if wc.status is not None:
@@ -356,7 +330,7 @@ class ContactsManager(QObject):
 		self.contacts = []
 		for contact in contacts:
 			avatars = contact.details(QContactAvatar.DefinitionName);
-			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else WAConstants.DEFAULT_CONTACT_PICTURE;
+			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else None;
 			label =  contact.displayLabel();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 
@@ -371,7 +345,7 @@ class ContactsManager(QObject):
 		self.contacts = []
 		for contact in contacts:
 			avatars = contact.details(QContactAvatar.DefinitionName);
-			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else WAConstants.DEFAULT_CONTACT_PICTURE;
+			avatar = QContactAvatar(avatars[0]).imageUrl() if len(avatars) > 0 else None;
 			label =  contact.displayLabel();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 			allnumbers = []

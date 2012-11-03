@@ -23,24 +23,20 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
-Rectangle {
+BorderImage {
 
 	property string title
 
-	color: "#27a01b" //"gray"
-	radius: 12
-	smooth: true
-	width: text.paintedWidth + 22
 	height: 26
-	//scale: title=="0" || title==""? 0 : 1
-	//border.color: "gray"
-	//border.width: 1
-	visible: parseInt(title)>0
+	width: text.paintedWidth + 22
+	scale: title=="0" || title==""? 0 : 1
 
-	//Fucking animation! It breaks the chats when app is unfocused
-	//Behavior on scale {
-	//    NumberAnimation { duration: 200 }
-	//}
+	source: "images/notificationbubble.png"
+	border { left: 12; right: 12; bottom: 12; top: 12; }
+
+	Behavior on scale {
+	    NumberAnimation { duration: 200 }
+	}
 
 	Label {
 		id: text
@@ -49,6 +45,7 @@ Rectangle {
 		anchors.centerIn: parent
         text: title
 	}
-
 }
+
+
 

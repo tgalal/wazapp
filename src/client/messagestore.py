@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (c) 2012, Tarek Galal <tarek@wazapp.im>
 
@@ -24,13 +25,17 @@ import datetime
 from wadebug import MessageStoreDebug
 import os
 from constants import WAConstants
+import dbus
 
 class MessageStore(QObject):
 
 
 	messageStatusUpdated = QtCore.Signal(str,int,int);
-	messagesReady = QtCore.Signal(dict);
+	messagesReady = QtCore.Signal(dict,bool);
 	conversationReady = QtCore.Signal(dict);
+	conversationExported = QtCore.Signal(str, str); #jid, exportePath
+	conversationMedia = QtCore.Signal(list);
+	conversationGroups = QtCore.Signal(list);
 	
 	currKeyId = 0
 
@@ -86,34 +91,163 @@ class MessageStore(QObject):
 
 
 	def removeSingleContact(self, jid):
-		seld._d("Removing contact: "+jid);
-	
+		self._d("Removing contact: "+jid);
+
+
+	def exportConversation(self, jid):
+		self._d("Exporting conversations")
+		bus = dbus.SessionBus()
+		exportDir = WAConstants.CACHE_CONV
+
+		if not os.path.exists(exportDir):
+			os.makedirs(exportDir)
+			
+		conv = self.getOrCreateConversationByJid(jid)
+		conv.loadMessages(offset=0, limit=0)
+		
+		cachedContacts = self.store.getCachedContacts()
+		
+		contacts = {}
+		
+		if not conv.isGroup():
+			contact = conv.getContact()
+			try:
+				contacts[contact.id] = cachedContacts[contact.number].name or contact.number
+			except:
+				contacts[contact.id] = contact.number
+				
+		else:
+			contacts = conv.getContacts()
+			for c in contacts:
+				try:
+					contacts[c.id] = cachedContacts[c.number].name or c.number
+				except:
+					contacts[c.id] = c.number
+		
+		fileName = "WhatsApp chat with %s"%(contacts[contact.id])
+		exportPath = "%s/%s.txt"%(exportDir, fileName.encode('utf-8'))
+		item = "file://"+exportPath
+		
+		buf = ""
+
+		for m in conv.messages:
+			if not conv.isGroup():
+				if m.type == m.TYPE_SENT and m.status != m.STATUS_DELIVERED:
+					continue
+			
+			t = datetime.datetime.fromtimestamp(int(m.timestamp)/1000).strftime('%d-%m-%Y %H:%M')
+			author = contacts[m.contact_id] if conv.isGroup() else (contacts[conv.contact_id] if m.type == m.TYPE_RECEIVED else "You")
+			content = m.content if not m.media_id else "[media omitted]"
+			try:
+				authorClean = author.encode('utf-8','replace') #how it's working for you?
+			except UnicodeDecodeError:
+#				authorClean = "".join(i for i in author if ord(i)<128) #and why this?
+				authorClean = author #working great for all cases
+			try:
+				contentClean = content.encode('utf-8','replace') #same again
+			except UnicodeDecodeError:
+#				contentClean = "".join(i for i in content if ord(i)<128) #same again
+				contentClean = content #same again
+			buf+="[%s]%s: %s\n"%(str(t),authorClean,contentClean)
+
+		f = open(exportPath, 'w')		
+		f.write(buf)
+		f.close()
+			
+		trackerService = bus.get_object('org.freedesktop.Tracker1.Miner.Files.Index','/org/freedesktop/Tracker1/Miner/Files/Index')
+		addFile = trackerService.get_dbus_method('IndexFile','org.freedesktop.Tracker1.Miner.Files.Index')
+		addFile(item)
+		time.sleep(1) #the most stupid line I ever wrote in my life but it must be here because of the sluggish tracker
+		shareService = bus.get_object('com.nokia.ShareUi', '/')
+		share = shareService.get_dbus_method('share', 'com.nokia.maemo.meegotouch.ShareUiInterface')
+		share([item,])		
+			
+			
+	def getConversationMedia(self,jid):
+		tmp = []
+		media = []
+		gMedia = []
+
+		conversation = self.getOrCreateConversationByJid(jid)
+
+		messages = self.store.Message.findAll({"conversation_id":conversation.id,"NOT media_id":0})
+		for m in messages:
+			media.append(m.getMedia())
+
+		if media:
+			for ind in media:
+				if ind.transfer_status == 2:
+					tmp.append(ind.getModelData());
+
+		gMessages = self.store.Groupmessage.findAll({"contact_id":conversation.contact_id,"NOT media_id":0})
+		for m in gMessages:
+			gMedia.append(m.getMedia())
+
+		if gMedia:
+			for gind in gMedia:
+				if gind.transfer_status == 2:
+					tmp.append(gind.getModelData());
+
+		self.conversationMedia.emit(tmp)
+
+	def getConversationGroups(self,jid):
+
+		contact = self.store.Contact.getOrCreateContactByJid(jid)
+		groups = self.store.GroupconversationsContacts.findGroups(contact.id)
+		cachedContacts = self.store.getCachedContacts()
+		
+		tmp = []
+		
+		for group in groups:
+			if group.jid is None:
+				continue
+			groupInfo = {}
+			groupInfo["jid"] = str(group.jid)
+			jname = group.jid.replace("@g.us","")
+			groupInfo["pic"] = WAConstants.CACHE_CONTACTS+"/"+jname+".png" if os.path.isfile(WAConstants.CACHE_CONTACTS+"/"+jname+".png") else WAConstants.DEFAULT_GROUP_PICTURE
+			groupInfo["subject"] = str(group.subject)
+			groupInfo["contacts"] = ""
+			
+			contacts = group.getContacts()
+			resultContacts = []
+			for c in contacts:
+				try:
+					contact = cachedContacts[c.number].name or c.number
+				except:
+					contact = c.number
+				resultContacts.append(contact.encode('utf-8'))
+				
+			groupInfo["contacts"] = resultContacts
+			
+			tmp.append(groupInfo)
+
+		self.conversationGroups.emit(tmp)
 	
 	def loadConversations(self):
 		conversations = self.store.ConversationManager.findAll();
 		self._d("init load convs")
+		convList = []
 		for c in conversations:
 			self._d("loading messages")
 			jid = c.getJid();
 			c.loadMessages();
 
 			self.conversations[jid] = c
-			
-			print "loaded messages: " + str(len(c.messages))
 
-			if len(c.messages) > 0: # Prevent chats with no messages
-			
-				if "@g.us" in jid:
-					jname = jid.replace("@g.us","")
-					if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
-						img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-						img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
-			
-				self.sendConversationReady(jid);
-				self.sendMessagesReady(jid,c.messages);
+			if len(c.messages) > 0:
+				convList.append({"jid":jid,"message":c.messages[0],"lastdate":c.messages[0].created})
 
-			else:
-				self.deleteConversation(jid)
+		convList = sorted(convList, key=lambda k: k['lastdate']);
+		convList.reverse();
+
+		for ci in convList:
+			messages = []
+			self.sendConversationReady(ci['jid']);
+			messages.append(ci['message']);
+			self.sendMessagesReady(ci['jid'],messages,False);
+
+			#elif len(c.messages) == 0:
+			#	self.deleteConversation(jid)
 		
 
 	def loadMessages(self,jid,offset=0, limit=1):
@@ -122,36 +256,36 @@ class MessageStore(QObject):
 		
 		messages = self.conversations[jid].loadMessages(offset,limit);
 		
-		self.sendMessagesReady(jid,messages);
+		self.sendMessagesReady(jid,messages,False);
 		return messages
 	
 	
 	def sendConversationReady(self,jid):
-		self._d("SENDING CONV READY %s"%jid)
-		tmp = {}
+		#self._d("SENDING CONV READY %s"%jid)
 		'''
 			jid,subject,id,contacts..etc
 			messages
 		'''
 		c = self.conversations[jid];
 		tmp = c.getModelData();
-		self._d(tmp)
+		#self._d(tmp)
 		tmp["isGroup"] = c.isGroup()
 		tmp["jid"]=c.getJid();
-		
-		self._d("Checking if group")
+		picturePath =  WAConstants.CACHE_CONTACTS + "/" + jid.split('@')[0] + ".png"
+		tmp["picture"] = picturePath if os.path.isfile(picturePath) else None
+		#self._d("Checking if group")
 		if c.isGroup():
-			self._d("yes, fetching contacts")
+			#self._d("yes, fetching contacts")
 			contacts = c.getContacts();
 			tmp["contacts"] = []
 			for contact in contacts:
-				self._d(contact.getModelData())
+				#self._d(contact.getModelData())
 				tmp["contacts"].append(contact.getModelData());
 		
-		self._d("emitting ready ")
+		#self._d("emitting ready ")
 		self.conversationReady.emit(tmp);
 	
-	def sendMessagesReady(self,jid,messages):
+	def sendMessagesReady(self,jid,messages,reorder=True):
 		if not len(messages):
 			return
 			
@@ -176,7 +310,7 @@ class MessageStore(QObject):
 			msg['msg_id'] = msg['id']
 			tmp["data"].append(msg)
 			
-		self.messagesReady.emit(tmp);
+		self.messagesReady.emit(tmp,reorder);
 			
 	
 	
@@ -218,10 +352,6 @@ class MessageStore(QObject):
 				conv = self.store.Groupconversation.create()
 				conv.setData({"jid":jid})
 				conv.save()
-				jname = jid.replace("@g.us","")
-				if not os.path.isfile(WAConstants.CACHE_CONTACTS + "/" + jname + ".png"):
-					img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
-					img.save(WAConstants.CACHE_CONTACTS + "/" + jname + ".png")
 			
 		else:
 			contact = self.store.Contact.getOrCreateContactByJid(jid)
@@ -351,6 +481,14 @@ class MessageStore(QObject):
 		
 		self.conversations[jid] = conversation;
 		self.sendConversationReady(jid)
+
+
+	def messageExists(self, jid, msgId):
+		k = Key(jid, False, msgId)
+		return self.get(k) is not None
+
+	def keyExists(self, k):
+		return self.get(k) is not None
 		
 		
 		
@@ -359,49 +497,6 @@ class Key():
 		self.remote_jid = remote_jid;
 		self.from_me = from_me;
 		self.id = idd;
-
-	
-	def exists(self, paramKey):
-		try:
-			WAXMPP.message_store.get(paramKey)
-			return 1
-		except KeyError:
-			return 0
-     
-
-
-	def equals(obj):
-		if self == obj:
-			return True;
-		if self is None:
-			return false;
-		if type(self) != type(obj):
-			return False;
-		other = obj;
-		if self.from_me != other.from_me:
-			return false;
-		if self.id is None:
-			if other.id is not None:
-				return False;
-		elif self.id != other.id:
-			return False;
-		if self.remote_jid is None:
-			if other.remote_jid is not None:
-				return False;
-		elif self.remote_jid != other.remote_jid:
-			return False;
-
-		return True;
-
-
-	def hashCode(self):
-		prime = 31;
-		result = 1;
-		result = 31 * result + (1231 if self.from_me else 1237)
-		result = 31 * result + (0 if self.id is None else Utilities.hashCode(self.id));
-		result = 31 * result + (0 if self.remote_jid is None else Utilities.hashCode(self.remote_jid));
-	
-
 
 	def toString(self):
 		return "Key(idd=\"" + self.id + "\", from_me=" + str(self.from_me) + ", remote_jid=\"" + self.remote_jid + "\")";

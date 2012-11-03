@@ -5,19 +5,20 @@ import Qt.labs.components 1.0
 import "/usr/lib/qt4/imports/com/nokia/meego/UIConstants.js" as UI
 import "/usr/lib/qt4/imports/com/nokia/meego/EditBubble.js" as Popup
 import "/usr/lib/qt4/imports/com/nokia/meego/TextAreaHelper.js" as TextAreaHelper
+import "js/Global.js" as Helpers
 
 FocusScope {
     id: root
 
-	signal textPasted
-	signal enterKeyClicked
-	signal inputPanelChanged
-	property int lastPosition:0
+    signal textPasted
+    signal enterKeyClicked
+    signal inputPanelChanged
+    property int lastPosition:0
 
     // Common public API
     property alias text: textEdit.text
     property alias placeholderText: prompt.text
-	property alias textColor: textEdit.color
+    property alias textColor: textEdit.color
 
     property alias font: textEdit.font
     property alias cursorPosition: textEdit.cursorPosition
@@ -52,13 +53,40 @@ FocusScope {
         platformSipAttributes.registerInputElement(textEdit)
     }
 
+    function _getCleanText() {
+        var repl = "p, li { white-space: pre-wrap; }";
+        var res = root.text
+        var result = Helpers.getCode(res);
+        res = result[0]
+        var pos = result[1]
+        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
+        res = res.replace(/^\s+/,"");
+        return [res, pos];
+    }
+
+    function getCleanText(){
+
+        var repl = "p, li { white-space: pre-wrap; }";
+        var res = root.text
+        var result = Helpers.getCode(res);
+        res = result[0]
+        var pos = result[1]
+        res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
+        while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
+        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
+        res = res.replace(/^\s+/,"");
+        while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
+        return [res, pos];
+
+    }
+
     function copy() {
         textEdit.copy()
     }
 
     function paste() {
         textEdit.paste()
-		textPasted()
+        textPasted()
     }
 
     function cut() {
@@ -158,10 +186,10 @@ FocusScope {
         font: root.platformStyle.textFont
         color: "gray"
         elide: Text.ElideRight
-		onVisibleChanged: {
-			if (prompt.visible) platformCloseSoftwareInputPanel()
-			else platformOpenSoftwareInputPanel()
-		}
+        onVisibleChanged: {
+            if (prompt.visible) platformCloseSoftwareInputPanel()
+            else platformOpenSoftwareInputPanel()
+        }
     }
 
     MouseArea {
@@ -183,8 +211,8 @@ FocusScope {
         property alias preedit: inputMethodObserver.preedit
         property alias preeditCursorPosition: inputMethodObserver.preeditCursorPosition
 
-		Keys.onEnterPressed: { enterKeyClicked() }
-		Keys.onReturnPressed: { enterKeyClicked() }
+        Keys.onEnterPressed: { enterKeyClicked() }
+        Keys.onReturnPressed: { enterKeyClicked() }
 
 
         x: UI.PADDING_XLARGE
@@ -235,20 +263,20 @@ FocusScope {
             target: inputContext
 
             onSoftwareInputPanelVisibleChanged: {
-				inputPanelChanged()
+                inputPanelChanged()
                 if (activeFocus)
                     TextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
 
             onSoftwareInputPanelRectChanged: {
-				inputPanelChanged()
+                inputPanelChanged()
                 if (activeFocus)
                     TextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
         }
 
         onCursorPositionChanged: {
-			if(activeFocus) {
+            if(activeFocus) {
                 TextAreaHelper.repositionFlickable(contentMovingAnimation)
             }
 
@@ -314,7 +342,7 @@ FocusScope {
                 );
                 attemptToActivate = !pressOnPreedit && !root.readOnly && !preeditDisabled && root.activeFocus && !(mousePosition == 0 || TextAreaHelper.atSpace(mousePosition - 1));
                 mouse.filtered = true;*/
-				inputContext.reset()
+                inputContext.reset()
                 parent.selectByMouse = true
                 attemptToActivate = false
             }

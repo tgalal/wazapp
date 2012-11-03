@@ -75,7 +75,7 @@ WAPage{
 
 
 		BusyIndicator {
-		    implicitWidth: 96
+            platformStyle: BusyIndicatorStyle { size: "large";}
 		    anchors.horizontalCenter: parent.horizontalCenter
 		    visible: true
 		    running: visible

@@ -30,14 +30,6 @@ import "../common"
 WAPage {
     id:container
 
-    tools: ToolBarLayout {
-        id: toolBar
-        ToolIcon {
-            platformIconId: "toolbar-back"
-            onClicked: pageStack.pop()
-        }
-    }
-
 	WAHeader{
         title: qsTr("Select audio")
         anchors.top:parent.top
@@ -45,100 +37,117 @@ WAPage {
 		height: 73
     }
 
-	Component.onCompleted: {
-		//console.log("SELECT DIALOG OPENED")
-		//galleryVideoModel.filter = myFilters
-	}
+    onStatusChanged: {
+        if(status == PageStatus.Inactive) {
+			browserModel.clear()
+		}
+        if(status == PageStatus.Active) {
+			appWindow.browseFiles("/home/user/MyDocs", "mp3, MP3, wav, WAV");
+		}
+    }
 
-	/*GalleryFilterUnion {
-		id: myFilters
-    	filters: [
-			GalleryWildcardFilter {
-				property: "fileName";
-				value: "*.jpg";
-			},
-			GalleryWildcardFilter {
-				property: "fileName";
-				value: "*.png";
-			}
-		]
-	}*/
+	property int currentSelected	
 
 
-	ListView {
-		id: view
-		clip: true
-        anchors.top: parent.top
-        anchors.topMargin: 73
-        height: parent.height -73
-		width: parent.width
-	    maximumFlickVelocity: 3500
+	Component {
+		id: myDelegate
 
-		model: galleryArtistModel
-
-		delegate: Rectangle {
+		Rectangle {
+			property string title: model.fileName
+			property string value: model.filepath
+			property string filetype: model.filetype
+			
 			color: "transparent"
-			width: parent.width
-			height: 80
-			smooth: true
+
+			height: 72
+			width: appWindow.inPortrait? 480:854
+
+			Rectangle {
+				anchors.fill: parent
+				color: theme.inverted? "darkgray" : "lightgray"
+				opacity: theme.inverted? 0.2 : 0.8
+				visible: mouseArea.pressed || currentSelected==index
+			}
 
 			Image {
-				id: icon
-				source: "image://theme/icon-m-content-audio" + (theme.inverted ? "-inverse" : "")
-				height: 64
-				width: 64
-				smooth: true
-				anchors.left: parent.left
-				anchors.leftMargin: 16
+				x: 16
+			    height: 62; width: 62; smooth: true
+			    source: "../common/images/" + model.filetype + (theme.inverted?"-white":"") + ".png"
 				anchors.verticalCenter: parent.verticalCenter
 			}
-			Label {
-				width: parent.width - 126
-				color: theme.inverted? "white" : "black"
-				font.pixelSize: 24
+
+			Text {
+				x: 92
+				width: parent.width -106
+				anchors.verticalCenter: parent.verticalCenter
+		        text: title
+				font.pointSize: 18
+				elide: Text.ElideRight
 				font.bold: true
-				text: title
-				elide: Text.ElideRight
-				anchors.left: icon.right
-				anchors.leftMargin: 12
-				anchors.verticalCenter: parent.verticalCenter
-			}
-			Image {
-				source: "image://theme/icon-m-common-drilldown-arrow" + (theme.inverted ? "-inverse" : "")
-				height: 64
-				width: 64
-				smooth: true
-				anchors.right: parent.right
-				anchors.rightMargin: 16
-				anchors.verticalCenter: parent.verticalCenter
+				color: theme.inverted? "white" : "black"
 			}
 
+			MouseArea{
+				id:mouseArea
+				anchors.fill: parent
+				onClicked:{
+					stopSoundFile()
+					if (model.filetype=="folder") {
+						appWindow.browseFiles(model.filepath, "mp3, MP3, wav, WAV");
+					} else {
+						currentSelected = index
+						playSoundFile(model.filepath)
+					}
+				}
+			}
 
-			/*Label {
-				width: parent.width - 96
-				color: theme.inverted? "lightgray" : "darkgray"
-				font.pixelSize: 20
-				text: artist
-				elide: Text.ElideRight
-				anchors.left: icon.right
-				anchors.leftMargin: 12
-				y: 46
-			}*/
-
-			MouseArea {
-	            id: mouseArea
-	            anchors.fill: parent
-	            onClicked: {
-                    filterAlbum = model.title
-					pageStack.replace(sendAudioFile)
-	            }
-	        }
 		}
 	}
 
-    ScrollDecorator {
-        flickableItem: view
-    }
+	ListView {
+		y: 74
+		anchors.left: parent.left
+		height: parent.height -74
+		width: parent.width
+	    model: browserModel
+		onCountChanged: currentSelected=-1
+		delegate: myDelegate
+		clip: true
+	}
 
+    tools: ToolBarLayout {
+        id: toolBar
+        ToolIcon {
+            platformIconId: "toolbar-up";
+			enabled: enableBackInBrowser
+			opacity: enabled? 1 : 0.4
+            onClicked: {
+				var i = currentBrowserFolder.lastIndexOf("/");
+				var f = currentBrowserFolder.slice(0,i)
+				stopSoundFile()
+				appWindow.browseFiles(f, "mp3, MP3, wav, WAV");
+			}
+        }
+		ToolButton
+	    {
+			text: qsTr("Send")
+			enabled: currentSelected>-1 && (browserModel.get(currentSelected).filetype=="send-audio")
+	        onClicked: { 
+                stopSoundFile()
+				sendMediaAudioFile(currentJid, browserModel.get(currentSelected).filepath)
+				pageStack.pop()
+			}
+	    }
+		ToolButton
+	    {
+			anchors.right: parent.right
+			anchors.rightMargin: 16
+			text: qsTr("Cancel")
+	        onClicked: {
+				stopSoundFile()
+				pageStack.pop()
+			}
+	    }
+    }
 
 }

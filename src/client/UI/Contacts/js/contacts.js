@@ -33,6 +33,7 @@ function Contact(jid){
     this.picture = "none";
     this.status = "";
 	this.pushname = "";
+	//this.newContact = false;
 }
 
 
@@ -55,6 +56,7 @@ function populateContacts(contacts)
     }
 
     console.log("Gathered conversations before clearing: "+ccount);
+    breathe()
 
     contactsModel.clear();
     contactsViews = new Array();
@@ -64,10 +66,25 @@ function populateContacts(contacts)
 
     console.log("Populating contacts of amount: "+contacts.length);
 
+    if(!initializationDone) {
+		splashPage.resetProgress()
+		splashPage.setProgressMax(contacts.length)
+	}
+
     for(var i =0; i<contacts.length; i++)
     {
 		//console.log("APPENDING CONTACT: " + contacts[i].jid + " - " + contacts[i].name)
+		//contacts[i].newContact = false;
         contactsModel.append(contacts[i]);
+
+        if(!initializationDone){
+            splashPage.setSubOperation(contacts[i].jid)
+            splashPage.setProgress(i)
+            breathe()
+         }
+        else if(i%4 == 0) {
+            breathe();
+        }
 
         var cachedConv =   conversations[contacts[i].jid];
         if(cachedConv){
@@ -78,4 +95,5 @@ function populateContacts(contacts)
             contactsViews[i].setConversation(cachedConv);
         }
     }
+    console.log("Populating done!");
 }

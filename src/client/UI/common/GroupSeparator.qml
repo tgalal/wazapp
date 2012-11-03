@@ -2,10 +2,11 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 
 Item {
+    id:root
     property string title
-
+    property string color:"gray"
     width: parent.width
-    height: 50
+    height: sortingLabel.height
 	clip: true
 
         Rectangle {
@@ -38,7 +39,7 @@ Item {
             anchors.topMargin: 28
             anchors.right: parent.right
             anchors.rightMargin: 0
-            color: "gray"
+            color: root.color
         }
 
 }

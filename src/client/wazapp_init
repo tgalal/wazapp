@@ -28,9 +28,9 @@ if __name__=="__main__":
 		remote_object.show();
 		sys.exit();
 	except dbus.exceptions.DBusException as e:
-		#os.system("exec /usr/bin/invoker --type e --splash /opt/waxmppplugin/bin/wazapp/UI/pics/wasplash.png /opt/waxmppplugin/bin/wazapp/wazapp");
 		print "CAUGHT EXCEPT"
-		os.system("exec /usr/bin/invoker --type e --splash /opt/waxmppplugin/bin/wazapp/UI/common/images/splash/wasplash.png /opt/waxmppplugin/bin/wazapp/wazapp");
+		os.system("exec /usr/bin/invoker --type=e --splash /opt/waxmppplugin/bin/wazapp/UI/common/images/splash/wasplash.png /opt/waxmppplugin/bin/wazapp/wazapp"); #logging cause incoming messages not receiving
+		#os.system("exec /usr/bin/invoker --type=e --splash /opt/waxmppplugin/bin/wazapp/UI/common/images/splash/wasplash.png /opt/waxmppplugin/bin/wazapp/wazapp > /home/user/walogs 2>&1");
 	
 
 	

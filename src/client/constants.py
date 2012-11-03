@@ -24,7 +24,9 @@ class WAConstants():
 	STORE_PATH = os.path.expanduser('~/.wazapp');
 	
 	#MEDIA_PATH = STORE_PATH+'/media'
-	MEDIA_PATH = "/home/user/MyDocs/Wazapp/media"
+	MYDOCS_PATH = "/home/user/MyDocs"
+	APP_PATH = MYDOCS_PATH+'/Wazapp'
+	MEDIA_PATH = APP_PATH+'/media'
 	AUDIO_PATH = MEDIA_PATH+'/audio'
 	IMAGE_PATH = MEDIA_PATH+'/images'
 	VIDEO_PATH = MEDIA_PATH+'/videos'
@@ -33,13 +35,15 @@ class WAConstants():
 	CACHE_PATH = os.path.expanduser('~/.cache/wazapp');
 	CACHE_CONTACTS = CACHE_PATH+"/contacts"
 	CACHE_PROFILE = CACHE_PATH+"/profile"
+	
+	CACHE_CONV = MYDOCS_PATH+"/Documents"
 
 	THUMBS_PATH = os.path.expanduser('/home/user/.thumbnails');
 		
 	CLIENT_INSTALL_PATH = '/opt/waxmppplugin/bin/wazapp'
 	
 	DEFAULT_CONTACT_PICTURE = CLIENT_INSTALL_PATH+'/'+'UI/common/images/user.png';
-	DEFAULT_GROUP_PICTURE = CLIENT_INSTALL_PATH+'/'+'UI/common/images/user.png';
+	DEFAULT_GROUP_PICTURE = CLIENT_INSTALL_PATH+'/'+'UI/common/images/group.png';
 	
 	DEFAULT_SOUND_NOTIFICATION = "/usr/share/sounds/ring-tones/Message 1.mp3"
 	FOCUSED_SOUND_NOTIFICATION = "/usr/share/sounds/ui-tones/snd_default_beep.wav"

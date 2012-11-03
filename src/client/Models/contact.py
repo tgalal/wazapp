@@ -34,12 +34,14 @@ class Contact(Model):
 		self.picture = picture;
 		self.alphabet = name[0].upper();
 		self.iscontact = iscontact
+		self.norender = self.iscontact != "yes"
 		
 		self.modelData.append("name");
 		self.modelData.append("picture");
 		self.modelData.append("alphabet");
 		self.modelData.append("pictureid");
 		self.modelData.append("iscontact");
+		self.modelData.append("norender");
 		
 
 	def getOrCreateContactByJid(self,jid):

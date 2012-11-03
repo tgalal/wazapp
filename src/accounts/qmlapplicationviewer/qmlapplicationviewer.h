@@ -95,6 +95,8 @@ public:
 
     Q_INVOKABLE void abraKadabra();
 
+    Q_INVOKABLE bool checkMccList(QString mcclist);
+
 
    Q_INVOKABLE QString getCc();
 

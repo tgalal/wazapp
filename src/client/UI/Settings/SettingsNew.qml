@@ -24,24 +24,90 @@ import com.nokia.meego 1.0
 import "../common/js/settings.js" as MySettings
 import "../common/js/Global.js" as Helpers
 import "../common"
+import "../Profile"
 
 WAPage {
     id: root
 
-	signal syncClicked();
+    property bool loaded:false
 
-    property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
+    //property string contactPicture: WAConstants.CACHE_PROFILE + "/" + myAccount.split("@")[0] + ".jpg"
+    property string profilePicture:currentProfilePicture?currentProfilePicture:defaultProfilePicture
 
-	property string message: qsTr("This is a %1 version.").arg(waversiontype) + "\n" + 
+    property string message: qsTr("This is a %1 version.").arg(waversiontype) + "\n" +
 							 qsTr("You are trying it at your own risk.") + "\n" + 
 							 qsTr("Please report any bugs to") + "\n" + "tarek@wazapp.im"
 
 
-    Component.onCompleted: {
-		MySettings.initialize()
-        syncClicked.connect(onSyncClicked)
+    onStatusChanged: {
+        if(status == PageStatus.Activating){
+
+            myStatus.text = Helpers.emojify2(currentStatus); //reset status to cancel unsaved modifications
+
+            if(!loaded){
+                MySettings.initialize()
+                getRingtones()
+
+                currentSelectionProfile = "PersonalRingtone"
+                setRingtone(MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
+
+                currentSelectionProfile = "GroupRingtone"
+                setRingtone(MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
+
+                loaded = true
+
+            }
+        }
     }
 
+
+    Component.onCompleted: {
+      //  MySettings.initialize()
+        //getRingtones()
+    }
+
+	Connections {
+		target: appWindow
+
+		onSetBackground: {
+			var result = backgroundimg.replace("file://","")
+			myBackgroundImage = result
+			MySettings.setSetting("Background", result)
+			backgroundSelector.subtitle = getBackgroundSubtitle()
+		}
+
+		onSetRingtone: {
+			MySettings.setSetting(currentSelectionProfile, ringtonevalue)
+			currentSelectionProfileValue = ringtonevalue
+			if (currentSelectionProfile=="GroupRingtone") {
+				setGroupRingtone(ringtonevalue)
+				groupRingtone = ringtonevalue
+				groupTone.subtitle = getRingtoneSubtitle(ringtonevalue)
+			} else {
+				setPersonalRingtone(ringtonevalue)
+				personalRingtone = ringtonevalue
+				personalTone.subtitle = getRingtoneSubtitle(ringtonevalue)
+			}
+		}
+	}
+
+	function getBackgroundSubtitle() {
+		var res = MySettings.getSetting("Background", "none")
+		res = res.split('/')
+		res = res[res.length-1]
+		res = res.charAt(0).toUpperCase() + res.slice(1);
+		if (res=="None") res = qsTr("(no background)")
+		return res
+	}
+
+	function getRingtoneSubtitle(ringtone) {
+		var res = ringtone.split('/')
+		res = res[res.length-1]
+		res = res.charAt(0).toUpperCase() + res.slice(1);
+		res = res.split('.')[0]
+		if (res=="No sound") res = qsTr("(no sound)")
+		return res
+	}
     tools: ToolBarLayout {
         id: toolBar
 
@@ -73,10 +139,10 @@ WAPage {
 		        tab: profileTab
 		    }
 
-		    TabButton {
+            /*TabButton {
 		        iconSource: "../common/images/about" + (theme.inverted ? "-white" : "") + ".png";
 		        tab: aboutTab
-		    }
+            }*/
 		}
 
     }
@@ -105,6 +171,12 @@ WAPage {
         checkedBackground: "image://theme/color3-meegotouch-button-background-selected-horizontal-right"
     }
 
+    SliderStyle {
+        id: mySliderStyle
+        grooveItemBackground: "image://theme/color3-meegotouch-slider-elapsed-background-horizontal"
+        grooveItemElapsedBackground: "image://theme/color3-meegotouch-slider-elapsed-background-horizontal"
+    }
+
 
     QueryDialog {
         property string phone_number;
@@ -123,7 +195,7 @@ WAPage {
         title: qsTr("Settings")
         anchors.top:parent.top
         width:parent.width
-		height: 72
+		height: 73
     }
 
     TabGroup {
@@ -134,8 +206,8 @@ WAPage {
 		Item {
 			id: generalTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -184,24 +256,44 @@ WAPage {
 					SelectionItemTr {
 					    title: qsTr("Current language")
 					    model: ListModel {
-					        ListElement { name: "Chinese"; value: "zh" }
-					        ListElement { name: "Chinese (Taiwan)"; value: "zh_TW" }
-					        ListElement { name: "Czech (Czech Republic)"; value: "cs_CZ" }
-					        ListElement { name: "Dutch"; value: "nl" }
-					        ListElement { name: "English"; value: "en" }
-					        ListElement { name: "English (United Kingdom)"; value: "en_GB" }
-					        ListElement { name: "French (France)"; value: "fr_FR" }
-					        ListElement { name: "German (Germany)"; value: "de_DE" }
-					        ListElement { name: "Italian"; value: "it" }
-					        ListElement { name: "Portuguese (Brazil)"; value: "pt_BR" }
-					        ListElement { name: "Portuguese (Portugal)"; value: "pt_PT" }
-					        ListElement { name: "Romanian"; value: "ro" }
-					        ListElement { name: "Russian"; value: "ru" }
-					        ListElement { name: "Russian (Russia)"; value: "ru_RU" }
-					        ListElement { name: "Spanish (Argentina)"; value: "es_AR" }
-					        ListElement { name: "Spanish (Mexico)"; value: "es_MX" }
-					        ListElement { name: "Swedish (Finland)"; value: "sv_FI" }
-					        ListElement { name: "Turkish (Turkey)"; value: "tr_TR" }
+							ListElement { name: "Albanian"; value: "sq" }
+							ListElement { name: "Arabic"; value: "ar" }
+							ListElement { name: "Basque"; value: "eu" }
+							ListElement { name: "Bulgarian"; value: "bg" }
+							ListElement { name: "Catalan"; value: "ca" }
+							ListElement { name: "Chinese"; value: "zh" }
+							ListElement { name: "Chinese (Hong Kong)"; value: "zh_HK" }
+							ListElement { name: "Chinese (Taiwan)"; value: "zh_TW" }
+							ListElement { name: "Croatian"; value: "hr" }
+							ListElement { name: "Czech"; value: "cs" }
+							ListElement { name: "Dutch"; value: "nl" }
+							ListElement { name: "English"; value: "en" }
+							ListElement { name: "English (United Kingdom)"; value: "en_GB" }
+							ListElement { name: "English (United States)"; value: "en_US" }
+							ListElement { name: "Finnish"; value: "fi" }
+							ListElement { name: "French (France)"; value: "fr_FR" }
+							ListElement { name: "French (Switzerland)"; value: "fr_CH" }
+							ListElement { name: "German (Germany)"; value: "de_DE" }
+							ListElement { name: "German (Switzerland)"; value: "de_CH" }
+							ListElement { name: "Greek"; value: "el" }
+							ListElement { name: "Hebrew"; value: "he" }
+							ListElement { name: "Hindi"; value: "hi" }
+							ListElement { name: "Italian"; value: "it" }
+							ListElement { name: "Macedonian"; value: "mk" }
+							ListElement { name: "Malay"; value: "ms" }
+							ListElement { name: "Persian"; value: "fa" }
+							ListElement { name: "Portuguese (Brazil)"; value: "pt_BR" }
+							ListElement { name: "Portuguese (Portugal)"; value: "pt_PT" }
+							ListElement { name: "Romanian"; value: "ro" }
+							ListElement { name: "Russian"; value: "ru" }
+							ListElement { name: "Spanish"; value: "es" }
+							ListElement { name: "Spanish (Argentina)"; value: "es_AR" }
+							ListElement { name: "Spanish (Mexico)"; value: "es_MX" }
+							ListElement { name: "Swedish (Finland)"; value: "sv_FI" }
+							ListElement { name: "Swedish (Sweden)"; value: "sv_SE" }
+							ListElement { name: "Thai"; value: "th" }
+							ListElement { name: "Turkish"; value: "tr" }
+							ListElement { name: "Vietnamese"; value: "vi" }
 					    }
 						initialValue: MySettings.getSetting("Language", "en")
 					    onValueChosen: { 
@@ -231,8 +323,8 @@ WAPage {
 		Item {
 			id: appearanceTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -250,8 +342,47 @@ WAPage {
 					spacing: 10
 
 					GroupSeparator {
+						title: qsTr("Background")
+					}
+
+					SelectionItem {
+						id: backgroundSelector
+					    title: qsTr("Image")
+					    subtitle: getBackgroundSubtitle()
+						onClicked: pageStack.push(Qt.resolvedUrl("SetBackground.qml") );
+					}
+
+					Row {
+						width: parent.width
+						spacing: 16
+
+					Label {
+							id: sliderText
+						verticalAlignment: Text.AlignBottom
+						text: qsTr("Opacity:")
+						height: 50
+					}
+		            Slider {
+		                id: themeslider
+		                maximumValue: 10
+		                minimumValue: 0
+		                stepSize: 1
+							width: parent.width - sliderText.paintedWidth-16
+		                value: MySettings.getSetting("BackgroundOpacity", "0.5")
+		                platformStyle: mySliderStyle
+		                onValueChanged: {
+		                    myBackgroundOpacity = value
+							MySettings.setSetting("BackgroundOpacity", value)
+		                }
+
+		            }
+					}
+
+					GroupSeparator {
 						title: qsTr("Appearance")
 					}
+
+
 					Label {
 						verticalAlignment: Text.AlignBottom
 						text: qsTr("Orientation:")
@@ -313,6 +444,7 @@ WAPage {
 					        }
 					    }
 					}
+
 					Label {
 						verticalAlignment: Text.AlignBottom
 						text: qsTr("Bubble color:")
@@ -369,61 +501,17 @@ WAPage {
 
 		}
 
+
+
+
 		Item {
 			id: notificationsTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
-			anchors.left: parent.left
+			anchors.topMargin: 73
+			height: parent.height -73
+            anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
-
-		    ListModel {
-				id: ringtoneModel
-		        ListElement { name: QT_TR_NOOP("(no sound)"); value: "No sound.wav" }
-		        ListElement { name: "Arcade"; value: "Arcade.mp3" }
-		        ListElement { name: "Blip"; value: "Blip.mp3" }
-		        ListElement { name: "Bubbles"; value: "Bubbles.mp3" }
-		        ListElement { name: "Calendar 1"; value: "Calendar 1.mp3" }
-		        ListElement { name: "Calendar 2"; value: "Calendar 2.mp3" }
-		        ListElement { name: "Calendar 3"; value: "Calendar 3.mp3" }
-		        ListElement { name: "Calendar 4"; value: "Calendar 4.mp3" }
-		        ListElement { name: "Calendar 5"; value: "Calendar 5.mp3" }
-		        ListElement { name: "Chat alert"; value: "Chat alert.mp3" }
-		        ListElement { name: "Chuckle"; value: "Chuckle.mp3" }
-		        ListElement { name: "Clock 1"; value: "Clock 1.mp3" }
-		        ListElement { name: "Clock 2"; value: "Clock 2.mp3" }
-		        ListElement { name: "Clock 3"; value: "Clock 3.mp3" }
-		        ListElement { name: "Clock 4"; value: "Clock 4.mp3" }
-		        ListElement { name: "Clock 5"; value: "Clock 5.mp3" }
-		        ListElement { name: "Computer talk"; value: "Computer talk.mp3" }
-		        ListElement { name: "Email 1"; value: "Email 1.mp3" }
-		        ListElement { name: "Email 2"; value: "Email 2.mp3" }
-		        ListElement { name: "Email 3"; value: "Email 3.mp3" }
-		        ListElement { name: "Email 4"; value: "Email 4.mp3" }
-		        ListElement { name: "Email 5"; value: "Email 5.mp3" }
-		        ListElement { name: "Feng shoes"; value: "Feng shoes.mp3" }
-		        ListElement { name: "Halcyon"; value: "Halcyon.mp3" }
-		        ListElement { name: "Idim"; value: "Idim.mp3" }
-		        ListElement { name: "Machines"; value: "Machines.mp3" }
-		        ListElement { name: "Marbles"; value: "Marbles.mp3" }
-		        ListElement { name: "Message 1"; value: "Message 1.mp3" }
-		        ListElement { name: "Message 2"; value: "Message 2.mp3" }
-		        ListElement { name: "Message 3"; value: "Message 3.mp3" }
-		        ListElement { name: "Message 4"; value: "Message 4.mp3" }
-		        ListElement { name: "Message 5"; value: "Message 5.mp3" }
-		        ListElement { name: "Noise Experiment"; value: "Noise Experiment.mp3" }
-		        ListElement { name: "Nokia tune"; value: "Nokia tune.mp3" }
-		        ListElement { name: "Retrobot"; value: "Retrobot.mp3" }
-		        ListElement { name: "Roboioioi"; value: "Roboioioi.mp3" }
-		        ListElement { name: "Sine step"; value: "Sine step.mp3" }
-		        ListElement { name: "Spectros"; value: "Spectros.mp3" }
-		        ListElement { name: "Tickle"; value: "Tickle.mp3" }
-		        ListElement { name: "Whistling"; value: "Whistling.mp3" }
-		        ListElement { name: "Winning"; value: "Winning.mp3" }
-		        ListElement { name: "Wolfgang"; value: "Wolfgang.mp3" }
-		    }
-
 
 			Flickable {
 				id: flickArea3
@@ -440,13 +528,14 @@ WAPage {
 					GroupSeparator {
 						title: qsTr("Personal messages")
 					}
-					SelectionItemTr {
+					SelectionItem {
+						id: personalTone
 					    title: qsTr("Notification tone")
-					    model: ringtoneModel
-						initialValue: MySettings.getSetting("PersonalRingtone", "Message 1.mp3")
-					    onValueChosen: { 
-							MySettings.setSetting("PersonalRingtone", value)
-							setPersonalRingtone(value)
+					    subtitle: getRingtoneSubtitle(personalRingtone)
+						onClicked: {
+							currentSelectionProfile = "PersonalRingtone"
+							currentSelectionProfileValue = personalRingtone
+							pageStack.push(Qt.resolvedUrl("../common/MusicBrowserDialog.qml"))
 						}
 					}
 					SwitchItem {
@@ -462,13 +551,15 @@ WAPage {
 					GroupSeparator {
 						title: qsTr("Group messages")
 					}
-					SelectionItemTr {
+
+					SelectionItem {
+						id: groupTone
 					    title: qsTr("Notification tone")
-					    model: ringtoneModel
-						initialValue: MySettings.getSetting("GroupRingtone", "Message 1.mp3")
-					    onValueChosen: { 
-							MySettings.setSetting("GroupRingtone", value)
-							setGroupRingtone(value)
+					    subtitle: getRingtoneSubtitle(groupRingtone)
+						onClicked: {
+							currentSelectionProfile = "GroupRingtone"
+							currentSelectionProfileValue = groupRingtone
+							pageStack.push(Qt.resolvedUrl("../common/MusicBrowserDialog.qml"))
 						}
 					}
 					SwitchItem {
@@ -495,8 +586,8 @@ WAPage {
 		Item {
 			id: profileTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -504,7 +595,7 @@ WAPage {
 			Flickable {
 				id: flickArea4
 				anchors.fill: parent
-				contentWidth: width
+				contentWidth: width 
 				contentHeight: column4.height + 20
 				anchors.centerIn: parent
 				clip: true
@@ -512,7 +603,7 @@ WAPage {
 				Image {
 					id: bigImage
 					visible: false
-					source: contactPicture
+                    source: profilePicture
 					cache: false
 				}
 
@@ -528,56 +619,39 @@ WAPage {
 
 					ProfileImage {
 						id: picture
-						size: 140
+						size: 340
 						height: size
 						width: size
-						imgsource: bigImage.height>0 ? contactPicture : "../common/images/user.png"
-						onClicked: { 
-							if (bigImage.height>0) 
-								bigProfileImage = contactPicture
-								pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-								//Qt.openUrlExternally(contactPicture.replace(".png",".jpg").replace("contacts","profile"))
-						}
-						anchors.horizontalCenter: parent.horizontalCenter
-					}
-
-					Button {
-						height: 50
-						width: parent.width
-						font.pixelSize: 22
-						text: qsTr("Change picture")
+                        imgsource: profilePicture
 						onClicked: {
 							profileUser = myAccount
 							pageStack.push(setProfilePicture)
 						}
+						anchors.horizontalCenter: parent.horizontalCenter
+
+                        Connections{
+                            target: appWindow
+                            onProfilePictureUpdated:{
+                                picture.state = "";
+                                appWindow.showNotification(qsTr("Profile picture updated"))
+                            }
+
+                        }
 					}
 
 					GroupSeparator {
 						title: qsTr("Status")
 					}
 
-					SelectionItem {
-						id: statusText
-					    title: qsTr("Change current status")
-					    initialValue: Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
-					    onClicked: pageStack.push (Qt.resolvedUrl("../ChangeStatus/ChangeStatus.qml"))
+					Status {
+						id: myStatus
+						//height: 140
+						clip: true
+						width: parent.width
+                        text: Helpers.emojify2(currentStatus)
 					}
 
-					Connections {
-						target: appWindow
-						onOnContactPictureUpdated: {
-							if (myAccount == ujid) {
-                                contactPicture = WAConstants.CACHE_CONTACTS + "/" + myAccount.split("@")[0] + ".jpg"
-								picture.imgsource = ""
-								picture.imgsource = contactPicture
-								bigImage.source = ""
-								bigImage.source = contactPicture
-							}
-						}
-						onStatusChanged: {
-							statusText.initialValue = Helpers.emojify(MySettings.getSetting("Status", "Hi there I'm using Wazapp"))
-						}
-					}
+
 
 					
 				}
@@ -592,13 +666,11 @@ WAPage {
 
 
 
-
-
 		Item {
 			id: aboutTab
 			anchors.top: parent.top
-			anchors.topMargin: 72
-			height: parent.height -72
+			anchors.topMargin: 73
+			height: parent.height -73
 			anchors.left: parent.left
 			anchors.leftMargin: 16
 			width: parent.width -32
@@ -623,28 +695,28 @@ WAPage {
 
 
 					Image {
-						source: "../common/images/icons/wazapp80.png"
+						source: "../common/images/icons/wazapp256.png"
 						anchors.horizontalCenter: parent.horizontalCenter
 					}
 
 					Label {
 						horizontalAlignment: Text.AlignHCenter
-						anchors.leftMargin: 16
-						width: parent.width -32
+						anchors.leftMargin: 0
+						width: parent.width 
 						text: "Wazapp"
 					}
 
 					Label {
 						horizontalAlignment: Text.AlignHCenter
-						anchors.leftMargin: 16
-						width: parent.width -32
+						anchors.leftMargin: 0
+						width: parent.width
 						text: qsTr("version") + " " + waversion
 					}
 
 					Label {
 						horizontalAlignment: Text.AlignHCenter
-						anchors.leftMargin: 16
-						width: parent.width -32
+						anchors.leftMargin: 0
+						width: parent.width
 						text: message
 					}
 					
@@ -659,6 +731,16 @@ WAPage {
 		}
 
 	}
+
+    SelectPicture {
+        id:setProfilePicture
+        onSelected: {
+            pageStack.pop()
+            picture.state = "loading"
+            breathe()
+            setMyProfilePicture(path)
+        }
+    }
 
 }
 

@@ -29,13 +29,17 @@ Rectangle {
     property string lastSeenOn;
     property string prevState;
     property int itemwidth
+    property int lastOnlineSet;
 
     state: "default"
     color:"transparent"
 
     function setOnline(){
+        prevState ="online"
+        lastOnlineSet = Math.round((new Date()).getTime() / 1000);
 
-        container.state="online"
+        if(container.state!="typing") //fixes forced online when conv opened during contact typing
+            container.state = "online"
     }
 
 
@@ -44,16 +48,20 @@ Rectangle {
         var d = new Date();
 
         if(secondsAgo){
-            d.setSeconds(Qt.formatDateTime ( d, "ss" )-secondsAgo)
 
-            if(container.state != "online" && container.state!="typing") {
-                 lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
-                 container.state="offline"
+            var lastOnlineSetSecsAgo = Math.round((new Date()).getTime() / 1000) - lastOnlineSet;
+
+            d.setSeconds(Qt.formatDateTime ( d, "ss" )-secondsAgo)
+            lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
+
+            if((container.state != "online" && container.state!="typing") || Math.min(secondsAgo, lastOnlineSetSecsAgo) > (60*5)) { //5 minutes timeout
+
+                 prevState = container.state="offline"
             }
         }
         else{
              lastSeenOn = Qt.formatDateTime(d,"dd-MM-yyyy HH:mm");
-             container.state="offline"
+             prevState = container.state="offline"
         }
     }
 
@@ -100,8 +108,8 @@ Rectangle {
             name:"offline"
             PropertyChanges {
                 target: userstatus
-                text: qsTr("Last seen:") + " " + 
-						Helpers.getDateText(lastSeenOn).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday"))
+                text: lastSeenOn?qsTr("Last seen:") + " " +
+                                  Helpers.getDateText(lastSeenOn).replace("Today", qsTr("Today")).replace("Yesterday", qsTr("Yesterday")):""
             }
         },
         State{

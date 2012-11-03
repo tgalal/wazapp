@@ -20,13 +20,14 @@ import sys,os
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView
-from utilities import Utilities;
+
 from ui import WAUI;
 from litestore import LiteStore as DataStore
 from accountsmanager import AccountsManager;
 import dbus
 from utilities import Utilities
 from wadebug import WADebug
+from constants import WAConstants
 
 class WAManager():
 
@@ -56,6 +57,37 @@ class WAManager():
 	def quit(self):
 		self._d("Quitting")
 		self.app.exit();
+		
+		
+	def createDirs(self):
+		
+		dirs = [
+			WAConstants.STORE_PATH,
+			WAConstants.APP_PATH,
+			WAConstants.MEDIA_PATH,
+			WAConstants.AUDIO_PATH,
+			WAConstants.IMAGE_PATH,
+			WAConstants.VIDEO_PATH,
+			WAConstants.VCARD_PATH,
+
+			WAConstants.CACHE_PATH,
+			WAConstants.CACHE_PROFILE,
+			WAConstants.CACHE_CONTACTS,
+			WAConstants.CACHE_CONTACTS,
+			WAConstants.CACHE_CONV,
+			
+			WAConstants.THUMBS_PATH
+			]
+		
+		for d in dirs:
+			self.createDir(d)
+		
+		
+	def createDir(self, d):
+		if not os.path.exists(d):
+			os.makedirs(d)
+		
+	
 	def proceed(self):
 		account = AccountsManager.getCurrentAccount();
 		self._d(account)
@@ -80,7 +112,7 @@ class WAManager():
 		store.updateDatabase()
 		store.initModels()
 		
-		gui = WAUI();
+		gui = WAUI(account.jid);
 		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
 		#gui.setSource(url)
 		gui.initConnections(store);
@@ -89,11 +121,24 @@ class WAManager():
 		gui.quit.connect(self.quit);
 
 		#gui.populatePhoneContacts();
+		
+		
+		print "SHOW FULL SCREEN"
+		gui.showFullScreen();
+		
+		gui.onProcessEventsRequested()
+		
+		self.createDirs()
+		
 		gui.populateContacts("ALL");
 		
 		gui.populateConversations();
-		print "SHOW FULL SCREEN"
-		gui.showFullScreen();
+		
+		gui.populatePhoneContacts()
+		
+		gui.initializationDone = True
+		gui.initialized.emit()
+
 		
 		print "INIT CONNECTION"
 		gui.initConnection();
@@ -101,8 +146,6 @@ class WAManager():
 		gui.setMyAccount(account.jid);
 
 		self.gui = gui;
-		print "INITIAL CONNECTION CHECK"
-		self.gui.whatsapp.eventHandler.initialConnCheck()
 		
 		self.gui.whatsapp.eventHandler.setMyAccount(account.jid)
 		

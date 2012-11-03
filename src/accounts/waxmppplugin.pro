@@ -63,8 +63,7 @@ CONFIG += qdeclarative-boostable
 invoker.files = invoker/*
 invoker.path = /opt/waxmppplugin/bin
 
-wazappy.files = wazapp/* \
-                wazapp/wazapp
+wazappy.files = ../client/*
 
 wazappy.path = /opt/waxmppplugin/bin/wazapp
 
@@ -145,6 +144,11 @@ notificationicons.files = icon-m-low-power-mode-wazapp.png \
 notificationicons.path = /usr/share/themes/blanco/meegotouch/icons
 
 INSTALLS += notificationicons
+
+contextprovider.files = org.tgalal.wazapp.context
+contextprovider.path = /usr/share/contextkit/providers
+
+INSTALLS += contextprovider
 
 
 HEADERS += \

@@ -48,7 +48,7 @@ class Conversation(Model):
 		self.save();
 		
 	def incrementNew(self):
-		self.new = self.new+1;
+		self.new = 1 if self.new is None else self.new+1;
 		self.save();
 		
 		
@@ -58,7 +58,7 @@ class Conversation(Model):
 		if offset:
 			conditions["id<"] = offset;
 		
-		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit)
+		messages = self.store.Message.findAll(conditions,order=["id DESC"],limit=limit) if limit else self.store.Message.findAll(conditions,order=["id DESC"])
 		
 		messages.reverse();
 		
@@ -86,7 +86,7 @@ class Groupconversation(Model):
 		self.save();
 	
 	def incrementNew(self):
-		self.new = self.new+1;
+		self.new = 1 if self.new is None else self.new+1;
 		self.save();
 	
 	def getJid(self):
@@ -176,6 +176,18 @@ class GroupconversationsContacts(Model):
 			contacts.append(contact)
 		
 		return contacts
+	
+	
+	def findGroups(self, contact_id):
+		inter = self.findAll({"contact_id":contact_id})
+		
+		groups = []
+		
+		for g in inter:
+			group = g.Groupconversation.read(g.groupconversation_id)
+			groups.append(group)
+		
+		return groups
 		
 
 	

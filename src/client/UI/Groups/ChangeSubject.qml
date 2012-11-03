@@ -29,20 +29,19 @@ import "../EmojiDialog"
 WAPage {
 
 	id: content
-
-	signal emojiSelected(string emojiCode);
+    property string jid;
+    property string currentSubject;
 
     Component.onCompleted: {
         subject_text.forceActiveFocus();
     }
 
-	function cleanText(txt) {
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-        res = Helpers.getCode(res);
-        res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-        return res.replace(/^\s+/,"");
-	}	
+
+    onStatusChanged: {
+        if(status == PageStatus.Activating){
+            subject_text.text = Helpers.emojify2(currentSubject) //reset unsaved modifications
+        }
+    }
 
 	tools: statusTool
 
@@ -77,7 +76,7 @@ WAPage {
 				wrapMode: TextEdit.Wrap
 				textFormat: Text.RichText
 				textColor: "black"
-				text: groupSubject
+                text: Helpers.emojify2(currentSubject)
 				onActiveFocusChanged: { 
 					lastPosition = subject_text.cursorPosition 
 				}
@@ -97,11 +96,13 @@ WAPage {
 					//platformStyle: ButtonStyle { inverted: true }
 					width:50
 					height:50
-                    iconSource: "../common/images/emoji/32/emoji-E415.png"
+                    iconSource: "../common/images/emoji/32/E415.png"
 					anchors.left: parent.left
 					anchors.leftMargin: 0
 					anchors.verticalCenter: send_button.verticalCenter
-					onClicked: emojiDialog.openDialog()
+                    onClicked: {
+                        emojiDialog.openDialog(subject_text);
+                    }
 				}
 
 			
@@ -114,14 +115,15 @@ WAPage {
 					text: qsTr("Done")
 					anchors.right: parent.right
 					anchors.rightMargin: 0
-					//enabled: cleanText(subject_text.text).trim() !=""
 					y: 0
 					onClicked: {
-						var toSend = cleanText(subject_text.text);
-						consoleDebug("Setting subject: " + toSend)
-						toSend = toSend.trim();
-						if ( toSend != "") {
-							setGroupSubject(profileUser, toSend)
+                        var toSend = subject_text.getCleanText();
+                        var res = toSend[0];
+						//consoleDebug("Setting subject: " + toSend)
+						//toSend = toSend.trim();
+						if ( res.trim() != "") {
+							var cleanedmessage = Helpers.getCode(subject_text.text);
+							setGroupSubject(jid, cleanedmessage)
 							pageStack.pop()
 						}
 					}
@@ -131,40 +133,6 @@ WAPage {
 
     }
 
-    Emojidialog{
-        id:emojiDialog
-
-        Component.onCompleted: {
-            emojiDialog.emojiSelected.connect(content.emojiSelected);
-        }
-
-    }
-
-	Connections {
-		target: content
-		onEmojiSelected: {
-		    consoleDebug("GOT EMOJI "+emojiCode);
-
-		   	var str = cleanText(subject_text.text)
-			var pos = str.indexOf("&quot;")
-			var newPosition = subject_text.lastPosition
-			while(pos>-1 && pos<subject_text.lastPosition) {
-				subject_text.lastPosition = subject_text.lastPosition +5
-				pos = str.indexOf("&quot;", pos+1)
-			}
-			pos = str.indexOf("&amp;")
-			while(pos>-1 && pos<subject_text.lastPosition) {
-				subject_text.lastPosition = subject_text.lastPosition +4
-				pos = str.indexOf("&amp;", pos+1)
-			}
-
-			var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
-			str = str.substring(0,subject_text.lastPosition) + cleanText(emojiImg) + str.slice(subject_text.lastPosition)
-			subject_text.text = Helpers.emojify2(str)
-			subject_text.cursorPosition = newPosition + 1
-			subject_text.forceActiveFocus()
-		}
-    }
 
 	ToolBarLayout {
         id:statusTool

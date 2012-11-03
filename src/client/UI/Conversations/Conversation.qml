@@ -7,6 +7,8 @@ import "js/conversation.js" as ConversationHelper
 import "../common"
 import "../Menu"
 import "../EmojiDialog"
+import "../Groups"
+import "../Contacts"
 
 WAPage {
     id:conversation_view
@@ -19,7 +21,8 @@ WAPage {
         }
         else if(status == PageStatus.Activating){
             chat_text.visible = true
-			ustatus.state = "default"
+			if(!ustatus.lastSeenOn) //display last fetched one until new one is there, instead of blank
+				ustatus.state = "default"
         }
         else if(status == PageStatus.Active){
             appWindow.conversationActive(jid);
@@ -44,17 +47,23 @@ WAPage {
 		}   
     }
 
+    function openProfile(){
+        if(conversationProfile.progress == 0)
+            bindProfile();
+
+        appWindow.pageStack.push(conversationProfile.item)
+    }
+
     /****conversation info properties****/
     property int conversation_id;
     property string jid;
     property string title:getTitle();
-    property string picture:getPicture();
+    property string picture:conversation_view.getPicture();
     property variant contacts;
     property variant lastMessage;
     property string subject;
 	property string owner;
     property string groupIcon;
-    property string defaultGroupIcon:"../common/images/group.png"
     property int unreadCount;
     property int remainingMessagesCount;
     property bool hasMore:remainingMessagesCount?true:false
@@ -76,65 +85,52 @@ WAPage {
 	property int currentTextHeight
 	property bool loadReverse: false
 	property int positionToAdd: conv_data.count
+
+    property alias ustatusState:ustatus.state
+
+    signal ustatusChanged(string ustatusState);
 	
 	signal textHeightChanged;
     signal sendButtonClicked;
 	signal forceFocusToChatText;
-    signal emojiSelected(string emojiCode);
+
+    function pushParticipants(jids){
+        console.log("REAL PUSH")
+        bindProfile()
+        conversationProfile.item.pushParticipants(jids)
+    }
+
+    function pushGroupInfo(gdata){
+        console.log("GROUP INFO IN CONVERSATION TOOK OVER")
+        if (gdata=="ERROR") {
+        } else {
+            var data = gdata.split("<<->>")
+            subject = data[2]
+            owner = data[1]
+            title = getTitle()
+        }
+        appWindow.getPicture(jid, "image")
+
+        bindProfile();
+        conversationProfile.item.pushGroupInfo(gdata);
+    }
 
 
 	Connections {
 		target: appWindow
-		onGroupInfoUpdated: {
+
+        /*onGroupInfoUpdated: {
 			if (jid==gjid) {
 				var data = gdata.split("<<->>")
 				subject = data[2]
 				owner = data[1]
 				title = getTitle()
 			}
-		}
-		onOnContactPictureUpdated: {
-			if (jid == ujid) {
-				userimage.imgsource = ""
-				userimage.imgsource = getPicture()
-			}
-		}
+        }*/
 		onSelectedMedia: {
 			if (activeConvJId == jid)
 				sendMediaMessage(jid, url)
 		}
-
-		/*onMediaTransferProgressUpdated: {
-			if (jid == mjid) {
-				var bubble = getBubble(mid);
-				if (bubble) {
-					//consoleDebug("UPDATING BUBBLE " + mjid + " - Progress: " + mprogress)
-					bubble.progress = mprogress
-				}
-			}
-		}
-
-		onMediaTransferSuccess: {
-			if (jid == mjid) {
-				var bubble = getBubble(mid);
-		        if(bubble) {
-					consoleDebug("MESSAGE SENT BUBBLE " + mjid)
-					bubble.media = mobject
-				    bubble.progress = 0
-				}
-			}
-		}
-
-		onMediaTransferError: {
-			if (jid == mjid) {
-				var bubble = getBubble(mid);
-		        if(bubble) {
-					consoleDebug("MESSAGE ERROR BUBBLE " + mjid)
-					bubble.media = mobject
-				    bubble.progress = 0
-				}
-			}
-		}*/
 
 		onUpdateContactName: {
 			if (jid == ujid) {
@@ -152,10 +148,6 @@ WAPage {
 		onOnPaused: {
 			if (jid == ujid) setPaused()
 		}
-
-		/*onPictureCaptured: {
-			pageStack.push(Qt.resolvedUrl("PicturePreview.qml"))
-		}*/
 
 		onOpenPreviewPicture: {
 			if (jid == ujid) {
@@ -211,7 +203,7 @@ WAPage {
         var pic="";
 
         if(isGroup())
-            pic = WAConstants.CACHE_CONTACTS + "/" + jid.split('@')[0] + ".png"
+            pic = groupIcon
         else if(contacts && contacts.length)
             pic = getAuthorPicture(jid) //contacts[0].contactPicture;
 
@@ -243,8 +235,17 @@ WAPage {
     }
 
     function rebind(){
-        title:getTitle();
-        picture:getPicture();
+        title = getTitle();
+        picture = conversation_view.getPicture();
+    }
+
+    function bindProfile(){
+       if(conversationProfile.progress == 0){
+           if(isGroup()) {
+               consoleDebug("PROFILE BINDED!")
+                conversationProfile.sourceComponent=groupProfile
+           }
+       }
     }
 
 
@@ -319,14 +320,16 @@ WAPage {
     signal typing(string jid);
     signal paused(string jid);
 
-    function setOnline(){ustatus.setOnline();}
-    function setTyping(){ustatus.setTyping();}
-    function setPaused(){ustatus.setPaused();}
+    function setOnline(){ustatus.setOnline(); ustatusChanged(ustatus.state)}
+    function setTyping(){ustatus.setTyping(); ustatusChanged(ustatus.state)}
+    function setPaused(){ustatus.setPaused(); ustatusChanged(ustatus.state)}
     function setOffline(seconds){
         if(seconds)
             ustatus.setOffline(seconds);
         else
             ustatus.setOffline();
+
+        ustatusChanged(ustatus.state)
     }
 
     function getBubble(msg_id){
@@ -405,33 +408,27 @@ WAPage {
         conv_items.positionViewAtIndex(conv_items.count-1, ListView.Contain)
     }
 
-    Emojidialog{
-        id:emojiDialog
-
-        Component.onCompleted: {
-            emojiDialog.emojiSelected.connect(conversation_view.emojiSelected);
-        }
-
-    }
 
     Rectangle{
         id:top_bar
         width:parent.width
-		color: theme.inverted? "#161616" : "transparent"
+		color: "transparent" //theme.inverted? "#161616" : "transparent"
         height: appWindow.inPortrait ? 73 : (showSendButton ? 0 : 73)
 		clip: true
 		
         Item {
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 32
+            width: parent.width
             anchors.left: parent.left
-            anchors.leftMargin: 16
+            anchors.leftMargin: 0
 			height: 50
 
 			BorderImage {
 				width: 86
 				height: 42
 				anchors.verticalCenter: parent.verticalCenter
+				anchors.left: parent.left
+				anchors.leftMargin: 16
 				source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
 						"background" + (bcArea.pressed? "-pressed" : "")
 				border { left: 22; right: 22; bottom: 22; top: 22; }
@@ -441,26 +438,30 @@ WAPage {
 					font.pixelSize: 22; font.bold: true
                     text: qsTr("Back")
 				}
-				MouseArea {
-					id: bcArea
-					anchors.fill: parent
-					onClicked: { 
-                        //chatsTabButton.clicked()
-						appWindow.setActiveConv("")
-						appWindow.pageStack.pop(1)
-						if (conv_data.count==0 && !isGroup()) {
-							// EMPTY CONVERSATION. REMOVING
-							deleteConversation(jid)
-							removeChatItem(jid)
-						}
-                    }
-				}
+			}
+
+			MouseArea {
+				id: bcArea
+				anchors.top: parent.top
+				anchors.left: parent.left
+				height: 73
+				width: 130
+				onClicked: { 
+                    //chatsTabButton.clicked()
+					appWindow.setActiveConv("")
+					appWindow.pageStack.pop(1)
+					if (conv_data.count==0 && !isGroup()) {
+						// EMPTY CONVERSATION. REMOVING
+						deleteConversation(jid)
+						removeChatItem(jid)
+					}
+                }
 			}
 
 	        Label {
                 id: conversationTitle
                 text: title
-				width: parent.width - 62
+				width: parent.width - 74
 	            horizontalAlignment: Text.AlignRight
 				verticalAlignment: Text.AlignTop
 	            font.bold: true
@@ -471,7 +472,7 @@ WAPage {
 			UserStatus {
 		        id:ustatus
 		        height:30
-		        itemwidth: parent.width -62
+		        itemwidth: parent.width -74
                 anchors.top: conversationTitle.bottom
 				visible: !isGroup()
 		    }
@@ -481,20 +482,25 @@ WAPage {
                 imgsource:picture
                 anchors.verticalCenter: parent.verticalCenter
 				anchors.right: parent.right
-				MouseArea {
-					anchors.fill: parent
-					// User Profile window. Not finished yet
-					onClicked: { 
-						if (!conversation_view.isGroup()) {
-							profileUser = jid
-							pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
-						} else {
-							profileUser = jid
-							pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
-						}
+				anchors.rightMargin: 16
+            }
+			MouseArea {
+				anchors.right: parent.right
+				anchors.top: parent.top
+				height: 73
+				width: 84
+				onClicked: { 
+					if (!conversation_view.isGroup()) {
+                        var contact = waContacts.getOrCreateContact({"jid":conversation_view.jid});
+                        contact.openProfile();
+					} else {
+						profileUser = jid
+                        //pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
+                        openProfile();
+                        conversationProfile.item.getInfo();
 					}
 				}
-            }
+			}
         }
 
 		Rectangle {
@@ -545,7 +551,8 @@ WAPage {
 				break;
 			}
         }
-        return resp.split('@')[0]
+
+        return resp?resp.split('@')[0]:defaultProfilePicture
     }
 
 
@@ -630,7 +637,7 @@ WAPage {
 
     Rectangle {
 		id: conv_panel
-        color: theme.inverted? "transparent" : "#dedfde"
+        color: "transparent" //theme.inverted? "transparent" : "#dedfde"
         anchors.top: parent.top
         anchors.topMargin: top_bar.height
         width: parent.width
@@ -732,66 +739,17 @@ WAPage {
                         showSendButton=true;
                         forceFocusToChatText()
 
-                        var toSend = cleanText(chat_text.text);
-                        toSend = toSend.trim();
-                        if (toSend != "")
+                        var toSend = chat_text.getCleanText();
+                        var res = toSend[0];
+                        if (res.trim() != "")
                         {
+							var cleanedmessage = Helpers.getCode(chat_text.text);
+							appWindow.sendMessage(jid,cleanedmessage);
                             chat_text.text = "";
-                            appWindow.sendMessage(jid,toSend);
                         }
                         forceFocusToChatText()
 
                     }
-
-                    onEmojiSelected:{
-                        consoleDebug("GOT EMOJI "+emojiCode);
-
-                        /*var str = cleanText(chat_text.text);
-
-                        var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/32/emoji-E'+emojiCode+'.png" />'
-                        str = str.substring(0,chat_text.lastPosition) + emojiImg + str.slice(chat_text.lastPosition)
-
-                        chat_text.text = str;
-                        chat_text.cursorPosition = chat_text.lastPosition + 1
-                        forceFocusToChatText()*/
-
-                       	var str = cleanText(chat_text.text)
-
-						var pos = str.indexOf("&quot;")
-						var newPosition = chat_text.lastPosition
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +5
-							pos = str.indexOf("&quot;", pos+1)
-							
-						}
-						pos = str.indexOf("&amp;")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +4
-							pos = str.indexOf("&amp;", pos+1)
-						}
-						pos = str.indexOf("&lt;")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +3
-							pos = str.indexOf("&lt;", pos+1)
-						}
-						pos = str.indexOf("&gt;")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +3
-							pos = str.indexOf("&gt;", pos+1)
-						}
-						pos = str.indexOf("<br />")
-						while(pos>-1 && pos<chat_text.lastPosition) {
-							chat_text.lastPosition = chat_text.lastPosition +5
-							pos = str.indexOf("<br />", pos+1)
-						}
-
-						var emojiImg = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+emojiCode+'.png" />'
-						str = str.substring(0,chat_text.lastPosition) + cleanText(emojiImg) + str.slice(chat_text.lastPosition)
-						chat_text.text = Helpers.emojify2(str)
-						chat_text.cursorPosition = newPosition + 1
-						forceFocusToChatText()
-                    }
-
                 }
 
                 WATextArea {
@@ -799,9 +757,8 @@ WAPage {
                     width:parent.width -60
                     x: 54
                     y: 0
-                    placeholderText: blockedContacts.indexOf(jid)>-1 ?
-									 qsTr("Contact blocked") : 
-									 (showSendButton|| cleanText(chat_text.text).trim()!="") ? "" : qsTr("Write your message here")
+                    placeholderText: blockedContacts.indexOf(jid)>-1 ? qsTr("Contact blocked") :
+                                     (showSendButton || chat_text.getCleanText()[0].trim()!="") ? "" : qsTr("Write your message here")
                     platformStyle: myTextFieldStyle
                     wrapMode: TextEdit.Wrap
                     textFormat: Text.RichText
@@ -810,16 +767,17 @@ WAPage {
                     property bool alreadyFocused: false
 
 					function cleanTextWithoutLines(txt){
-						//consoleDebug("LAST POSITION: " + lastPosition)
 						var repl = "p, li { white-space: pre-wrap; }";
 						var res = txt;
-						res = Helpers.getCode(res);
+						var pos = 0;
+						var result = Helpers.getCode(res);
+						res = result[0]
+						pos = result[1]
 						while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
 						res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
 						res = res.replace(/^\s+/,"");
 						while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-						//consoleDebug("PREVIOUS TEXT: "  + res)
-						return res;
+						return [res, pos];
 					}
 
 					onHeightChanged: {
@@ -836,23 +794,24 @@ WAPage {
 					}
 					
                     onTextChanged: {
-						sendMediaWindow.opacity = 0
+                        sendMediaWindow.opacity = 0
 
-						//chat_text.text = Helpers.emojify2(chat_text.text)
+                        //chat_text.text = Helpers.emojify2(chat_text.text)
                         if(!typingEnabled)
                         {
                             //to prevent initial set of placeHolderText from firing textChanged signal
                             typingEnabled = true
                             return
                         }
+                        if(!isGroup()) {
+                            if(!iamtyping) {
+                                consoleDebug("TYPING");
+                                sendTyping(jid);
+                            }
+                            iamtyping = true;
+                            typing_timer.restart();
 
-                        if(!iamtyping)
-                        {
-                            consoleDebug("TYPING");
-                            sendTyping(jid);
                         }
-                        iamtyping = true;
-                        typing_timer.restart();
                     }
 
                     platformSipAttributes: SipAttributes {
@@ -938,7 +897,7 @@ WAPage {
 				pageStack.push(sendAudio)
 			}
 			else if (value=="rec") {
-				pageStack.push(sendAudio)
+				pageStack.push(sendAudioRec)
 			}
 			else if (value=="location") {
 				pageStack.push (Qt.resolvedUrl("Location.qml"))
@@ -951,17 +910,6 @@ WAPage {
 	}
 
 
-    function cleanText(txt){
-        var repl = "p, li { white-space: pre-wrap; }";
-        var res = txt;
-        res = Helpers.getCode(res);
-		res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
-		while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
-		res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-		res = res.replace(/^\s+/,"");
-		while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-		return res;
-    }
 
 
 	Rectangle {
@@ -998,13 +946,15 @@ WAPage {
 		    //platformStyle: ButtonStyle { inverted: true }
 		    width:50
 		    height:50
-            iconSource: "../common/images/emoji/32/emoji-E415.png"
+            iconSource: "../common/images/emoji/32/E415.png"
 		    anchors.left: parent.left
 			anchors.leftMargin: 16
 		    anchors.verticalCenter: send_button.verticalCenter
             onClicked: {
 				sendMediaWindow.opacity = 0
-                emojiDialog.openDialog();
+                emojiDialog.openDialog(chat_text);
+				showSendButton=true; 
+                //chat_text.lastPosition = chat_text.cursorPosition
 		    }
 		}
 
@@ -1078,12 +1028,12 @@ WAPage {
 
             WAMenuItem{
 				id: profileMenuItem
-				visible: conversation_view.isGroup() && selectedMessage.author.jid!=myAccount
+                visible: conversation_view.isGroup() && (selectedMessage?selectedMessage.author.jid!=myAccount:false)
 				height: visible ? 80 : 0
                 text: qsTr("View contact profile")
                 onClicked:{
-					profileUser = selectedMessage.author.jid
-					pageStack.push (Qt.resolvedUrl("../Contacts/ContactProfile.qml"))
+					var contact = waContacts.getOrCreateContact({"jid":selectedMessage.author.jid});
+					contact.openProfile();
 				}
             }
 
@@ -1115,6 +1065,23 @@ WAPage {
                 anchors.topMargin: 12
             }
           }
+    }
+
+
+
+
+    Component{
+        id:groupProfile
+        GroupProfile{
+            groupSubject: conversation_view.subject
+            groupPicture: conversation_view.groupIcon
+            groupOwnerJid: conversation_view.owner
+            jid:conversation_view.jid
+        }
+    }
+
+    Loader{
+        id:conversationProfile
     }
 
 

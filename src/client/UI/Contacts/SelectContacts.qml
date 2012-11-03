@@ -24,6 +24,7 @@ import com.nokia.meego 1.0
 
 import "../common"
 import "../Contacts"
+import "../common/WAListView/Components"
 
 WAPage {
     id: contactsContainer
@@ -32,6 +33,8 @@ WAPage {
 
 	property int total: 0
 
+
+
     onStatusChanged: {
         if(status == PageStatus.Activating){
 			selectedContacts = ""
@@ -39,14 +42,25 @@ WAPage {
 		}
 		if(status == PageStatus.Active){
 			searchbar.height = 0
-			if (phoneContactsModel.count==0)
+            if (phoneContactsModel.count==0) {
+                 appWindow.phoneContactsReady.connect(onPhoneContactsReady)
+
 				populatePhoneContacts()
+
+            } else {
+                 list_view1.model = phoneContactsModel
+            }
+
 		}
         if(status == PageStatus.Inactive){
 			searchInput.text = ""
 			unselectAll()
 		}
 	}
+
+    function onPhoneContactsReady(){
+          list_view1.model = phoneContactsModel
+    }
 
 	tools: contactsTool
 
@@ -198,7 +212,7 @@ WAPage {
 
     BusyIndicator {
         id: busyIndicatorGridCollection
-        implicitWidth: 96
+        platformStyle: BusyIndicatorStyle { size: "large";}
         anchors.centerIn: parent
         visible: list_view1.count==0
         running: visible
@@ -278,8 +292,6 @@ WAPage {
         transitions: Transition {
             NumberAnimation { properties: "opacity"; easing.type: Easing.InOutQuad; duration: 300 }
         }
-
-
 	}
 
     Rectangle {
@@ -308,13 +320,13 @@ WAPage {
             id: list_view1
 			anchors.fill: parent
             clip: true
-            model: phoneContactsModel
+            //model: phoneContactsModel
             delegate: myDelegate
             spacing: 1
 			cacheBuffer: 30000
 			highlightFollowsCurrentItem: false
 
-            section.property: "displayLabel"
+            section.property: "name"
             section.criteria: ViewSection.FirstCharacter
 
             section.delegate: GroupSeparator {

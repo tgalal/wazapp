@@ -18,7 +18,7 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from mnotification import MNotificationManager,MNotification
 from PySide.QtGui import QSound
-from PySide.QtCore import QUrl
+from PySide.QtCore import QUrl, QCoreApplication
 from QtMobility.Feedback import QFeedbackHapticsEffect #QFeedbackEffect
 from QtMobility.SystemInfo import QSystemDeviceInfo
 from constants import WAConstants
@@ -26,29 +26,44 @@ from utilities import Utilities
 from QtMobility.MultimediaKit import QMediaPlayer
 from PySide.phonon import Phonon
 from wadebug import NotifierDebug
+import dbus
 
 class Notifier():
-	def __init__(self,audio=True,vibra=True):
+	def __init__(self,audio=True,vibra=False):
 		_d = NotifierDebug();
 		self._d = _d.d;
-		
+
 		self.manager = MNotificationManager('wazappnotify','WazappNotify');
 		self.vibra = vibra
-
 
 		self.personalRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
 		self.personalVibrate = True;
 		self.groupRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
 		self.groupVibrate = True;
 		
+		#QCoreApplication.setApplicationName("Wazapp");  used to get media volume
+
+
 		self.audioOutput = Phonon.AudioOutput(Phonon.MusicCategory, None)
 		self.mediaObject = Phonon.MediaObject(None)
 		Phonon.createPath(self.mediaObject, self.audioOutput)		
+
+		bus = dbus.SessionBus()
+		mybus = bus.get_object('com.nokia.profiled', '/com/nokia/profiled')
+		self.nface = dbus.Interface(mybus, 'com.nokia.profiled')
+		self.nface.connect_to_signal("profile_changed", self.profileChanged)
+		prof = self.getCurrentProfile()
+		reply = self.nface.get_value(prof,"ringing.alert.volume");
+		self.currentProfile = prof
+		self.currentVolume = "1.0" if reply=="100" else "0." + reply
+		self._d("Checking current profile: " + prof + " - Volume: " + self.currentVolume)
+		self.audioOutput.setVolume(float(self.currentVolume))
+
 		
 		#self.newMessageSound = WAConstants.DEFAULT_SOUND_NOTIFICATION #fetch from settings
 		self.devInfo = QSystemDeviceInfo();
 		
-		self.devInfo.currentProfileChanged.connect(self.profileChanged);
+		#self.devInfo.currentProfileChanged.connect(self.profileChanged);
 		
 		self.audio = True
 		'''if audio:
@@ -70,9 +85,26 @@ class Notifier():
 			self.vibra.setIntensity(1.0);
 			self.vibra.setDuration(200);
 	
+
+	def getCurrentProfile(self):
+		bus = dbus.SessionBus()
+		notifierbus = bus.get_object('com.nokia.profiled', '/com/nokia/profiled')
+		nface = dbus.Interface(notifierbus, 'com.nokia.profiled')
+		reply = nface.get_profile();
+		return reply;
+
 	
-	def profileChanged(self):
+	def profileChanged(self,arg1,arg2,profile,arg4):
 		self._d("Profile changed");
+		nbus = dbus.SessionBus()
+		mynbus = nbus.get_object('com.nokia.profiled', '/com/nokia/profiled')
+		nface = dbus.Interface(mynbus, 'com.nokia.profiled')
+		reply = nface.get_value(profile,"ringing.alert.volume");
+		self.currentProfile = profile
+		self.currentVolume = "1.0" if reply=="100" else "0." + reply
+		self._d("Checking current profile: " + profile + " - Volume: " + self.currentVolume)
+		self.audioOutput.setVolume(float(self.currentVolume))
+
 	
 	def enable(self):
 		self.enabled = True
@@ -85,15 +117,11 @@ class Notifier():
 		
 	
 	def getCurrentSoundPath(self,ringtone):
-		activeProfile = self.devInfo.currentProfile();
+		#activeProfile = self.devInfo.currentProfile();
 		
-		if activeProfile in (QSystemDeviceInfo.Profile.NormalProfile,QSystemDeviceInfo.Profile.LoudProfile):
-			#if self.enabled:
-			return ringtone #self.newMessageSound;
-			#else:
-			#	return WAConstants.FOCUSED_SOUND_NOTIFICATION
-				
-		elif activeProfile == QSystemDeviceInfo.Profile.BeepProfile:
+		if self.currentProfile == "general":
+			return ringtone
+		elif self.currentProfile == "meeting":
 			return WAConstants.FOCUSED_SOUND_NOTIFICATION
 		else:
 			return WAConstants.NO_SOUND
@@ -107,7 +135,8 @@ class Notifier():
 			del self.notifications[jid]
 			self._d("DELETING NOTIFICATION BY ID "+str(nId));
 			self.manager.removeNotification(nId);
-		
+			self.mediaObject.clear()
+
 				
 	def notificationCallback(self,jid):
 		#nId = 0
@@ -120,6 +149,14 @@ class Notifier():
 			del self.notifications[jid]
 			#self.manager.removeNotification(nId);
 		
+	def stopSound(self):
+		self.mediaObject.clear()
+
+	def playSound(self,soundfile):
+		self.mediaObject.clear()
+		self.mediaObject.setCurrentSource(Phonon.MediaSource(soundfile))
+		self.mediaObject.play()
+
 
 	def newGroupMessage(self,jid,contactName,message,picture=None,callback=False):
 		self.newMessage(jid,contactName,message,self.groupRingtone, self.groupVibrate, picture, callback)
@@ -137,15 +174,11 @@ class Notifier():
 		
 		if self.enabled:
 			
-			
 			if(activeConvJId == jid or activeConvJId == ""):
 				if self.audio and ringtone!= WAConstants.NO_SOUND:
 					soundPath = WAConstants.DEFAULT_BEEP_NOTIFICATION;
 					self._d(soundPath)
-					#self.audio.setMedia(QUrl.fromLocalFile(soundPath));
-					#self.audio.play();
-					self.mediaObject.setCurrentSource(Phonon.MediaSource(soundPath))
-					self.mediaObject.play()
+					self.playSound(soundPath)
 
 
 				if self.vibra and vibration:
@@ -154,13 +187,11 @@ class Notifier():
 				return
 
 
+
 			if self.audio and ringtone!=WAConstants.NO_SOUND:
 				soundPath = self.getCurrentSoundPath(ringtone);
 				self._d(soundPath)
-				#self.audio.setMedia(QUrl.fromLocalFile(soundPath));
-				#self.audio.play();
-				self.mediaObject.setCurrentSource(Phonon.MediaSource(soundPath))
-				self.mediaObject.play()
+				self.playSound(soundPath)
 
 			
 			n = MNotification("wazapp.message.new",contactName, message);

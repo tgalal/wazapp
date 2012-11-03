@@ -22,30 +22,126 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
 import QtQuick 1.1
 import com.nokia.meego 1.0
-import "../Chats/js/chat.js" as ChatHelper
 import "../common/js/Global.js" as Helpers
 import "../common"
-import "../common/js/createobject.js" as ObjectCreator
+import "../common/WAListView"
+import "../Profile"
+import "js/groupprofile.js" as ProfileHelper
 
 WAPage {
     id:container
 
 	//anchors.fill: parent
 
+
+    property string jid;
 	property string groupSubject
 	property string groupDate
-	property string groupPicture: "../common/images/group.png"
+    property string groupPicture;
 	property string groupOwner
 	property string groupOwnerJid
 	property string groupSubjectOwner
 	property bool working: false
+    property bool loaded;
+    property int addedCount;
+    property int removedCount;
+    property bool waitForRemove;
+    property bool waitForAdd;
+
+
+    state: (screen.currentOrientation == Screen.Portrait) ? "portrait" : "landscape"
+
+    states: [
+        State {
+            name: "landscape"
+
+            PropertyChanges{target:groupInfoContainer;  parent:rowContainer;  width:rowContainer.width/2}
+            PropertyChanges { target: participantsColumn;  parent:rowContainer;  height:rowContainer.height; width:rowContainer.width/2}
+
+
+        },
+        State {
+            name: "portrait"
+            PropertyChanges{target:groupInfoContainer;  parent:columnContainer; width:columnContainer.width}
+            PropertyChanges { target: participantsColumn; parent:columnContainer; height:container.height-groupInfoContainer.height; width:columnContainer.width}
+        }
+    ]
+
+    function pushParticipants(jids){
+        participantsModel.clear()
+        console.log("SHOULD PUSH "+jids)
+        jids = jids.split(",")
+        ProfileHelper.currentParticipantsJids.length = 0;
+        for(var i=0; i<contactsModel.count; i++) {
+
+            var tmp = contactsModel.get(i)
+
+            for(var j=0; j<jids.length; j++){
+
+                if(tmp.jid == jids[j]) {
+                    var modelData = {name:tmp.name, picture:tmp.picture, jid:tmp.jid, relativeIndex:i};
+                    participantsModel.append(modelData)
+                    ProfileHelper.currentParticipantsJids.push(tmp.jid)
+                    break;
+                }
+            }
+        }
+
+        participantsModel.append({name:qsTr("You"), picture:currentProfilePicture || defaultProfilePicture, noremove:true})
+
+        groupParticipants.model = participantsModel
+        groupParticipants.state = "loaded"
+    }
+
+    function resetEdits(){
+        genericSyncedContactsSelector.resetSelections()
+        genericSyncedContactsSelector.unbindSlots()
+        genericSyncedContactsSelector.positionViewAtBeginning()
+
+        ProfileHelper.added = new Array();
+        ProfileHelper.removed = new Array();
+
+    }
+
+
+    function pushGroupInfo(data){
+        if (data=="ERROR") {
+            groupOwner = ""
+            groupDate = ""
+            groupSubjectOwner = ""
+            partText.text = qsTr("Error reading group information")
+        } else {
+
+            console.log("pushing" + data)
+            data = data.split("<<->>")
+            groupOwner = getAuthor(data[1]).split('@')[0]
+            console.log(groupOwner)
+            groupDate = getDateTime(parseInt(data[5])*1000)
+            console.log(groupDate)
+            groupSubjectOwner = qsTr("Subject created by") + " " + getAuthor(data[3]).split('@')[0]
+            partText.text = qsTr("Group participants:")
+
+            console.log("PUSHED")
+        }
+    }
+
+    onStatusChanged: {
+        if(status == PageStatus.Activating){
+
+            if(!loaded){
+                //getInfo()
+                loaded = true
+            }
+
+            genericSyncedContactsSelector.tools = participantsSelectorTools
+        }
+    }
 
     tools: ToolBarLayout {
         id: toolBar
         ToolIcon {
             platformIconId: "toolbar-back"
             onClicked: pageStack.pop()
-			enabled: !working
         }
         ToolButton
         {
@@ -54,34 +150,35 @@ WAPage {
 			visible: myAccount==groupOwnerJid
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.horizontalCenter: parent.horizontalCenter
-			enabled: !working && partModel.count!=participantsModel.count
+            enabled: !working && (addedCount || removedCount)
             onClicked: {
-				working = true
-				var participants;
-				for (var i=0; i<partModel.count; ++i) {
-					if (partModel.get(i).contactJid!="undefined" && partModel.get(i).contactJid!=myAccount)
-						participants = participants + (participants!==""? ",":"") + partModel.get(i).contactJid;
-				}
-				removeParticipants(profileUser,participants)
+                working = true
+                if (ProfileHelper.removed.length) {
+                   // waitForRemove = true
+                    removeParticipants(jid, ProfileHelper.removed.join(","))
+                }
+
+                if(ProfileHelper.added.length){
+                   // waitForAdd = true
+                    addParticipants(jid, ProfileHelper.added.join(","))
+                }
+
+                pageStack.pop()
+                working = false
 			}
         }
 
     }
 
-	Component.onCompleted: {
-		selectedContacts = ""
-		participantsModel.clear()
-		partModel.clear()
-		getInfo()
-	}
-
-
 	function getInfo() {
-		var c = waChats.getOrCreateConversation(profileUser);
-        groupPicture = c.picture
-		groupSubject = c.subject
-		getGroupInfo(profileUser)
-		getGroupParticipants(profileUser)
+        resetEdits()
+        addedCount = 0;
+        removedCount = 0;
+        participantsModel.clear()
+        groupParticipants.state="loading"
+        consoleDebug("GET XINFO FOR "+jid)
+        getGroupInfo(jid)
+        getGroupParticipants(jid)
 	}
 
 
@@ -103,272 +200,240 @@ WAPage {
 		return check;
 	}
 
-	function getCurrentContacts() {
-		for (var i=0; i<participantsModel.count; ++i) {
-			selectedContacts = selectedContacts + (selectedContacts!==""? ",":"") + participantsModel.get(i).contactJid;
-		}
-	}
-
-	Connections {
-		target: appWindow
-	
-		onGroupInfoUpdated: {
-			if (gdata=="ERROR") {
-				groupOwner = ""
-				groupOwnerJid = ""
-				groupDate = ""
-				groupSubjectOwner = ""
-				partText.text = qsTr("Error reading group information")
-			} else {
-				var data = gdata.split("<<->>")
-				groupSubject = data[2] 
-				groupOwner = getAuthor(data[1]).split('@')[0]
-				groupOwnerJid = data[1]
-				groupDate = getDateTime(parseInt(data[5])*1000)
-				groupSubjectOwner = qsTr("Subject created by") + " " + getAuthor(data[3]).split('@')[0]
-				partText.text = qsTr("Group participants:")
-				getPicture(profileUser, "image")
-			}
-		}
-
-		onGroupParticipants: { 
-			var list = groupParticipantsIds.split(",")
-			//consoleDebug("PARTICIPANTS: " + list)
-		    for(var i =0; i<contactsModel.count; i++) {
-		        if( list.indexOf(contactsModel.get(i).jid)>-1 ) {
-					list.splice(list.indexOf(contactsModel.get(i).jid),1)
-					
-					participantsModel.append({"contactPicture":contactsModel.get(i).picture,
-					"contactName":contactsModel.get(i).name,
-					"contactStatus":contactsModel.get(i).status,
-					"contactJid":contactsModel.get(i).jid})
-
-					partModel.append({"contactPicture":contactsModel.get(i).picture,
-					"contactName":contactsModel.get(i).name,
-					"contactStatus":contactsModel.get(i).status,
-					"contactJid":contactsModel.get(i).jid})
-				}
-		    }
-			consoleDebug("PARTICIPANTS: " + list)
-			for (var i=0; i<list.length; i++) {
-				participantsModel.append({"contactPicture":"../common/images/user.png",
-				"contactName":list[i].split('@')[0],
-				"contactStatus":"",
-				"contactJid":list[i]})
-
-				partModel.append({"contactPicture":"../common/images/user.png",
-				"contactName":list[i].split('@')[0],
-				"contactStatus":"",
-				"contactJid":list[i]})
-			}
-			
-		}
-
-		onRemovedParticipants: {
-			var participants;
-			for (var i=0; i<participantsModel.count; ++i) {
-				if (participantsModel.get(i).contactJid!="undefined")
-					participants = participants + (participants!==""? ",":"") + participantsModel.get(i).contactJid;
-			}
-			addParticipants(profileUser,participants)
-		}
-
-		onAddedParticipants: {
-			participantsModel.clear()
-			partModel.clear()
-			getGroupParticipants(profileUser)
-			working = false
-		}
-		
-		onOnContactPictureUpdated: {
-			if (profileUser == ujid) {
-				picture.imgsource = ""
-				picture.imgsource = groupPicture
-				bigImage.source = ""
-				bigImage.source = groupPicture.replace(".png",".jpg").replace("contacts","profile")
-			}
-		}	
-
-	}
-
-	ListModel { id:partModel }
-
-
 	Image {
 		id: bigImage
 		visible: false
-		source: groupPicture.replace(".png",".jpg").replace("contacts","profile")
+        source: groupPicture == defaultGroupPicture?"":groupPicture.replace(".png",".jpg").replace("contacts","profile");
 	}
 
 
-    Flickable {
-        id: flickArea
+    Row{
+        id:rowContainer
         anchors.fill: parent
-		anchors.topMargin: 12
-        contentWidth: parent.width
-        contentHeight: column1.height -60 //Fucking listview!
+        anchors.margins: 5
+     }
 
-        Column {
-            id: column1
-			width: parent.width
-			anchors.left: parent.left
-			anchors.leftMargin: 16
-			anchors.rightMargin: 16
-			anchors.topMargin: 12
-			spacing: 12
+    Column{
+        id: columnContainer
+        anchors.fill: parent
+        anchors.margins: 5
+        spacing:10
+    }
 
-			Row {
-				width: parent.width
-				height: 80
-				spacing: 10
+    Column {
 
-				ProfileImage {
-					id: picture
-					size: 80
-					height: size
-					width: size
-					imgsource: groupPicture
-					onClicked: { 
-						if (bigImage.height>0) {
-							bigProfileImage = groupPicture.replace(".png",".jpg").replace("contacts","profile")
-							//pageStack.push (Qt.resolvedUrl("../common/BigProfileImage.qml"))
-							Qt.openUrlExternally(groupPicture.replace(".png",".jpg").replace("contacts","profile"))
-						}
-					}
-				}
+        id:groupInfoContainer
+        spacing: 12
 
-				Column {
-					width: parent.width - picture.size -10
-					anchors.verticalCenter: picture.verticalCenter
+        Row {
+            width: parent.width
+            height: 80
+            spacing: 10
 
-					Label {
-						text: Helpers.emojify(groupSubject)
-						font.bold: true
-						font.pixelSize: 26
-						width: parent.width
-						elide: Text.ElideRight
-					}
+            ProfileImage {
+                id: picture
+                size: 80
+                height: size
+                width: size
+                imgsource: groupPicture//?groupPicture:"../" + defaultGroupIcon
+                onClicked: {
+                    pageStack.push(groupPictureViewer)
+                }
+            }
 
-					Label {
-						font.pixelSize: 20
-						color: "gray"
-						visible: groupSubjectOwner!==""
-						text: groupSubjectOwner
-						width: parent.width
-						elide: Text.ElideRight
-					}
+            Column {
+                width: parent.width - picture.size -10
+                anchors.verticalCenter: picture.verticalCenter
 
-				}
-			}
+                Label {
+                    text: Helpers.emojify(groupSubject)
+                    font.bold: true
+                    font.pixelSize: 26
+                    width: parent.width
+                    elide: Text.ElideRight
+                }
 
-			Separator {
-				width: parent.width -32 
-				height: 10
-			}
+                Label {
+                    font.pixelSize: 20
+                    color: "gray"
+                    visible: groupSubjectOwner!==""
+                    text: groupSubjectOwner
+                    width: parent.width
+                    elide: Text.ElideRight
+                }
 
-			Label {
-				width: parent.width - 60
-			    color: theme.inverted ? "white" : "black"
-			    text: qsTr("Group owner:") + " <b>" + (groupOwnerJid!=myAccount ? groupOwner : qsTr("You")) + "</b>"
-			}
+            }
+        }
 
-			Label {
-				width: parent.width - 60
-			    color: theme.inverted ? "white" : "black"
-			    text: qsTr("Creation date:") + " " + groupDate
-			}
+        Separator {
+            width: parent.width
+            height: 10
+        }
 
-			Separator {
-				width: parent.width -32
-				height: 10
-			}
+        Label {
+            width: parent.width
+            color: theme.inverted ? "white" : "black"
+            text: qsTr("Group owner:") + " <b>" + (groupOwnerJid!=myAccount ? groupOwner : qsTr("You")) + "</b>"
+        }
 
-			Button {
-				id: statusButton
-				height: 50
-				width: parent.width -32
-				font.pixelSize: 22
-				text: qsTr("Change group subject")
-				enabled: !working && groupSubjectOwner!=""
-				onClicked: pageStack.push(Qt.resolvedUrl("ChangeSubject.qml"))
-			}
+        Label {
+            width: parent.width
+            color: theme.inverted ? "white" : "black"
+            text: qsTr("Creation date:") + " " + groupDate
+        }
 
-			Button {
-				id: picButton
-				height: 50
-				width: parent.width -32
-				font.pixelSize: 22
-				text: qsTr("Change group picture")
-				enabled: !working
-				onClicked: pageStack.push(setProfilePicture)
-			}
+        Separator {
+            width: parent.width
+            height: 10
+        }
 
-			Separator {
-				width: parent.width -32
-				height: 10
-			}
+        Button {
+            id: statusButton
+            height: 50
+            width: parent.width
+            font.pixelSize: 22
+            text: qsTr("Change group subject")
+            enabled: !working && groupSubjectOwner!=""
+            onClicked: pageStack.push(groupSubjectChanger)
+        }
 
-			Rectangle {
-				x: 0
-				width: parent.width -32
-				height: 60
-				color: "transparent"
+        Button {
+            id: picButton
+            height: 50
+            width: parent.width
+            font.pixelSize: 22
+            text: qsTr("Change group picture")
+            enabled: !working
+            onClicked: pageStack.push(setProfilePicture)
+        }
 
-				Label {
-					id: partText
-					width: parent.width - 60
-				    color: theme.inverted ? "white" : "black"
-				    text: qsTr("Group participants:")
-					font.bold: true
-					anchors.verticalCenter: addButton.verticalCenter
-				}
-
-				BorderImage {
-					id: addButton
-					visible: myAccount==groupOwnerJid && !working
-					width: labelText.paintedWidth + 32
-					height: 42
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.right: parent.right
-					source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
-							"background" + (bcArea.pressed? "-pressed" : "")
-					border { left: 22; right: 22; bottom: 22; top: 22; }
-					Label { 
-						id: labelText
-						anchors.verticalCenter: parent.verticalCenter
-						anchors.horizontalCenter: parent.horizontalCenter
-						font.pixelSize: 22; font.bold: true
-		                text: qsTr("Add")
-					}
-					MouseArea {
-						id: bcArea
-						anchors.fill: parent
-						onClicked: {
-							getCurrentContacts()
-							pageStack.push (addContacts) 
-						}
-					}
-				}				
- 
-			}
+        Separator {
+            width: parent.width
+            height: 10
+        }
+    }
 
 
-			ListView {
-				id: participants
-				width: parent.width
-				interactive: false
-				height: 80 + (participants.count *80) 
-				model: participantsModel
-				delegate: participantsDelegate
-				clip: true
-				visible: groupSubjectOwner!=""
-			}
+    SelectPicture {
+        id:setProfilePicture
+        onSelected: {
+            pageStack.pop()
+            breathe();
+            setGroupPicture(jid, path)
+        }
+    }
+
+    ChangeSubject{
+        id:groupSubjectChanger
+        jid:container.jid
+        currentSubject:groupSubject
+    }
 
 
 
-		}
+    Item{
+        id:participantsColumn
+      //  width:parent.width
 
-	}
+
+
+        Rectangle {
+            x: 0
+            width: parent.width
+            height: partText.height
+            color: "transparent"
+            id:participantsHeader
+
+            Label {
+                id: partText
+                width: parent.width
+                color: theme.inverted ? "white" : "black"
+                text: qsTr("Group participants:")
+                font.bold: true
+                anchors.verticalCenter: addButton.verticalCenter
+            }
+
+            BorderImage {
+                id: addButton
+                visible: myAccount==groupOwnerJid && !working
+                width: labelText.paintedWidth + 30
+                height: 42
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
+                        "background" + (bcArea.pressed? "-pressed" : "")
+                border { left: 22; right: 22; bottom: 22; top: 22; }
+                Label {
+                    id: labelText
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: 22; font.bold: true
+                    text: qsTr("Add")
+                }
+                MouseArea {
+                    id: bcArea
+                    anchors.fill: parent
+                    onClicked: {
+
+                        genericSyncedContactsSelector.resetSelections()
+                        genericSyncedContactsSelector.unbindSlots()
+                        genericSyncedContactsSelector.positionViewAtBeginning()
+
+                        for(var i=0; i<participantsModel.count; i++){
+                           var p = participantsModel.get(i)
+
+                            if(p.relativeIndex >= 0)
+                                genericSyncedContactsSelector.select(participantsModel.get(i).relativeIndex)
+                        }
+
+                        genericSyncedContactsSelector.multiSelectmode = true
+                        genericSyncedContactsSelector.title = qsTr("Edit Participants")
+                        pageStack.push(genericSyncedContactsSelector);
+                    }
+                }
+            }
+        }
+
+
+        WAListView{
+            id:groupParticipants
+            defaultPicture:defaultProfilePicture
+            anchors.top:participantsHeader.bottom
+            anchors.topMargin: 5
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            allowRemove: myAccount==groupOwnerJid
+            allowSelect: false
+            allowFastScroll: false
+            emptyLabelText: qsTr("No participants")
+
+            onRemoved: {
+
+                var rmItem = participantsModel.get(index)
+
+                genericSyncedContactsSelector.unSelect(rmItem.relativeIndex)
+
+
+                if(ProfileHelper.currentParticipantsJids.indexOf(rmItem.jid) >= 0 ) {
+                    ProfileHelper.removed.push(rmItem.jid)
+                    removedCount=ProfileHelper.removed.length
+                }
+                else {
+
+                    ProfileHelper.added.splice(ProfileHelper.added.indexOf(rmItem.jid),1)
+                    addedCount = ProfileHelper.added.length
+                }
+                groupParticipants._removedCount--;
+                participantsModel.remove(index);
+            }
+
+          // model:participantsModel
+
+        }
+
+
+    }
 
 	function getUserAuthor(inputText) {
 		if (inputText==myAccount)
@@ -386,84 +451,82 @@ WAPage {
 	    return resp.split('@')[0]
 	}
 
+    ListModel {
+        id: participantsModel
+    }
 
-	Component {
-		id: participantsDelegate
 
-		Rectangle
-		{
-			height: 80
-			width: parent.width -32
-			color: "transparent"
-			clip: true
+    ToolBarLayout {
+        id:participantsSelectorTools
+        visible:false
 
-			property int cindex: model.index
+        ToolIcon{
+            platformIconId: "toolbar-back"
+            onClicked: pageStack.pop()
+        }
 
-		    RoundedImage {
-				x: 0
-		        size:62
-		        imgsource: contactPicture=="none" ? "../common/images/user.png" : contactPicture
-		        opacity: 1
-				y: 8
-		    }
+        ToolButton
+        {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.centerIn: parent
+            width: 300
+            text: qsTr("Done")
+            onClicked: {
+                consoleDebug("GEtting selected")
+                var selected = genericSyncedContactsSelector.getSelected()
+                consoleDebug("Selected count: "+selected.length)
+                participantsModel.clear()
+                groupParticipants.reset()
 
-		    Column{
-				y: 9
-				x: 74
-				width: parent.width -74
-				anchors.verticalCenter: parent.verticalCenter
-				Label{
-					y: 2
-		            text: getUserAuthor(contactName)
-				    font.pointSize: 18
-					elide: Text.ElideRight
-					width: parent.width
-					font.bold: true
-				}
-				Label{
-		            text: Helpers.emojify(contactStatus)
-				    font.pixelSize: 20
-				    color: "gray"
-					width: parent.width
-					elide: Text.ElideRight
-					height: 24
-					clip: true
-					visible: contactStatus!==""
-			   }
+                ProfileHelper.added.length = 0
+                ProfileHelper.removed.length = 0
+                var found;
+                for(var i=0; i<ProfileHelper.currentParticipantsJids.length; i++){
+                   found = false;
+                    for(var j=0; j<selected.length; j++){
+                        if(ProfileHelper.currentParticipantsJids[i] == selected[j].data.jid) {
+                            found = true;
+                            break;
+                        }
+                    }
 
-		    }
+                    if(!found){
+                        ProfileHelper.removed.push(ProfileHelper.currentParticipantsJids[i])
+                    }
+                }
 
-			BorderImage {
-				id: removeButton
-				visible: myAccount==groupOwnerJid && !working && contactJid!=myAccount
-				width: 42
-				height: 42
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.right: parent.right
-				source: "image://theme/meegotouch-sheet-button-"+(theme.inverted?"inverted-":"")+
-						"background" + (bcArea.pressed? "-pressed" : "")
-				border { left: 22; right: 22; bottom: 22; top: 22; }
-				Image {
-					y: 2
-					source: "image://theme/icon-m-toolbar-cancle"+(theme.inverted?"-white":"")
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.horizontalCenter: parent.horizontalCenter
-				}
-				MouseArea {
-					id: bcArea
-					anchors.fill: parent
-					onClicked: {
-						consoleDebug("REMOVING " +contactJid)
-						participantsModel.remove(cindex)
-						var newSelectedContacts = selectedContacts
-						newSelectedContacts = newSelectedContacts.replace(contactJid,"")
-						newSelectedContacts = newSelectedContacts.replace(",,",",")
-						selectedContacts = newSelectedContacts
-					}
-				}
-			}
+                for(var i=0; i<selected.length; i++){
 
-		}
-	}
+                    if(ProfileHelper.currentParticipantsJids.indexOf(selected[i].data.jid) == -1)
+                        ProfileHelper.added.push(selected[i].data.jid)
+                }
+
+                console.log("Added: "+ProfileHelper.added.join(","))
+                console.log("Removed:"+ProfileHelper.removed.join(","))
+
+                addedCount = ProfileHelper.added.length
+                removedCount = ProfileHelper.removed.length
+                var modelData;
+                for(var i=0; i<selected.length; i++) {
+                    consoleDebug("Appending")
+
+                    modelData = {name:selected[i].data.name, picture:selected[i].data.picture, jid:selected[i].data.jid, relativeIndex:selected[i].selectedIndex};
+
+                   participantsModel.append(modelData)
+                }
+
+                participantsModel.append({name:qsTr("You"), picture:currentProfilePicture || defaultProfilePicture, noremove:true})
+                pageStack.pop()
+            }
+        }
+
+    }
+
+
+    WAImageViewer{
+        id:groupPictureViewer
+        imagePath: bigImage.width?bigImage.source:""
+        defaultImage: defaultGroupPicture
+    }
 
 }

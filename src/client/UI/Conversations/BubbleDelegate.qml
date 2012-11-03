@@ -124,9 +124,10 @@ Item {
 			name: delegateContainer.name
 			state_status:delegateContainer.state_status
 			media: delegateContainer.media
-			localPath: delegateContainer.media.local_path
+            localPath: delegateContainer.media.local_path?delegateContainer.media.local_path:""
 			message: delegateContainer.message
 			bubbleColor:delegateContainer.bubbleColor;
+            mediaSize: delegateContainer.media.size?delegateContainer.media.size:0
 
 			Connections {
 				target: appWindow

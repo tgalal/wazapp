@@ -16,37 +16,41 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
-import sys
+
 from PySide import QtCore
-from PySide.QtCore import *
-from PySide.QtGui import *
+from PySide.QtCore import QUrl
 from PySide.QtDeclarative import QDeclarativeView,QDeclarativeProperty
 from QtMobility.Messaging import *
 from contacts import WAContacts
-from status import WAChangeStatus
 from waxmpp import WAXMPP
 from utilities import Utilities
 #from registration import Registration
-from contacts import ContactsSyncer
+
 from messagestore import MessageStore
 from threading import Timer
 from waservice import WAService
 import dbus
 from wadebug import UIDebug
-import os, shutil, glob, time, hashlib
+import os, shutil, time, hashlib
 from subprocess import call
 import Image
 from PIL.ExifTags import TAGS
 from constants import WAConstants
+import subprocess
 
 class WAUI(QDeclarativeView):
 	quit = QtCore.Signal()
+	splashOperationUpdated = QtCore.Signal(str)
+	initialized = QtCore.Signal()
+	phoneContactsReady = QtCore.Signal(list)
+
 	
-	def __init__(self):
+	def __init__(self, accountJid):
 		
 		_d = UIDebug();
 		self._d = _d.d;
 	
+		self.initializationDone = False
 		bus = dbus.SessionBus()
 		mybus = bus.get_object('com.nokia.video.Thumbnailer1', '/com/nokia/video/Thumbnailer1')
 		self.iface = dbus.Interface(mybus, 'org.freedesktop.thumbnails.SpecializedThumbnailer1')
@@ -66,10 +70,17 @@ class WAUI(QDeclarativeView):
 		url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
 
 		self.filelist = []
-		
+		self.accountJid = accountJid;
 
 		self.rootContext().setContextProperty("waversion", Utilities.waversion);
 		self.rootContext().setContextProperty("WAConstants", WAConstants.getAllProperties());
+		self.rootContext().setContextProperty("myAccount", accountJid);
+		
+		currProfilePicture = WAConstants.CACHE_PROFILE + "/" + accountJid.split("@")[0] + ".jpg"
+		self.rootContext().setContextProperty("currentPicture", currProfilePicture if os.path.exists(currProfilePicture) else "")
+		
+		
+		
 		self.setSource(url);
 		self.focus = False
 		self.whatsapp = None
@@ -78,9 +89,11 @@ class WAUI(QDeclarativeView):
 	
 	def preQuit(self):
 		self._d("pre quit")
-		del self.whatsapp
-		del self.c
 		self.quit.emit()
+		
+	def onProcessEventsRequested(self):
+		#self._d("Processing events")
+		QtCore.QCoreApplication.processEvents()
 		
 	def initConnections(self,store):
 		self.store = store;
@@ -92,7 +105,7 @@ class WAUI(QDeclarativeView):
 		#self.c.contactsRefreshed.connect(self.updateContactsData); NUEVO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		self.c.contactsRefreshFailed.connect(self.rootObject().onRefreshFail);
 		self.c.contactsSyncStatusChanged.connect(self.rootObject().onContactsSyncStatusChanged);
-		self.c.contactPictureUpdated.connect(self.rootObject().onContactPictureUpdated);
+		self.c.contactPictureUpdated.connect(self.rootObject().onPictureUpdated);
 		#self.c.contactUpdated.connect(self.rootObject().onContactUpdated);
 		#self.c.contactAdded.connect(self.onContactAdded);
 		self.rootObject().refreshContacts.connect(self.c.resync)
@@ -102,6 +115,13 @@ class WAUI(QDeclarativeView):
 		self.rootObject().consoleDebug.connect(self.consoleDebug)
 		self.rootObject().setLanguage.connect(self.setLanguage)
 		self.rootObject().removeFile.connect(self.removeFile)
+		self.rootObject().getRingtones.connect(self.getRingtones)
+		self.rootObject().startRecording.connect(self.startRecording)
+		self.rootObject().stopRecording.connect(self.stopRecording)
+		self.rootObject().playRecording.connect(self.playRecording)
+		self.rootObject().deleteRecording.connect(self.deleteRecording)
+		self.rootObject().breathe.connect(self.onProcessEventsRequested)
+		self.rootObject().browseFiles.connect(self.browseFiles)
 
 		self.rootObject().openContactPicker.connect(self.openContactPicker)
 
@@ -111,6 +131,11 @@ class WAUI(QDeclarativeView):
 		#self.c.manager.manager.contactsChanged.connect(self.rootObject().onContactsChanged);
 		#self.c.manager.manager.contactsAdded.connect(self.rootObject().onContactsChanged);
 		#self.c.manager.manager.contactsRemoved.connect(self.rootObject().onContactsChanged);
+		
+		#self.contactsReady.connect(self.rootObject().pushContacts)
+		self.phoneContactsReady.connect(self.rootObject().pushPhoneContacts)
+		self.splashOperationUpdated.connect(self.rootObject().setSplashOperation)
+		self.initialized.connect(self.rootObject().onInitDone)
 
 
 		
@@ -126,6 +151,11 @@ class WAUI(QDeclarativeView):
 		self.rootObject().deleteMessage.connect(self.messageStore.deleteMessage)
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
 		self.rootObject().removeSingleContact.connect(self.messageStore.removeSingleContact)
+		self.rootObject().exportConversation.connect(self.messageStore.exportConversation)
+		self.rootObject().getConversationGroupsByJid.connect(self.messageStore.getConversationGroups)
+		self.messageStore.conversationGroups.connect(self.rootObject().onConversationGroups)
+		self.rootObject().getConversationMediaByJid.connect(self.messageStore.getConversationMedia)  
+		self.messageStore.conversationMedia.connect(self.rootObject().onConversationMedia)
 		self.dbusService = WAService(self);
 		
 	
@@ -138,6 +168,10 @@ class WAUI(QDeclarativeView):
 	def onUnfocus(self):
 		self._d("FOCUS OUT")
 		self.focus = False
+		
+		if not self.initializationDone:
+			return
+		
 		self.rootObject().appFocusChanged(False);
 		self.idleTimeout = Timer(5,self.whatsapp.eventHandler.onUnavailable)
 		self.idleTimeout.start()
@@ -145,7 +179,13 @@ class WAUI(QDeclarativeView):
 		
 	
 	def onFocus(self):
+		self._d("FOCUS IN")
 		self.focus = True
+		
+		if not self.initializationDone:
+			return
+
+		self.whatsapp.eventHandler.notifier.stopSound();
 		self.rootObject().appFocusChanged(True);
 		if self.idleTimeout is not None:
 			self.idleTimeout.cancel()
@@ -194,17 +234,12 @@ class WAUI(QDeclarativeView):
 
 	def setMyAccount(self,account):
 		self.rootObject().setMyAccount(account)
-		self.account = account
 
 	def sendSMS(self, num):
 		print "SENDING SMS TO " + num
-		m = QMessage()
-		m.setType(QMessage.Sms)
-		a = QMessageAddress(QMessageAddress.Phone, num)
-		m.setTo(a)
-		m.setBody("")
-		s = QMessageService()
-		s.compose(m)
+		bus = dbus.SessionBus()
+		messaging_if = dbus.Interface(bus.get_object('com.nokia.Messaging', '/'), 'com.nokia.MessagingIf')
+		messaging_if.showMessageEditor("sms", [num], "", "", [])
 
 
 	def makeCall(self, num):
@@ -259,22 +294,35 @@ class WAUI(QDeclarativeView):
 			self.rootObject().updateContactStatus(status)
 
 		else:
+			if not self.initializationDone:
+				self.splashOperationUpdated.emit("Loading Contacts")
+
 			contacts = self.c.getContacts();
 			self._d("POPULATE CONTACTS: " + str(len(contacts)));
-			self.rootObject().pushContacts(contacts);
+			
+			
+			contactsFiltered = filter(lambda c: c["jid"]!=self.accountJid, contacts)
+			self.rootObject().pushContacts(mode,contactsFiltered);
 
 		#if self.whatsapp is not None:
 		#	self.whatsapp.eventHandler.networkDisconnected()
 
 		
 	def populateConversations(self):
+		if not self.initializationDone:
+			self.splashOperationUpdated.emit("Loading Conversations")
 		self.messageStore.loadConversations()
 		
 
 	def populatePhoneContacts(self):
+		
+		if not self.initializationDone:
+			self.splashOperationUpdated.emit("Loading Phone Contacts")
+		
 		self._d("POPULATE PHONE CONTACTS");
 		contacts = self.c.getPhoneContacts();
 		self.rootObject().pushPhoneContacts(contacts);
+		#self.phoneContactsReady.emit(contacts)
 
 	
 	def login(self):
@@ -303,6 +351,10 @@ class WAUI(QDeclarativeView):
 
 	def processFiles(self, folder, data): #, ignored):
 		#print "Processing " + folder
+		
+		if not os.path.exists(folder):
+			return
+		
 		currentDir = os.path.abspath(folder)
 		filesInCurDir = os.listdir(currentDir)
 
@@ -311,7 +363,7 @@ class WAUI(QDeclarativeView):
 
 			if os.path.isfile(curFile):
 				curFileExtention = curFile.split(".")[-1]
-				if curFileExtention in data and not curFile in self.filelist:
+				if curFileExtention in data and not curFile in self.filelist and not "No sound.wav" in curFile:
 					self.filelist.append(curFile)
 			elif not "." in curFile: #Don't process hidden folders
 				#if not curFile in ignored:
@@ -403,6 +455,21 @@ class WAUI(QDeclarativeView):
 		self.rootObject().pushVideoFiles( sorted(myfiles, key=lambda k: k['date'], reverse=True) );
 
 
+	def getRingtones(self):
+		print "GETTING RING TONES..."
+		self.filelist = []
+		data = ["mp3","MP3","wav","WAV"]
+		self.processFiles("/usr/share/sounds/ring-tones/", data) #, ignored)
+		self.processFiles("/home/user/MyDocs/Ringtones", data) #, ignored)
+
+		myfiles = []
+		for f in self.filelist:
+			myfiles.append({"name":f.split('/')[-1].split('.')[0].title(),"value":f}) 
+
+		self.rootObject().pushRingtones( sorted(myfiles, key=lambda k: k['name']) );
+
+
+
 	def thumbnailUpdated(self,result):
 		self.rootObject().onThumbnailUpdated()
 
@@ -464,6 +531,51 @@ class WAUI(QDeclarativeView):
 		filepath = filepath.replace("file://","")
 		os.remove(filepath)
 
+
+	def startRecording(self):
+		print 'Starting the record...'
+		self.pipe = subprocess.Popen(['/usr/bin/arecord','-r','16000','-t','wav',WAConstants.CACHE_PATH+'/temprecord.wav'])
+		print "The pid is: " + str(self.pipe.pid)
+
+
+	def stopRecording(self):
+		print 'Killing REC Process now!'
+		os.kill(self.pipe.pid, 9)
+		self.pipe.poll()
+
+
+	def playRecording(self):
+		self.whatsapp.eventHandler.notifier.playSound(WAConstants.CACHE_PATH+'/temprecord.wav')
+
+
+	def deleteRecording(self):
+		if os.path.exists(WAConstants.CACHE_PATH+'/temprecord.wav'):
+			os.remove(WAConstants.CACHE_PATH+'/temprecord.wav')
+
+
+	def browseFiles(self, folder, format):
+		print "Processing " + folder
+		currentDir = os.path.abspath(folder)
+		filesInCurDir = os.listdir(currentDir)
+		myfiles = []
+
+		for file in filesInCurDir:
+			curFile = os.path.join(currentDir, file)
+			curFileName = curFile.split('/')[-1]
+			if curFileName[0] != ".":
+				if os.path.isfile(curFile):
+					curFileExtention = curFile.split(".")[-1]
+					if curFileExtention in format:
+						myfiles.append({"fileName":curFileName,"filepath":curFile, 
+										"filetype":"send-audio", "name":"a"+curFile.split('/')[-1]})
+				else:
+					myfiles.append({"fileName":curFileName,"filepath":curFile, 
+									"filetype":"folder", "name":"a"+curFile.split('/')[-1]})
+
+		self.rootObject().pushBrowserFiles( sorted(myfiles, key=lambda k: k['name']), folder);
+
+
+
 	def initConnection(self):
 		
 		password = self.store.account.password;
@@ -478,8 +590,9 @@ class WAUI(QDeclarativeView):
 		
 		WAXMPP.message_store = self.messageStore;
 	
-		whatsapp.setReceiptAckCapable(True);
 		whatsapp.setContactsManager(self.c);
+		
+		self.rootContext().setContextProperty("interfaceVersion", whatsapp.eventHandler.interfaceVersion)
 		
 		whatsapp.eventHandler.connected.connect(self.rootObject().onConnected);
 		whatsapp.eventHandler.typing.connect(self.rootObject().onTyping)
@@ -496,17 +609,17 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.lastSeenUpdated.connect(self.rootObject().onLastSeenUpdated);
 		whatsapp.eventHandler.updateAvailable.connect(self.rootObject().onUpdateAvailable)
 		
-		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().groupInfoUpdated);
+		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().onGroupInfoUpdated);
 		whatsapp.eventHandler.groupCreated.connect(self.rootObject().groupCreated);
 		whatsapp.eventHandler.addedParticipants.connect(self.rootObject().addedParticipants);
 		whatsapp.eventHandler.removedParticipants.connect(self.rootObject().onRemovedParticipants);
 		whatsapp.eventHandler.groupParticipants.connect(self.rootObject().onGroupParticipants);
 		whatsapp.eventHandler.groupEnded.connect(self.rootObject().onGroupEnded);
 		whatsapp.eventHandler.groupSubjectChanged.connect(self.rootObject().onGroupSubjectChanged);
-
 		whatsapp.eventHandler.profilePictureUpdated.connect(self.updateContact);
 
 		whatsapp.eventHandler.setPushName.connect(self.updatePushName);
+		whatsapp.eventHandler.statusChanged.connect(self.rootObject().onProfileStatusChanged);
 		#whatsapp.eventHandler.setPushName.connect(self.rootObject().updatePushName);
 		#whatsapp.eventHandler.profilePictureUpdated.connect(self.rootObject().onPictureUpdated);
 
@@ -542,16 +655,17 @@ class WAUI(QDeclarativeView):
 		self.rootObject().setGroupSubject.connect(whatsapp.eventHandler.setGroupSubject)
 		self.rootObject().getPictureIds.connect(whatsapp.eventHandler.getPictureIds)
 		self.rootObject().getPicture.connect(whatsapp.eventHandler.getPicture)
-		self.rootObject().setPicture.connect(whatsapp.eventHandler.setPicture)
+		self.rootObject().setGroupPicture.connect(whatsapp.eventHandler.setGroupPicture)
+		self.rootObject().setMyProfilePicture.connect(whatsapp.eventHandler.setProfilePicture)
 		self.rootObject().sendMediaImageFile.connect(whatsapp.eventHandler.sendMediaImageFile)
 		self.rootObject().sendMediaVideoFile.connect(whatsapp.eventHandler.sendMediaVideoFile)
 		self.rootObject().sendMediaAudioFile.connect(whatsapp.eventHandler.sendMediaAudioFile)
+		self.rootObject().sendMediaRecordedFile.connect(whatsapp.eventHandler.sendMediaRecordedFile)
 		self.rootObject().sendMediaMessage.connect(whatsapp.eventHandler.sendMediaMessage)
 		self.rootObject().sendLocation.connect(whatsapp.eventHandler.sendLocation)
 		self.rootObject().rotateImage.connect(whatsapp.eventHandler.rotateImage)
+		self.rootObject().changeStatus.connect(whatsapp.eventHandler.changeStatus)
 
-
-		#self.rootObject().sendVCard.connect(whatsapp.eventHandler.sendVCard)
 		self.c.contactExported.connect(whatsapp.eventHandler.sendVCard)
 
 		self.rootObject().setBlockedContacts.connect(whatsapp.eventHandler.setBlockedContacts)
@@ -567,15 +681,13 @@ class WAUI(QDeclarativeView):
 		self.rootObject().getVideoFiles.connect(self.getVideoFiles)
 		
 		self.rootObject().populatePhoneContacts.connect(self.populatePhoneContacts)
+		self.rootObject().playSoundFile.connect(whatsapp.eventHandler.notifier.playSound)
+		self.rootObject().stopSoundFile.connect(whatsapp.eventHandler.notifier.stopSound)
 
 
 		#self.reg = Registration();
 		self.whatsapp = whatsapp;
 		
-		#change whatsapp status
-		self.cs = WAChangeStatus(self.store);
-		self.rootObject().changeStatus.connect(self.cs.sync)
-
 		
 		#print "el acks:"
 		#print whatsapp.supports_receipt_acks

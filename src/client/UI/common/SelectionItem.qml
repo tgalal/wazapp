@@ -5,23 +5,13 @@ Item {
 	id: container
 
     property alias title: title.text
-    property string initialValue
+	property string subtitle
 
     signal clicked()
 
     x: 0
     width: parent.width
     height: 72
-
-    /*Rectangle {
-        id: highlight
-
-        anchors { fill: parent; bottomMargin: 1; topMargin: 1 }
-        color: mouseArea.pressed ? "#4d4d4d" : "transparent"
-        opacity: 0.5
-        smooth: true
-    }*/
-
 
     Column {
 
@@ -39,7 +29,7 @@ Item {
             id: subTitle
             color: "gray"
             verticalAlignment: Text.AlignVCenter
-            text: initialValue
+            text: subtitle
             font.pixelSize: 22
         }
     }
@@ -54,7 +44,6 @@ Item {
 
     MouseArea {
         id: mouseArea
-
         anchors.fill: parent
         onClicked: container.clicked()
     }

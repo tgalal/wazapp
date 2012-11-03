@@ -50,10 +50,15 @@ Rectangle{
 
     state:(!lastMessage)?"":(lastMessage.type==1?(isGroup && lastMessage.status == "pending"?"delivered":lastMessage.status):"received")
 
-
 	Connections {
 		target: appWindow
-		onGroupInfoUpdated: {
+
+		onReorderConversation: {
+			if (jid==cjid)
+				waChats.moveToCorrectIndex(cjid);
+		}
+
+        /*onGroupInfoUpdated: {
 			var data = gdata.split("<<->>")
 			if (jid==gjid) {
 				consoleDebug("CONVERSATION JID: " + jid)
@@ -68,7 +73,8 @@ Rectangle{
 				chat_picture.imgsource = ""
 				chat_picture.imgsource = picture
 			}
-		}	
+        }*/
+
 		onUpdateContactName: {
 			if (jid == ujid) {
 				if (title = jid.split('@')[0]) {
@@ -77,21 +83,6 @@ Rectangle{
 				}
 			}
 		}
-
-		onOnTyping: {
-			if (jid == ujid) {
-				last_msg.visible = false
-				isWriting.visible = true
-			}
-		}
-
-		onOnPaused: {
-			if (jid == ujid) {
-				last_msg.visible = true
-				isWriting.visible = false
-			}
-		}
-
 	}
 
     function getAuthor(inputText) {
@@ -113,8 +104,19 @@ Rectangle{
 
     function setConversation(c){
         ChatHelper.conversation = c;
+        c.ustatusChanged.connect(ustatusChanged)
         c.addObserver(container);
         rebind();
+    }
+
+    function ustatusChanged(s){
+        if(s=="typing"){
+            last_msg.visible = false
+            isWriting.visible = true
+        } else {
+            last_msg.visible = true
+            isWriting.visible = false
+        }
     }
 
     function getConversation(){return ChatHelper.conversation;}
@@ -125,12 +127,12 @@ Rectangle{
         jid = c.jid;
         subject = c.subject;
         title = c.title;
-        picture = c.picture.indexOf("/home")>-1? c.picture : (isGroup? "../common/images/group.png" : "../common/images/user.png")
+        picture = c.picture//.indexOf("/home")>-1? c.picture : (isGroup? defaultGroupPicture : defaultProfilePicture)
         lastMessage = c.lastMessage;
         unreadCount = c.unreadCount;
 		isOpenend = c.opened;
-		if(lastMessage)
-            waChats.moveToCorrectIndex(jid);
+		//if(lastMessage) 
+        //    waChats.moveToCorrectIndex(jid);
     }
 
     states: [
@@ -208,17 +210,14 @@ Rectangle{
 		width: parent.width
 		anchors.verticalCenter: parent.verticalCenter
 
-		RoundedImage {
+        Image {
             id:chat_picture
-            width:80
-            height: 80
-            size:72
-            imgsource: picture
+            width:64
+            height: 64
+            source: picture
             x: 2;
-			anchors.verticalCenter: parent.verticalCenter
+            anchors.top:parent.top
 			opacity:appWindow.stealth?0.2:1
-			//onClicked: mouseArea.clicked()
-			//onPressAndHold: mouseArea.pressAndHold()
         }
 
         Column{
@@ -226,8 +225,9 @@ Rectangle{
 		    width:parent.width - 90
 			spacing: 0
 
-			Row{
-                spacing:5
+			Item{
+                //spacing:5
+				height: 30
                 width:parent.width -6
 
                 Label{
@@ -257,6 +257,7 @@ Rectangle{
 				CountBubble {
 					title: unreadCount? unreadCount : ""
 					anchors.right: parent.right
+					anchors.verticalCenter: parent.verticalCenter
 				}
             }
             Row{
@@ -271,7 +272,7 @@ Rectangle{
 					smooth: true
                     y: 5
  				}
-                Label {
+                Text {
                     id:last_msg
                     text: lastMessage? (lastMessage.type==0 || lastMessage.type==1 ? Helpers.emojify(lastMessage.content) : 
                           (lastMessage.type==20 ? qsTr("%1 joined the group").arg(getAuthor(lastMessage.content)) :
@@ -292,7 +293,7 @@ Rectangle{
                 }
 				Label {
 					id: isWriting
-					visible: false
+                    visible: false
 					text: "<i>" + qsTr("is writing a message...") + "</i>"
                     elide: Text.ElideRight
                     font.pixelSize: 20

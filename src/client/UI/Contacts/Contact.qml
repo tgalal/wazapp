@@ -26,24 +26,40 @@ import "../common/js/Global.js" as Helpers
 import "js/contact.js" as ContactHelper
 import "../common"
 
-Rectangle{
+Item{
     id:container
 
     property string jid;
-    property string picture;
-    property string defaultPicture:"../common/images/user.png"
-    property string contactPicture:getPicture()
+    property string contactPicture: defaultProfilePicture
     property string contactName;
     property string contactShowedName;
     property string contactStatus;
     property string contactNumber;
+	//property bool isVisible
+	//property bool isNew: false
 
     signal clicked();
 	signal optionsRequested()
 
     width: parent.width;
-    color:"transparent"
+    //color:"transparent"
 	clip: true
+
+	/*onIsVisibleChanged: {
+		if (isVisible && isNew) {
+			isNew = false
+			newContacts = newContacts-1
+		}
+	}*/
+
+    function openProfile(){
+        if(contactProfileLoader.progress==0)
+            contactProfileLoader.sourceComponent = contactProfileComponent
+
+        appWindow.pageStack.push(contactProfileLoader.item)
+	getConversationMediaByJid(jid)
+	getConversationGroupsByJid(jid)
+    }
 
     function unsetConversation(){
         ContactHelper.conversation = false;
@@ -57,21 +73,14 @@ Rectangle{
         return ContactHelper.conversation;
     }
 
-    function getPicture(){
-        if(!picture || picture == "none")
-            return defaultPicture;
-
-        return picture;
-    }
-
 	Connections {
 		target: appWindow
-		onOnContactPictureUpdated: {
+        /*onOnContactPictureUpdated: {
 			if (jid == ujid) {
 				contact_picture.imgsource = ""
 				contact_picture.imgsource = getPicture()
 			}
-		}	
+        }*/
 	}
 
 	Rectangle {
@@ -112,13 +121,14 @@ Rectangle{
 		height: 62
 		anchors.verticalCenter: parent.verticalCenter
 
-        RoundedImage {
+        Image {
             id:contact_picture
-            size:62
-            imgsource: contactPicture
+            width:64
+            height:64
+            source: contactPicture
             opacity: 1
             anchors.topMargin: -2
-			y: -1
+            y: -1
 			//onClicked: mouseArea.clicked()
         }
 
@@ -133,6 +143,7 @@ Rectangle{
 				elide: Text.ElideRight
 				width: parent.width -16
 				font.bold: true
+				//color: isNew? "green" : (theme.inverted? "white":"black")
 			}
 			Label {
 				id:contact_status
@@ -156,6 +167,22 @@ Rectangle{
 	        source: "../common/images/blocked.png"
 			visible: blockedContacts.indexOf(jid)>-1
 		}
-
     }
+
+    Component {
+        id:contactProfileComponent
+        ContactProfile{
+            id:contactProfile
+            contactName: container.contactName
+            contactNumber: container.contactNumber
+            contactPicture: container.contactPicture
+            contactStatus: container.contactStatus
+            contactJid: container.jid
+        }
+    }
+
+    Loader{
+        id:contactProfileLoader
+    }
+
 }

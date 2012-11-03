@@ -35,10 +35,10 @@ Menu {
 
 		MenuItem {
             text: qsTr("Create group");
-			enabled: connectionStatus=="online"
+            enabled: connectionStatus=="online"
             onClicked: {
-				selectedContacts = ""
-				participantsModel.clear()
+                //selectedContacts = ""
+                //participantsModel.clear()
 				pageStack.push (Qt.resolvedUrl("../Groups/CreateGroup.qml"))
 			}
         }
@@ -64,15 +64,14 @@ Menu {
 
         MenuItem{
             text: qsTr("Settings")
-            onClicked:  pageStack.push( Qt.resolvedUrl("../Settings/SettingsNew.qml") );
+            onClicked:  pageStack.push(settingsPage);
         }
 
 
-        /*MenuItem {
+        MenuItem {
            text: qsTr("About")
-           onClicked: appWindow.aboutInit();
-		}*/
-
+           onClicked: aboutDialog.open()
+        }
 
         MenuItem{
             text:qsTr("Quit")

@@ -37,7 +37,8 @@ using namespace std;
 
 ofstream logfile;
 
-#include "utilities.h";
+#include "utilities.h"
+
 using namespace WA_UTILITIES::Utilities;
 
 void SimpleLoggingHandler(QtMsgType type, const char *msg) {
@@ -125,12 +126,13 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
   //  QObject::connect(viewer.data(),SIGNAL(statusUpdated(QVariant)),rootObject,SLOT(setLoadingState(QVariant)));
 
+    plugin->setReturnToAccountsList(true);
+
     switch(plugin->setupType()) {
 
         case AccountSetup::CreateNew:
             {
             viewer->init(1);
-            plugin->setReturnToAccountsList(true);
     }
             break;
 
@@ -147,7 +149,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
        default:{
             viewer->init(1);
-            plugin->setReturnToAccountsList(true);
              }
 
 
@@ -165,7 +166,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
       }
 
 
-    viewer->setOrientation(QmlApplicationViewer::ScreenOrientationAuto);
+    viewer->setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
     viewer->showExpanded();
 
 

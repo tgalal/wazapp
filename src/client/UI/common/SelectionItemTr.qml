@@ -46,8 +46,8 @@ Item {
 
         Label {
             id: title
-		    font.pixelSize: 24
-		    font.bold: true
+            font.pixelSize: 24
+            font.bold: true
             color: theme.inverted? "white" : "black"
             verticalAlignment: Text.AlignVCenter
         }
@@ -72,7 +72,9 @@ Item {
         id: mouseArea
 
         anchors.fill: parent
-        onClicked: selectionDialog.open()
+        onClicked: {
+            selectionDialog.open()
+        }
     }
 
     SelectionDialog {

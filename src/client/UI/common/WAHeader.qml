@@ -64,5 +64,5 @@ Rectangle{
 		x:0; y: 72
 		color: theme.inverted ? "lightgray" : "white"
 		opacity: 0.8
-	}	
+    }
 }

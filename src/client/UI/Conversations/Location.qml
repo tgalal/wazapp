@@ -12,6 +12,7 @@ WAPage {
     id: mainPage
     property string latitudeStr: qsTr("Resolving...")
     property string longitudeStr: qsTr("Resolving...")
+    property  bool resolved: false
     property Coordinate currentCoord
 
     tools: statusTools
@@ -177,6 +178,8 @@ WAPage {
         currentCoord = positionSource.position.coordinate
         latitudeStr = currentCoord.latitude
         longitudeStr = currentCoord.longitude
+
+        resolved = true;
     }
 
     Column {
@@ -233,6 +236,7 @@ WAPage {
 				sendLocation(currentJid,latitudeStr,longitudeStr,appWindow.inPortrait?"true":"false")
 				pageStack.pop()
 			}
+            enabled:resolved
         }
        
     }

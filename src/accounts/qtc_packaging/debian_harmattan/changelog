@@ -1,0 +1,198 @@
+wazapp (0.8.11) testing; urgency=normal
+  * Fixed group and profile pictures updating
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Wed, 19 Sep 2012 11:30:52 +0000
+
+wazapp (0.8.10) unstable; urgency=normal
+  * Now using Registration with token, no more "fail-too-many" in case not actually blocked by Whatsapp
+  * Persistent settings
+  * Full group conversations support (join, create, add participants, remove participants, group icons)
+  * Full media sharing support (Send and receive images, videos, contact cards, location) with previews when available
+  * Internationalization (Albanian, Arabic, Basque, Bulgarian, Cataln, Chinese, Croatian, Czech, Dutch, Finnish, French, German, Hungarian, Italian, Polish, Portuguese, Romanian, Russian, Spanish, Swedish, Turkish,Vietnamese)
+  * Fixed concat of variables to strings in walogin in case they are None.
+  * Improved contacts quick search filter
+  * Fixes in Cepi's TextArea
+  * Disabled triggering chats tab when back is clicked
+  * Changed "Chats" button to "Back"
+  * "Read more messages" option in chats
+  * Simpler debugging using WADebug.attach
+  * Fixed text overflow in mediabubbles
+  * Changed reference for QContactManager in UI to the one living inside ContactsManager instance
+  * Correctly encoding contact picture
+  * Fixed Update unread count on conversation opened
+  * Fixed Whatsapp update message from server crashes wazapp
+  * Fixed Sent message status Group conversation
+  * Fixed emoji problem on group chats.
+  * Unkown contacts now appear in contacts
+  * Used push name for unknown contacts
+
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sat, 15 Sep 2012 15:21:51 +0000
+
+wazapp (0.2.7) unstable; urgency=high
+  * Fixed Login (Thanks to Scorpius and ginggs for the patches)
+  * No more "Wazapp not supported" during registration
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sat, 15 Sep 2012 15:20:40 +0000
+
+wazapp (0.2.6) unstable; urgency=normal
+  * Changed isolation level to None. Should fix #11
+  * Keyboard now doesn't close on send. fixed #3
+  * Now using native speechbubble (knobtviker)
+  * changed to Wazapp string name in Quit Dialog
+  * Now using standard emoji set
+  * Can now send Emoji (Thanks to knobtviker)
+  * Landscape is usable now (Thanks to knobtviker)
+  * Corrected Exception name in WALogin
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Thu, 24 May 2012 11:30:11 +0200
+
+wazapp (0.2.5) unstable; urgency=normal
+  * sendPing doesn't fire if offline now
+  * Fixed registration for people getting Login Failed or Account expired. Re-register is required for them after update.
+  * Fixed possible segmentation fault when reconnecting (as so closing of wazapp sometimes while running in background)
+  * Connecting to internet is now automatic if there are networks configured for auto connect, even in PSM. Otherwise the connection dialog will popup on every ping.
+  * Now correctly handling login thread crash if connection lost during login process (resulting in forever connecting)
+  * Emoji in contacts statuses
+  * Enhanced conversations window, that deals with scroll issue (thanks to CepiPerez)
+  * New indicator icons
+  * Bigger Emoji (Thanks to @knobtviker and CepiPerez)
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Mon, 21 May 2012 07:03:26 +0200
+
+wazapp (0.2.4) unstable; urgency=normal
+  * Fixed reference to socket.error
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Mon, 21 May 2012 03:38:18 +0200
+
+wazapp (0.2.3) unstable; urgency=normal
+  * Added support for displaying received Emoji (Thanks to @knobtviker)
+  * Fixed interpreting login failure as a connection error, resulting in reconnect loop then segmentation fault
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Mon, 21 May 2012 01:55:14 +0200
+
+wazapp (0.2.2) unstable; urgency=high
+  * Fixed crash during sync because of encoding issue (resulting in "No Contacts" after sync), thanks to enki71
+  * Fixed notifications clicks for people not in contacts
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Mon, 21 May 2012 01:02:53 +0200
+
+wazapp (0.2.1) unstable; urgency=high
+  * Fixed connection crash when push name has non ASCII chars (resulting in "Connecting" forever)
+  * Added Country picker in Registration instead of entering Country Code manually
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sun, 20 May 2012 20:54:43 +0200
+
+wazapp (0.2) unstable; urgency=high
+  * Revamped UI! Big thanks to CepiPerez!
+  * Fixed crash on sync when trying to decode a None status (Should fix initializing then crash issue)
+  * Now links in Speechbubbles are parsed and clickable (Thanks to @knobtviker)
+  * Splash screen is now swipable (thanks to MohammedAG)
+  * Splash picture is cooler now (Thanks to flopjoke)
+  * Added autocheck of updates and fetching changelog
+  * Notifications now don't interrupt calls/music
+  * Notification sound changed to default chat sound (change-able from "Sound and Vibration" in phone settings)
+  * Clicking notification now opens conversation directly
+  * If inside conversation already, new messages are notified via a short vibration
+  * Now conversation bubbles are not duplicated after sync
+  * Now handling connection sudden termination (recv 0 bytes) during login
+  * Status bar is hidden now in conversation landscape mode
+  * If reader thread fails for any reason connection is restarted automatically now
+  * Context menu when hold down to a speech bubble, currently contains "copy" only
+  * Added ability to delete conversations. Holding down a conversation item in chats window opens menu.
+  * Now a ping is sent every 3 minutes to make sure connection is alive
+  * Added "No contacts yet" label when there are no contacts
+  * Temporarily disabled auto sync when there are no contacts (solves crash on sync cases)
+
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sat, 19 May 2012 02:49:45 +0200
+
+wazapp (0.1.8) unstable; urgency=high
+  * Fixed connection crashing when added to a new group
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Thu, 17 May 2012 21:46:41 +0200
+
+wazapp (0.1.7) unstable; urgency=low
+  * Fixed and error that caused ProtocolTreeNode to crash, making you only send, but not receiving any messages
+
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Thu, 17 May 2012 20:08:09 +0200
+
+wazapp (0.1.6) unstable; urgency=low
+  * Changed connection monitor to be event driven
+  * Moved socket connection establishment to a separate thread so no more UI freeze while connecting
+  * Now connection status indicator now shows connection status accurately (offline, connecting, online)
+  * Fixed crash on sync due to contacts with non ascii characters
+  * Speech bubbles now have some right padding
+  * Socket write crash are handled
+  * Handling not able to connect to whatsapp server
+  * Changed initial state of connection status indicator to "offline"
+  * Changed config dir to .wazapp
+  * Now handling login failure due to registration on other phone
+  * Now contacts resync does not crash when fails
+  * Implemented a mutex on connection state changing
+  * Now handling connection sudden termination (receiving 0 bytes)
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Tue, 15 May 2012 21:28:50 +0200
+
+wazapp (0.1.5) unstable; urgency=low
+  * Added color invert
+  * Style changes to registration
+  * Voice fallback in registration
+  * Manual code entry in registration
+  * Added quit button
+  * "Sending registration request" is not smoother and doesn't show "Not responding"
+  * Added chat status icon on notification
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Mon, 14 May 2012 07:43:21 +0200
+
+wazapp (0.1.4) unstable; urgency=low
+  * Fixed converstation disappearance in chats view
+  * Fixed message send duplication. If u had any messages that were resending over and over, after this update they will resend one more time and then stop
+  * Vibration is back
+  * Sound notification on new messages. It changes to beep or silence according to current device profile
+  * Contacts statuses are now correctly encoded
+  * Fixed overflow of chat items in chats view when there are new lines
+  * Changed style of contacts header(not best looks but better than before)
+  * Now message delivery status show in chat view as well
+  * Contacts and chats now scroll to bottom correctly (gap removed)
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sat, 12 May 2012 06:40:53 +0200
+
+wazapp (0.1.3) unstable; urgency=low
+  * <Add change description here>
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sat, 12 May 2012 06:40:53 +0200
+
+wazapp (0.1.2) unstable; urgency=low
+
+  * notificiation skipping fixed
+  * notification sometimes comes with '@' fixed
+  * notification if contact has no picture, red box fixed
+  * don't substring for message in notification
+  * correct encoding of sent and received messages (previously non ascii crashed connection)
+  * keyboard now maintains focus when send button is clicked (so remains open)
+  * remove initial zero from number
+  * numbers only in registration phonenumber
+  * wider speechbubbles in landscape
+  * conversations are now sorted correctly on startup
+  * now showing date of last sent/received message in chats view
+  * package installation info(description, icon) are now set
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Wed, 09 May 2012 05:11:51 +0200
+
+wazapp (0.1.0) unstable; urgency=low
+  * <Add change description here>
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Tue, 01 May 2012 18:50:00 +0200
+
+wazapp (0.1.1) unstable; urgency=low
+  * <Add change description here>
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Tue, 01 May 2012 18:49:59 +0200
+
+wazapp (0.0.1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Sat, 17 Mar 2012 19:06:36 +0100

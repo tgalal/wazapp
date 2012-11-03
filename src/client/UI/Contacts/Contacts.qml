@@ -24,6 +24,7 @@ import com.nokia.meego 1.0
 
 import "js/contacts.js" as ContactsManager
 import "../common/js/Global.js" as Helpers
+import "../common/WAListView/Components"
 import "../common"
 import "../Menu"
 
@@ -77,28 +78,25 @@ WAPage {
         return ContactsManager.contactsViews[ContactsManager.contactsViews.length-1];
 
     }
+	
+    Item { id: dummy }
 
     function hideSearchBar() {
-        searchbar.h1 = 71
-        searchbar.h2 = 0
         searchbar.height = 0
         searchInput.enabled = false
         sbutton.enabled = false
         searchInput.text = ""
-        searchInput.focus = false
-		list_view1.forceActiveFocus()
+        searchInput.platformCloseSoftwareInputPanel()
+		searchInput.enabled = false
         timer.stop()
     }
-
     function showSearchBar() {
-        searchbar.h1 = 0
-        searchbar.h2 = 71
         searchbar.height = 71
         searchInput.enabled = true
         sbutton.enabled = true
         searchInput.text = ""
-        searchInput.focus = false
-        list_view1.forceActiveFocus()
+        searchInput.enabled = true
+        dummy.focus = true
         timer.start()
     }
 
@@ -128,21 +126,27 @@ WAPage {
         Contact{
             property bool filtered: model.name.match(new RegExp(searchInput.text,"i")) != null
             id: contactComp
-            height: filtered ? 80 : 0
+            height: model.iscontact =="yes" && filtered ? 80 : 0
 			visible: height!=0
             Component.onCompleted: {
                 ContactsManager.contactsViews.push(contactComp)
             }
 
             jid: model.jid
-            picture: model.picture
+            contactPicture: model.picture?model.picture:defaultProfilePicture
             contactName: model.name
 			contactShowedName: searchInput.text.length>0 ? replaceText(model.name, searchInput.text) : model.name
             contactStatus: model.status? model.status : ""
             contactNumber: model.number
+			//isNew: model.newContact
+
+			//isVisible: ((y >= ListView.view.contentY+100 && y <= ListView.view.contentBottom-100) ||
+            //           (y+height >= ListView.view.contentY+100 && y+height <= ListView.view.contentBottom-100))
 
 			onOptionsRequested: {
-				profileUser = model.jid
+                contactMenu.selectedJid = jid
+                consoleDebug(contactMenu.selectedJid)
+
 				contactMenu.open()
 			}
 
@@ -167,6 +171,7 @@ WAPage {
 		anchors.rightMargin: 16
 		anchors.verticalCenter: header.verticalCenter 
 		source: "../common/images/refresh.png"
+        visible:false//for now
 		MouseArea {
 			anchors.fill: parent
 			onClicked: {
@@ -180,15 +185,15 @@ WAPage {
 		anchors.right: header.right
 		anchors.rightMargin: 16
 		anchors.verticalCenter: header.verticalCenter 
-        implicitWidth: 32
-        visible: !refreshPics.visible
+        platformStyle: BusyIndicatorStyle { size: "medium";}
+        visible: false//!refreshPics.visible
         running: visible
     }
 
 	Connections {
 		target: appWindow
 		onGetPicturesFinished: {
-			refreshPics.visible = true
+            //refreshPics.visible = true
 		}	
 	}
 
@@ -206,9 +211,6 @@ WAPage {
 		color: "transparent"
 		clip: true
 
-		property int h1
-		property int h2
-
 		Rectangle {
 
 			id: srect
@@ -219,6 +221,9 @@ WAPage {
 			anchors.topMargin: searchbar.height - 62
 			anchors.bottomMargin: 2
 			color: "transparent"
+            opacity: searchbar.height==0 ? 0 : 1
+
+            Behavior on opacity { NumberAnimation { duration: 400 } }
 
 			TextField {
 			    id: searchInput
@@ -253,25 +258,7 @@ WAPage {
 
 		}
 
-		onHeightChanged: SequentialAnimation {
-			PropertyAction { target: searchbar; property: "height"; value: searchbar.h1 }
-			NumberAnimation { target: searchbar; property: "height"; to: searchbar.h2; duration: 300; easing.type: Easing.InOutQuad }
-		}
-
-        states: [
-            State {
-                name: 'hidden'; when: searchbar.height == 0
-                PropertyChanges { target: searchbar; opacity: 0; }
-            },
-            State {
-                name: 'showed'; when: searchbar.height == 71
-                PropertyChanges { target: searchbar; opacity: 1; }
-            }
-        ]
-        transitions: Transition {
-            NumberAnimation { properties: "opacity"; easing.type: Easing.InOutQuad; duration: 300 }
-        }
-
+        Behavior on height { NumberAnimation { duration: 200 } }
 
 	}
 
@@ -307,18 +294,30 @@ WAPage {
             spacing: 1
 			cacheBuffer: 30000 // contactsModel.count * 81 --> this should work too.
 			highlightFollowsCurrentItem: false
-            section.property: "alphabet"
+            section.property: "name"
             section.criteria: ViewSection.FirstCharacter
 
-            section.delegate: GroupSeparator {
+            /*section.delegate: GroupSeparator {
 				anchors.left: parent.left
 				anchors.leftMargin: 16
-				width: parent.width - 44
-				height: searchInput.text==="" ? 50 : 0
+                width: parent.width - 44
+                visible: fast.sectionExists(section)
+                height: visible && searchInput.text==="" ? 50 : 0
 				title: section
-			}
+            }*/
+
+            section.delegate: SectionDelegate{
+                anchors.left: parent.left
+                anchors.leftMargin: 16
+                width:parent.width-44
+                renderSection: fast.sectionExists(section) && searchInput.text===""
+                height:renderSection?50:0
+                currSection: section
+            }
 
 			Component.onCompleted: fast.listViewChanged()
+
+			property real contentBottom: contentY + height
 
             onContentYChanged:  {
                 if ( list_view1.visibleArea.yPosition < 0)
@@ -339,16 +338,17 @@ WAPage {
 
 	Menu {
 	id: contactMenu
+    property string selectedJid;
 
 		MenuLayout {
 			WAMenuItem {
 				height: 80
-				text: blockedContacts.indexOf(profileUser)==-1? qsTr("Block contact") : qsTr("Unblock contact")
+                text: blockedContacts.indexOf(contactMenu.selectedJid)==-1? qsTr("Block contact") : qsTr("Unblock contact")
 				onClicked: { 
-					if (blockedContacts.indexOf(profileUser)==-1)
-						blockContact(profileUser)
+                    if (blockedContacts.indexOf(contactMenu.selectedJid)==-1)
+                        blockContact(contactMenu.selectedJid)
 					else
-						unblockContact(profileUser)
+                        unblockContact(contactMenu.selectedJid)
 				}
 			}
 			WAMenuItem {
@@ -356,7 +356,12 @@ WAPage {
 				//singleItem: true
 				text: qsTr("View contact profile")
 				onClicked: { 
-					mainPage.pageStack.push (Qt.resolvedUrl("ContactProfile.qml"))
+
+                    var c = getOrCreateContact({"jid":contactMenu.selectedJid});
+                    if(c){
+                        c.openProfile();
+                    }
+
 				}
 			}
 			/*WAMenuItem {
@@ -384,11 +389,12 @@ WAPage {
 
     QueryDialog {
         id: removeContactConfirm
+        property string selectedJid;
         titleText: qsTr("Confirm delete")
-        message: qsTr("Are you sure you want to delete %1?").arg(getAuthor(profileUser))
+        message: qsTr("Are you sure you want to delete %1?").arg(getAuthor(removeContactConfirm.selectedJid))
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
-        onAccepted: removeSingleContact(profileUser)
+        onAccepted: removeSingleContact(removeContactConfirm.selectedJid)
     }
 
 

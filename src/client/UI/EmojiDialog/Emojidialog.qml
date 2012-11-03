@@ -1,6 +1,8 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 import "../common/js/Global.js" as Helpers
+import "js/emojihelper.js" as EmojiHelper
+import "Components"
 
 Dialog {
 	id: emojiSelector
@@ -11,31 +13,67 @@ Dialog {
 
     property string titleText: qsTr("Select Emoji")
     property string emojiPath:"../common/images/emoji/";
+    property string emojiRelativePath; //relative to textfield
 
-    signal emojiSelected(string emojiCode);
+    /*function setCallback(func){
+
+        EmojiHelper.emojiSelectCallback = func;
+
+    }*/
 
     function get32(code){
         var c = ""+code;
-        if(c.length == 2)
-            c="0"+code;
-
-        return emojiPath+"32/emoji-E"+c+".png";
+        return emojiPath+"32/"+c+".png";
     }
 
     function get20(code){
         var c = ""+code;
-        if(c.length == 2)
-            c="0"+code;
-
-         return emojiPath+"20/emoji-E"+c+".png";
+        return emojiPath+"20/"+c+".png";
     }
 
-    function openDialog(){
+    function get24(code){
+        var c = ""+code;
+        return emojiPath+"24/"+c+".png";
+    }
+
+    function openDialog(textarea, relativePath){
+        if(!textarea){
+            consoleDebug("NO TEXTAREA SPECIFIED FOR EMOJI, NOT OPENING!")
+            return;
+        }
+        textarea.lastPosition = textarea.cursorPosition
+        EmojiHelper.emojiTextarea = textarea
+
+
+        emojiRelativePath = relativePath?relativePath:"/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji"
 
         emojiSelector.open();
 		emojiCategory.checkedButton = peopleEmoji
-        emojiSelector.loadEmoji(0,109);
+        showGrid(peopleGrid)
+    }
 
+    function getGrids(){
+        return [peopleGrid, natureGrid, objectsGrid, placesGrid, symbolsGrid];
+    }
+
+    function loadAll(){
+        var grids = getGrids();
+
+        for(var g in grids){
+            grids[g].loadEmoji();
+        }
+    }
+
+    function hideAll(){
+        var grids = getGrids();
+        for(var g in grids){
+            grids[g].visible = false;
+        }
+    }
+
+    function showGrid(grid){
+        hideAll();
+        grid.showEmoji();
     }
 
 	SelectionDialogStyle { id: selectionDialogStyle }
@@ -58,14 +96,12 @@ Dialog {
                 anchors.right: closeButton.left
                 anchors.bottom:  parent.bottom
                 anchors.bottomMargin: selectionDialogStyle.titleBarLineMargin
-                //anchors.verticalCenter: labelField.verticalCenter
                 height: titleLabel.height
 
                 Label {
                     id: titleLabel
                     x: selectionDialogStyle.titleBarIndent
                     width: parent.width - closeButton.width
-                    //anchors.baseline:  parent.bottom
                     font: selectionDialogStyle.titleBarFont
                     color: selectionDialogStyle.commonLabelColor
                     elide: selectionDialogStyle.titleElideMode
@@ -78,7 +114,6 @@ Dialog {
                 id: closeButton
                 anchors.bottom:  parent.bottom
                 anchors.bottomMargin: selectionDialogStyle.titleBarLineMargin-6
-                //anchors.verticalCenter: labelField.verticalCenter
                 anchors.right: labelField.right
                 opacity: closeButtonArea.pressed ? 0.5 : 1.0
                 source: "image://theme/icon-m-common-dialog-close"
@@ -89,7 +124,6 @@ Dialog {
                     onClicked:  {emojiSelector.reject();}
                 }
             }
-
         }
 
         Rectangle {
@@ -104,150 +138,160 @@ Dialog {
     }
 
 	content: Item {
-		width: emojiSelector.width < emojiSelector.height ? 360 : 480
+        width: parent.width
 		height: emojiSelector.height-200
 
-		ButtonRow {
-			id: emojiCategory
-		    checkedButton: peopleEmoji
-			width: emojiSelector.width-30
-			x: 15
-			y: 10
+        ButtonRow {
+            id: emojiCategory
+            checkedButton: peopleEmoji
+            anchors.horizontalCenter: parent.horizontalCenter
+           // width: emojiSelector.width-30
+            y: 10
 
-		    Button {
-		    	id: peopleEmoji
-			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(415);
-			 	onClicked: emojiSelector.loadEmoji(0,109);
-		    }
+            Button {
+                id: peopleEmoji
+            platformStyle: ButtonStyle { inverted: true }
+                iconSource: get32("E057");
+                onClicked: showGrid(peopleGrid)
+            }
 
-		    Button {
-		        id: natureEmoji
-			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(303);
-			 	onClicked: emojiSelector.loadEmoji(109,162)
-		    }
+            Button {
+                id: natureEmoji
+            platformStyle: ButtonStyle { inverted: true }
+                iconSource: get32("E303");
+                onClicked: showGrid(natureGrid)
+            }
 
-		    Button {
-		        id: eventsEmoji
-			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(325)
-			 	onClicked: emojiSelector.loadEmoji(162,297)
-		    }
-		
-			Button {
-		        id: placesEmoji
-			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(36)
-			 	onClicked: emojiSelector.loadEmoji(297,367)
-		    }
+            Button {
+                id: placesEmoji
+            platformStyle: ButtonStyle { inverted: true }
+                iconSource: get32("E325")
+                onClicked: showGrid(placesGrid)
+            }
 
-		    Button {
-		        id: symbolsEmoji
-			platformStyle: ButtonStyle { inverted: true }
-                iconSource: get32(210)
-			 	onClicked: emojiSelector.loadEmoji(367,466)
-		    }
-		}
+            Button {
+                id: objectsEmoji
+            platformStyle: ButtonStyle { inverted: true }
+                iconSource: get32("E036")
+                onClicked: showGrid(objectsGrid)
+            }
+
+            Button {
+                id: symbolsEmoji
+            platformStyle: ButtonStyle { inverted: true }
+                iconSource: get32("E210")
+                onClicked: showGrid(symbolsGrid)
+            }
+        }
 
         Rectangle {
-            width: emojiSelector.width-40
+            id:emojiContainer
+            width: parent.width
             height: emojiSelector.height-200
-            radius: 20
-            x: 20
-            y: 70
-            color: "#1a1a1a"
+           // radius: 20
+            anchors.top:emojiCategory.bottom
+            anchors.topMargin: 5
+            color: "#000000"//"#1a1a1a"
 
-			GridView {
-				id: emojiGrid
-				width: emojiCategory.width - (appWindow.inPortrait ? 20 : 10)
-		        height: appWindow.inPortrait ? parent.height-25 : parent.height-50
-		        x: appWindow.inPortrait ? 26 : 14
-		        y: appWindow.inPortrait ? emojiCategory.height-40 : emojiCategory.height-20
-				cacheBuffer: 2000
-				cellWidth: 80
-				cellHeight: 60
-				clip: true
-				model: emojiModel
+            EmojiGrid{
+                id:peopleGrid
+                anchors.fill: parent
+                start: 0;
+                end: 187;
+            }
 
-				delegate: Component {
+            EmojiGrid{
+                id:natureGrid
+                width:parent.width
+                height:parent.height
+                start: 189;
+                end: 304;
+            }
 
-					 Rectangle {
-						id: emojiDelegate
-						radius: 20
-						property string codeS: emojiCode 
-						width: 70
-						height: 50
-						//color: "#202020"
-						gradient: Gradient {
-							GradientStop { position: 0.0; color: "#505050" }
-							GradientStop { position: 1.0; color: "#101010" }
-						}
-						Rectangle {
-							x:1; y:1; width:68; height:48; radius: 20
-							gradient: Gradient {
-								GradientStop { position: 0.0; color: mousearea.pressed ? "#218ade" : "#3c3c3b" }
-								GradientStop { position: 1.0; color: mousearea.pressed ? "#218ade" : "#1c1c1c" }
-							}
-						}
-						Image {
-							source: emojiPath
-							anchors.horizontalCenter: parent.horizontalCenter
-							anchors.verticalCenter: parent.verticalCenter
-							width: 32
-							height: 32
-						}
-						MouseArea {
-							id: mousearea
-							anchors.fill: parent
-							onClicked: {
-								var codeX = emojiDelegate.codeS;
-                                //addedEmojiCode = '<img src="/opt/waxmppplugin/bin/wazapp/UI/common/images/emoji/20/emoji-E'+codeX+'.png" />'
+            EmojiGrid{
+                id:placesGrid
+                width:parent.width
+                height:parent.height
+                start: 305;
+                end: 534;
+            }
 
-                                console.log("SELECTED INSIDE DIALOG "+codeX);
+            EmojiGrid{
+                id:objectsGrid
+                width:parent.width
+                height:parent.height
+                start: 535;
+                end: 636;
+            }
 
-                                selectEmoji(codeX)
-							}
-						}
-					} 
-				}
-			}
-
-			ScrollDecorator {
-				flickableItem: emojiGrid
-			}
-
-			ListModel {
-				id: emojiModel
-			}
-		}
+            EmojiGrid{
+                id:symbolsGrid
+                width:parent.width
+                height:parent.height
+                start: 637;
+                end: 845
+            }
+        }
 	}
-
-
-
-	//Component.onCompleted: {
-        //emojiSelector.open();
-        //emojiSelector.close();
-        //emojiSelector.loadEmoji(0,109)
-	//}
-
-
-
 
     function selectEmoji(emojiCode){
 
-        emojiSelected(emojiCode);
-        emojiSelector.accept();
-    }
+        //console.log("GOT "+emojiCode)
+        //emojiSelected(emojiCode);
 
-	function loadEmoji(s,e) {
-		var start = s; var end = e;
-		emojiGrid.model.clear();
-		for(var n = start; n < end; n++)
-		{
-            emojiGrid.model.append({"emojiPath": get32(Helpers.emoji_code[n]), "emojiCode": Helpers.emoji_code[n]});
-		}
-		
-	}
+        /*if(EmojiHelper.emojiSelectCallback){
+            EmojiHelper.emojiSelectCallback(emojiCode);
+        }*/
+
+
+        var textarea = EmojiHelper.emojiTextarea;
+
+        var cresult = textarea.getCleanText();
+        var str = cresult[0]
+        var npos = cresult[1]
+
+        var pos = str.indexOf("&quot;")
+        var newPosition = textarea.lastPosition
+        while(pos>-1 && pos<textarea.lastPosition) {
+            textarea.lastPosition = textarea.lastPosition +5
+            pos = str.indexOf("&quot;", pos+1)
+
+        }
+        pos = str.indexOf("&amp;")
+        while(pos>-1 && pos<textarea.lastPosition) {
+            textarea.lastPosition = textarea.lastPosition +4
+            pos = str.indexOf("&amp;", pos+1)
+        }
+        pos = str.indexOf("&lt;")
+        while(pos>-1 && pos<textarea.lastPosition) {
+            textarea.lastPosition = textarea.lastPosition +3
+            pos = str.indexOf("&lt;", pos+1)
+        }
+        pos = str.indexOf("&gt;")
+        while(pos>-1 && pos<textarea.lastPosition) {
+            textarea.lastPosition = textarea.lastPosition +3
+            pos = str.indexOf("&gt;", pos+1)
+        }
+        pos = str.indexOf("<br />")
+        while(pos>-1 && pos<textarea.lastPosition) {
+            textarea.lastPosition = textarea.lastPosition +5
+            pos = str.indexOf("<br />", pos+1)
+        }
+
+        textarea.lastPosition = textarea.lastPosition + parseInt(npos);
+
+        var emojiImg = '<img src="'+emojiRelativePath+'/24/'+emojiCode+'.png" />'
+        str = str.substring(0,textarea.lastPosition) + emojiImg + str.slice(textarea.lastPosition)
+
+        //console.log(str);
+       // console.log("_______")
+        textarea.text = Helpers.emojify2(str,emojiRelativePath)
+        textarea.cursorPosition = newPosition + 1
+        textarea.forceActiveFocus();
+
+       // console.log(textarea.text)
+        emojiSelector.accept();
+        hideAll();
+    }
 
 }

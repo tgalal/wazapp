@@ -10,6 +10,11 @@ Button{
     property alias text:linktext.text
     property string url;
     height:img.height + 10
+    property bool inverted
+
+
+    platformStyle: ButtonStyle{inverted: root.inverted;}
+
     Row{
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
@@ -24,6 +29,7 @@ Button{
         Label{
             id:linktext
             anchors.verticalCenter: img.verticalCenter
+            platformStyle: LabelStyle{inverted: root.inverted}
         }
 
     }

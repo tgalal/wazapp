@@ -149,16 +149,20 @@ Dialog {
                     source: "images/icons/browser.png"
                     text:"www.wazapp.im"
                     url:"http://www.wazapp.im"
+                    inverted: true
+
                 }
                 ImageTextLink{
                     source: "images/icons/twitter.png"
                     text:"@tgalal"
                     url:"http://twitter.com/tgalal"
+                    inverted: true
                 }
 
                 ImageTextLink{
                     source: "images/icons/facebook.png"
                     text:"www.fb.me/WazappIM"
+                    inverted: true
                 }
 
                 /*Label{
@@ -190,6 +194,7 @@ Dialog {
                         close()
                         pageStack.push(supportPage)
                     }
+                    //inverted: true
                 }
 
                 Item{
@@ -206,6 +211,7 @@ Dialog {
 
                 ImageTextLink{
                     id:creditsButton
+                    inverted: true
                    //anchors.horizontalCenter: parent.horizontalCenter
                     source:"../common/images/icons/wazapp48.png"
                     text:qsTr("Credits")

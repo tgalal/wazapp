@@ -47,10 +47,8 @@ WAPage {
        spacing: 10
        Image{
            id:wazappIcon
-           width:128
-           fillMode: Image.PreserveAspectFit
            //anchors.horizontalCenter: parent.horizontalCenter
-           source: "../common/images/icons/wazapp256.png"
+           source: "../common/images/icons/wazapp128.png"
            //x: root.width/2-(0.5*wazappIcon.width)
        }
 

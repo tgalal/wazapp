@@ -55,7 +55,7 @@ Item {
                 ListElement { name: "Video"; value: "vid"; usable: true;}
                 ListElement { name: "Video2"; value: "camvid"; usable: true;}
                 ListElement { name: "Audio"; value: "audio"; usable: true;}
-                ListElement { name: "Audio2"; value: "rec"; usable: true;}
+                ListElement { name: "Audio2"; value: "rec"; usable: false;}
                 ListElement { name: "Location"; value: "location"; usable: true;}
                 ListElement { name: "Contact"; value: "vcard"; usable: true;}
 			}

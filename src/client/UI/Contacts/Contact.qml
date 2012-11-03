@@ -119,10 +119,11 @@ Item{
 		height: 62
 		anchors.verticalCenter: parent.verticalCenter
 
-        RoundedImage {
+        Image {
             id:contact_picture
-            size:62
-            imgsource: contactPicture
+            width:64
+            height:64
+            source: contactPicture
             opacity: 1
             anchors.topMargin: -2
 			y: -1

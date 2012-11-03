@@ -277,7 +277,7 @@ WAStackWindow {
                     if(c.jid == jid){
                         consoleDebug("Updating contact picture now")
                         c.picture = ""
-                        c.picture = WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".jpg";
+                        c.picture = WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".png";
                     }
                 }
             }
@@ -285,7 +285,7 @@ WAStackWindow {
             if(conversation){
                 conversation.picture = conversation.groupIcon = ""
                 conversation.onChange();
-                conversation.groupIcon =  WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".jpg";
+                conversation.groupIcon =  WAConstants.CACHE_CONTACTS + "/" + jid.split("@")[0] + ".png";
                 conversation.picture = conversation.getPicture();
                 conversation.onChange();
             }

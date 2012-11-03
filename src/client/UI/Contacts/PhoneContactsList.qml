@@ -68,7 +68,8 @@ WAPage{
 
     WAListView{
         id: contactlist
-        defaultPicture: "../common/images/user.png"
+        defaultPicture: defaultProfilePicture
+        useRoundedImages: false
         anchors.top:header.bottom
         //model: getPhoneContacts()
 

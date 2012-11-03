@@ -228,16 +228,6 @@ Rectangle {
                 visible: allowSelect?(mouseArea.pressed || isSelected):false
             }
 
-            /*RoundedImage {
-                id: item_picture
-                x: 16
-                size:62
-                imgsource: itemPicture
-                anchors.topMargin: -2
-                y: 8
-            }*/
-
-
             Loader{
                sourceComponent: useRoundedImages?item_picture_rounded:item_picture_rect
             }

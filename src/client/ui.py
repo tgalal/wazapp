@@ -611,6 +611,7 @@ class WAUI(QDeclarativeView):
 		
 		whatsapp.eventHandler.groupInfoUpdated.connect(self.rootObject().onGroupInfoUpdated);
 		whatsapp.eventHandler.groupCreated.connect(self.rootObject().groupCreated);
+		whatsapp.eventHandler.groupCreateFailed.connect(self.rootObject().groupCreateFailed);
 		whatsapp.eventHandler.addedParticipants.connect(self.rootObject().addedParticipants);
 		whatsapp.eventHandler.removedParticipants.connect(self.rootObject().onRemovedParticipants);
 		whatsapp.eventHandler.groupParticipants.connect(self.rootObject().onGroupParticipants);

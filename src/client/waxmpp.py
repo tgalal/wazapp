@@ -83,6 +83,7 @@ class WAEventHandler(QObject):
 	getGroupInfo = QtCore.Signal(str);
 	createGroupChat = QtCore.Signal(str);
 	groupCreated = QtCore.Signal(str);
+	groupCreateFailed = QtCore.Signal(int);
 	groupInfoUpdated = QtCore.Signal(str,str)
 	addParticipants = QtCore.Signal(str, str);
 	addedParticipants = QtCore.Signal();
@@ -216,6 +217,7 @@ class WAEventHandler(QObject):
 
 		self.interfaceHandler.connectToSignal("group_gotParticipants", self.onGroupParticipants)
 		self.interfaceHandler.connectToSignal("group_createSuccess", self.onGroupCreated)
+		self.interfaceHandler.connectToSignal("group_createFail", lambda errorCode: self.groupCreateFailed.emit(int(errorCode)))
 		self.interfaceHandler.connectToSignal("group_endSuccess", self.onGroupEnded)
 		self.interfaceHandler.connectToSignal("group_gotInfo", self.onGroupInfo)
 		self.interfaceHandler.connectToSignal("group_infoError", self.onGroupInfoError)

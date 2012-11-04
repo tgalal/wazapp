@@ -253,6 +253,7 @@ WAStackWindow {
 
 
     signal groupCreated(string group_id)
+    signal groupCreateFailed(int errorCode)
 
     function onRemovedParticipants() {
         removedParticipants()

@@ -140,7 +140,7 @@ WAPage {
                 size: 80
                 height: size
                 width: size
-                imgsource: selectedPicture || "../"+defaultGroupPicture
+                imgsource: selectedPicture || defaultGroupPicture
             }
 
             Button {
@@ -214,7 +214,7 @@ WAPage {
 
         WAListView{
             id:groupParticipants
-            defaultPicture: "../common/images/user.png"
+            defaultPicture: defaultProfilePicture
             anchors.top:participantsHeader.bottom
             anchors.topMargin: 5
             anchors.bottom: parent.bottom
@@ -243,7 +243,7 @@ WAPage {
         id:statusTool
 
         ToolIcon{
-			enabled: !creatingGroup
+            enabled: !creatingGroup //@@ not best
             platformIconId: "toolbar-back"
        		onClicked: pageStack.pop()
         }
@@ -254,7 +254,7 @@ WAPage {
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 300
             text: creatingGroup?qsTr("Creating"):qsTr("Create");
-            enabled: subject_text.text!=="" && participantsModel.count>0 && !creatingGroup
+            enabled: subject_text.text!=="" && participantsModel.count>0 && !creatingGroup && connectionStatus=="online" //@@todo timeout
             onClicked: {
 				creatingGroup = true
                 createGroupChat(subject_text.text)
@@ -279,9 +279,21 @@ WAPage {
 			}
 			addParticipants(groupId,participants)
 		}
+
+        onGroupCreateFailed: {
+            busy = creatingGroup = false
+            if(errorCode == 500) {
+                showNotification(qsTr("Group create failed. You reached max groups limit"));
+
+            } else {
+
+                showNotification(qsTr("Group create failed. Error code: "+errorCode));
+            }
+        }
+
 		onAddedParticipants: {
 
-            if(selectedPicture !== "/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+            if(selectedPicture !== defaultGroupPicture)
                 setGroupPicture(groupId, selectedGroupPicture)
         	openConversation(groupId);
 		}

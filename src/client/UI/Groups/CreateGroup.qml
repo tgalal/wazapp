@@ -120,6 +120,7 @@ WAPage {
 
         WATextArea {
             id: subject_text
+            enabled:!creatingGroup
             width:parent.width
             wrapMode: TextEdit.Wrap
             //textFormat: Text.RichText
@@ -281,7 +282,7 @@ WAPage {
 		}
 
         onGroupCreateFailed: {
-            busy = creatingGroup = false
+            creatingGroup = false
             if(errorCode == 500) {
                 showNotification(qsTr("Group create failed. You reached max groups limit"));
 
@@ -294,8 +295,11 @@ WAPage {
 		onAddedParticipants: {
 
             if(selectedPicture !== defaultGroupPicture)
-                setGroupPicture(groupId, selectedGroupPicture)
-        	openConversation(groupId);
+                setGroupPicture(groupId, selectedPicture)
+
+            var conversation = waChats.getOrCreateConversation(groupId);
+            conversation.subject = subject_text.text
+            conversation.open();
 		}
 	}
 

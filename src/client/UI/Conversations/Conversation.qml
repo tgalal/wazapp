@@ -107,7 +107,7 @@ WAPage {
             var data = gdata.split("<<->>")
             subject = data[2]
             owner = data[1]
-            title = subject
+            title =  Helpers.emojify(subject)
         }
         appWindow.getPicture(jid, "image")
 

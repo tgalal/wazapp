@@ -860,7 +860,7 @@ class WAEventHandler(QObject):
 		
 		self._d("AUTH CALLED")
 		
-		#self.updater.run()
+		self.updater.run()
 		
 		#self.conn.disconnect()
 		

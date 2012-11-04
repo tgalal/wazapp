@@ -338,9 +338,9 @@ WAStackWindow {
         setIndicatorState("online")
         //getPictures();
     }
-
+    signal connectionClosed();
     function onConnecting(){setIndicatorState("connecting")}
-    function onDisconnected(){setIndicatorState("connecting")}
+    function onDisconnected(){connectionClosed(); setIndicatorState("connecting")}
     function onSleeping(){setIndicatorState("offline")}
     function onLoginFailed(){setIndicatorState("reregister")}
 
@@ -390,6 +390,7 @@ WAStackWindow {
 
 
     function showNotification(text){
+
         osd_notify.parent = pageStack.currentPage
         osd_notify.text = text
         osd_notify.show();

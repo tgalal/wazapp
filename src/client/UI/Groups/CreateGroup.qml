@@ -34,7 +34,9 @@ WAPage {
 
 	property string groupId
 	property bool creatingGroup: false
+    property int createStage:0;//1 creating //2  adding praticipants //3 setting picture
     property string selectedPicture
+    property bool created:false
     busy: creatingGroup
 
     state: (screen.currentOrientation == Screen.Portrait) ? "portrait" : "landscape"
@@ -230,6 +232,7 @@ WAPage {
                 consoleDebug(index)
                 var rmItem = participantsModel.get(index)
                 genericSyncedContactsSelector.unSelect(rmItem.relativeIndex)
+
             }
 
            model:participantsModel
@@ -255,8 +258,9 @@ WAPage {
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 300
             text: creatingGroup?qsTr("Creating"):qsTr("Create");
-            enabled: subject_text.text!=="" && participantsModel.count>0 && !creatingGroup && connectionStatus=="online" //@@todo timeout
+            enabled: subject_text.text!=="" && groupParticipants._removedCount != participantsModel.count && !creatingGroup && connectionStatus=="online" //@@todo timeout
             onClicked: {
+                createStage = 1
 				creatingGroup = true
                 createGroupChat(subject_text.text)
 			}
@@ -268,21 +272,42 @@ WAPage {
         ContactHelper.conversation=c;
     }
 
+    function prepareConversation(){
+
+        var conversation = waChats.getOrCreateConversation(groupId);
+        conversation.subject = subject_text.text
+        conversation.rebind();
+        getGroupInfo(groupId);
+
+    }
+
+    Component.onDestruction: {
+        osd_notify.parent = pageStack;
+    }
+
+
 	Connections {
 		target: appWindow
 		onGroupCreated: {
 			consoleDebug("GROUP CREATED: " + group_id)
-			groupId = group_id + "@g.us"
+            created = true
+            groupId = group_id + "@g.us"
 			var participants;
 			for (var i=0; i<participantsModel.count; ++i) {
                 if (participantsModel.get(i).jid!="undefined")
                     participants = participants + (participants!==""? ",":"") + participantsModel.get(i).jid; //what about Array.join?!!
 			}
-			addParticipants(groupId,participants)
+
+
+            prepareConversation()
+            createStage = 2
+            addParticipants(groupId,participants);
+
 		}
 
         onGroupCreateFailed: {
             creatingGroup = false
+            createStage = 0;
             if(errorCode == 500) {
                 showNotification(qsTr("Group create failed. You reached max groups limit"));
 
@@ -294,13 +319,45 @@ WAPage {
 
 		onAddedParticipants: {
 
-            if(selectedPicture !== defaultGroupPicture)
-                setGroupPicture(groupId, selectedPicture)
+            console.log(selectedPicture);
+            console.log(defaultGroupPicture)
 
-            var conversation = waChats.getOrCreateConversation(groupId);
-            conversation.subject = subject_text.text
-            conversation.open();
+            if(selectedPicture && selectedPicture !== defaultGroupPicture) {
+                createStage = 3;
+                setGroupPicture(groupId, selectedPicture)
+            }
+
+            openConversation(groupId);
 		}
+
+        onConnectionClosed: {
+            creatingGroup = false
+            var errorMessage;
+
+            switch(createStage){
+
+            case 0:
+                break;
+            case 1:
+                errorMessage = qsTr("Connection closed while creating group.");
+                createStage = 0;
+                break;
+            case 2:
+                errorMessage = qsTr("Connection closed while adding group participants. You might want to add them again");
+                prepareConversation();
+                openConversation(groupId);
+                break;
+            case 3:
+                errorMessage = qsTr("Connection closed while setting group picture. You might want to set it again");
+                prepareConversation();
+                openConversation(groupId)
+                break;
+            }
+
+            if(errorMessage){
+                showNotification(errorMessage);
+            }
+        }
 	}
 
 

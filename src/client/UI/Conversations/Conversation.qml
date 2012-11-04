@@ -203,7 +203,7 @@ WAPage {
         var pic="";
 
         if(isGroup())
-            pic = groupIcon
+            pic = groupIcon || defaultGroupPicture
         else if(contacts && contacts.length)
             pic = getAuthorPicture(jid) //contacts[0].contactPicture;
 

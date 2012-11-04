@@ -544,15 +544,16 @@ WAPage {
 
     function getAuthorPicture(inputText) {
         var resp = inputText;
+        var picture;
         for(var i =0; i<contactsModel.count; i++)
         {
             if(resp == contactsModel.get(i).jid) {
-                resp = contactsModel.get(i).picture;
+                picture = contactsModel.get(i).picture;
 				break;
 			}
         }
 
-        return resp?resp.split('@')[0]:defaultProfilePicture
+        return picture || defaultProfilePicture
     }
 
 

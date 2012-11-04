@@ -1,5 +1,254 @@
-wazapp (0.9.11) testing; urgency=normal
-  * <Add change description here>
+wazapp (0.9.12) testing; urgency=high
+  * Now using Yowsup!
+  * Credits page modifications
+  * Added polish, Ukrainian, Urdo, and Hungarian
+  * Updated description
+  * Added first run checks
+  * Fixed emojify subject when changed after login
+  * About page adjustments
+  * Updated notification icons
+  * Switched to organiser feedback to make use of LED
+  * Skip loading duplicate conv in db
+  * Fixed fetching grp subject and picture when added to a group
+  * Fixed group set picture, that prevented returning to created group conversation
+  * Fixed group create busy indicator display when tried again after failure
+  * Fixed setting group subject in Conversation UI once created
+  * Subject textarea is now disabled while group create is in progress
+  * Now Handling connectionClosed during group creation
+  * Fixed destruction of osd_notify when CreateGroup is destroyed
+  * Fixed disabling of createbutton when all selected participants were removed
+  * Fixed group set picture, when prevent returning to group when created
+  * Fixed group create busy indicator display when tried again after failure
+  * Fixed setting group subject in Conversation UI once created
+  * Subject textarea is now disabled while group create is in progress
+  * Fixed profile binding when not a contact
+  * Fixed default profile picture when not a contact
+  * Fixed tr string in support page
+  * Now handling group create error, fixes #157
+  * Disabled request presence when app loses focus at an active conversation
+  * Catche exceptions in maskImage
+  * Adjustments to credits page
+  * Credit page adjustments
+  * Updated support icon
+  * Adding missing ImageButton and wazapp128 icon
+  * Updated support icon
+  * Fixed remove button in WAListView
+  * Disabled send audio recording until its interface is fixed
+  * When a message is received, getOrCreateConversation instead of getConversation
+  * Set invisible to BusyIndicator of refreshPics until activated again
+  * Interface version now propagates to UI
+  * Connect auth_fail received signal to UI
+  * Hiding refresh picture button for now
+  * Enhanced getConversationGroups function, now it's much faster
+  * Merge with dev 60ea0e0876109b003308bfa482f80b99bfbfb2f5
+  * missing file from previous commit
+  * Removed Squircle Mask in chats and contact lists, switched to real squircles
+  * Now using global defaultPicture variables
+  * Use enhanced default user and group pictures
+  * cleaned imports in contacts.py
+  * Added WAImageProcessor, to which any image processing is delegated
+  * Removed unused Utilities import in wadebug
+  * Modified role
+  * Switched to 128x128 logo
+  * ImageTextLink buttons are now invertible
+  * Now using inverted colors for buttons in About
+  * Switch to a real 128x128 logo in WASupport
+  * Added enhanced About Page
+  * Moved About button back to main menu
+  * Add Support Wazapp Page
+  * Added color property to GroupSeparator
+  * Added Tests for new pages
+  * Added Credits Pages
+  * Moved items to Column, separator fixies
+  * If profile picture or contact picture do not exist, fetch it, otherwise ignore refetch
+  * Contact profile items position fix
+  * Profile page flickable height fix for toolbar height value
+  * Group conversation user profile page fix
+  * Fixed default pictures in main
+  * Set lastseenon to now when received unavailable for a contact
+  * + symbol added to number
+  * SMS compose fix
+  * Fixed caching of last seen when received during online
+  * Fixed picture in notification feed for non-contacts
+  * Fixed emoji display in status and group subject textinputs
+  * Contact Page improvements
+  * Media list
+  * Groups list
+  * SMS sending fix
+  * Number displaying fix
+  * Fixed contact phone picture overwriting profile picture thumbnail
+  * Now using absolute path to defaultProfilePicture and defaultGroupPicture set in WAConstants
+  * Fixed #163 Profile Images misbehaviour
+  * Added WAImageViewer for profile picture viewing, to support realtime updating of the picture
+  * Now using groupIcon of conversation
+  * Fixed rebind function in Conversation
+  * Fixed double calling of getInfo for group
+  * Cleaned groupProfile code
+  * Added test page for WAImageViewer
+  * Removed creation of same default picture for each contact with no picture (duh!)
+  * Now passing group conversation icon along with conversation data from backend, if exists
+  * Forced fetching of picture in case it does not exist (deleted) in cache
+  * Now listening to typing/paused signals
+  * Fixed emoji regex which resulted on ignoring some emoji
+  * Added a UI Tests folder to be able to quickly test components
+  * Fixed GroupSeparator height
+  * Now passing path to emoji dir as an argument to emoji.openDialog, to set current path to emoji relavent to the textarea which summoned it
+  * Global.getCode now scans for any images, to support dynamic emoji paths. Should be enhanced though.
+  * Global.emojify2 is currently best candidate to replace other redundant emojify functions
+  * Fixed indents in WATextarea
+  * Fixed last seen issues
+  * Now using a single source for userstatus (typing/paused)
+  * Fixed preview not stopping when selected an audio to send
+  * Fixed chinese support which was broken by new emoji
+  * Added missing SectionDelegate
+  * Emoji dialog gets a makeover
+  * Now using a single emoji dialog instance
+  * Emoji dialog now handles parsing and insertion into the textfield
+  * Emojis are now loaded only once, on first demand, increases emoji category switching performace
+  * Emoji dialog adjusts the number of columns according to current device orientation
+  * Fixed multiselection in walistview when there are not rendered items
+  * Now setting BusyIndicator size throuh BusyIndicatorStyle, fixes many warnings thrown at startup
+  * Fixed sections showing when they contain only no-render items
+  * Removed BusyIndicator from WAHeader and create a global one in WABusy triggered by setting 'busy' property of a WAPage to true
+  * Now create group shows a busy indicator
+  * Fixed groupSubjectChanged signal parameters
+  * Now sendMessage, changeSubject and changeStatus strip the text first
+  * Fixed emoji initial emoji insertion on initial status change or group subject changes removing all existing emoji
+  * Now resetting status in textfield to current one each time settings page is opened
+  * Now resetting group subject in textfield to current one each time group subject change page is opened
+  * Merge pull request #151 from CepiPerez/new-issue
+  * New emoji
+  * Fixed emoji insertion in GroupSubject and Status Change
+  * Fixed Group subject change
+  * Fixed open conversation profile from Chats list when conversation was never opened
+  * Disabled progress bar in splash screen for now
+  * rm .gitignore
+  * Fixed view contact profile initiated from contact list
+  * Fixed contact data in contact profile
+  * Fixed notification ringtone selectors
+  * Fixed playing 'no-focus' notification ringtones initially when the app has never lost focus
+  * added ContextkitProvider
+  * added ContextProvider
+  * added ContextProvider
+  * Update src/accounts/qtc_packaging/debian_harmattan/control
+  * Fixed set my profilepicture
+  * Removed symlink to client
+  * Catching unicodedecode exception in debug
+  * Added missing groupprofile js helper file
+  * Fixed set picture
+  * Fixed groupParticipants signal args
+  * Fixed inclusion of client dir to work on windows
+  * Update src/client/wazapp_init
+  * Logging in wazapp_init cause incoming messages not receiving
+  * Update src/client/messagestore.py
+  * Removed strange utf operations, now export conversation working good for Russian
+  * Fixed Emoji insertion
+  * Added norender property if not real contact
+  * Added landscape supposrt to CreateGroup and GroupProfile, which was removed when moved to walistview
+  * Now removing self from contacts before passing it to frontend
+  * Fixed syntax error in invoker execution
+  * Fixed link checking instead of file checking
+  * Fixed MCC to Country by C++ (i like c++ much more than qml and python)
+  * Edit group now uses walistview
+  * Components now use a unified source for a contact picture
+  * Added showNotification function for InfoBanner notifications
+  * Changing profile picture now shows a BusyIndicator while updating
+  * Group Profile is now instantiated inside group conversation
+  * Settings is instatiated once in main, instead of new instance on every request
+  * Dumped the retarted global variables: selectedPicture, selectedGroupPicture, bigProfileImage, and more soon
+  * myAccount is passed on UI init now
+  * OnPictureUpdated now updates directly ONLY the related components, instead of having every fucking component listen to a signal
+  * onGroupParticipants now updates directly related conversation, instead of having all conversations listen to a damn signal, same for onGroupInfo.
+  * Enhanced WAListView, added more functions
+  * Created a generic SyncedContactList page to be used in any component instead of rebind contacts over and over again
+  * Changed Add Participants in create view to use SyncedContactList
+  * Now checking if there is media.size first before binding
+  * Resend unsent vcards and location back to working
+  * Interfacehandlers initial commit
+  * changed setPicture back to setGroupPicture for groups
+  * fixed picture changed notification bubble text
+  * removed unsused imports
+  * Increased mediabubble width to show size
+  * Now showing size info on media send/receive
+  * Now checking if new count is None before incrementing
+  * Removed setting group picture to default group picture
+  * Now not explicitly specifiying that picture type should be image
+  * Replaced setPicture with setMyProfilePicture (takes no jid) and setGroupPicture for groups
+  * Removed for using newbackend: connengine, exceptions, protocoltreenode,
+  * Removed unused methods from class Key
+  * Removed unused waclasses.py (again!)
+  * Removed waeventbase
+  * Removed waexceptions
+  * Removed unused WAVCardHandler
+  * Now WAHTTPHandler uses a normal socket.socket instance
+  * Added message and key existence checking in messagestore
+  * Fixed spaces/tabs in waservice
+  * WAEventHandler is now using the Library interface
+  * Now connmon checks isOnline before actually saying it went offline
+  * MessageBase wasn't calling super constructor, now it does
+  * Implemented more methods
+  * Removed calls for InitialConnCheck
+  * Fixed bind error when local_path for a media object is not set
+  * Changed vibra to False
+  * Fixed set background qml file
+  * Replaced wazap_init with tgalal's one
+  * updated dirs
+  * Accounts plugin improvements:
+  * Black (inverted) theme
+  * Country detection by MCC (need fixies for multi-mcc countries)
+  * Toolbars and small design fixies
+  * Transitions hacky fixies
+  * Send chat history and status presets
+  * Added PresetDialog.
+  * Modified ContactProfile.
+  * Added DBUS calls to ShareUI after export to ASCII text file.
+  * Path has to be inside Documents to play nice with Tracker.
+  * Now checking first if there is a Ringtones directory, fixes blank ringtones
+  * Now directories are created by the manager on initilization
+  * Added breathe signal which invokes processEvents at python side, solving UI not-responding at long processes issue
+  * New splash screen
+  * Splash screen shows what is currently being loaded
+  * Now preloading phonecontacts on init
+  * Fixed group default picture
+  * Added packaging files
+  * Fixed registration error: fail-old-version
+  * Added conversation export method, invokable from UI
+  * fixed group set picture
+  * Location send button is no disabled until location is resolved
+  * Disabled sending composing to group
+  * Added reset function to walistview
+  * Now getSelected in walistview returns selected index along with the returned data
+  * removed project user file
+  * ignore project user file
+  * Created reusable componets for fastscrollable listviews
+  * Voice recorder fix
+  * Fixed Group add/remove participants
+  * Fixed Groups add/remove participants
+  * Added voice recording (no mp3 encoding yet)
+  * Fixed issue #105
+  * Updated Setting panel
+  * Fixed change status function (using funXMPP now)
+  * Removed status.py and warequeststatus.py (useless now)
+  * Changed loadConversations function to fix #108 - Fixed blank Chats screen when a new chat is created - Little fix for groups
+  * participants modifications - Added new contacts bubble counter
+  * Fixed #103 Incorrect last seen when sending to not-online contact
+  * Now displaying cached lastseen until new one is retrieved
+  * Fixed #109 Conversation are opened when profile picture change
+  * Fixed #107 Wrong bubble notification when user changes profile picture
+  * Profile picture working again, fixes #104
+  * activated updater
+  * Version bump
+  * Exposed WAConstants to UI
+  * Now using paths defined inside WAConstants
+  * Received media is now stored in /home/user/Wazapp/
+  * Merged with Cepi
+  * Now registering with token, solves "fail-too-many" in case not entirely blocked by Whatsapp
+  * Moved vibra triggering back to Notifier
+  * Changed vibra enabled/disabled datatype to boolean
+  * Custom ringtones for notifications finished
+  * Reverted console debug (for ascii chars) accidentally broken
+  * Changed hardcoded file paths to use variables inside constants
+  * Now MediaType reference constants, instead of constants referencing MediaTypes
 
  -- tgalal <tarek[at]wazapp[dot]im>  Sat, 03 Nov 2012 15:08:46 +0200
 

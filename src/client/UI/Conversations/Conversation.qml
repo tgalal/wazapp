@@ -107,7 +107,7 @@ WAPage {
             var data = gdata.split("<<->>")
             subject = data[2]
             owner = data[1]
-            title = getTitle()
+            title = subject
         }
         appWindow.getPicture(jid, "image")
 
@@ -191,8 +191,14 @@ WAPage {
     function getTitle(){
         var title="";
 
-        if(isGroup())
-            title = subject==""? groupSubjectNotReady : Helpers.emojify(subject)
+        if(isGroup()) {
+            if(subject == "") {
+                title = groupSubjectNotReady
+                getGroupInfo(jid)
+            } else {
+                title = Helpers.emojify(subject)
+            }
+        }
         else if(contacts && contacts.length)
             title= getAuthor(jid);
 
@@ -280,7 +286,7 @@ WAPage {
         if(!lastMessage || lastMessage.created != m.created)
         {
             lastMessage = conv_data.get(conv_data.count-1);
-			title = getTitle()
+            //title = getTitle()
             onChange();
         }
     }

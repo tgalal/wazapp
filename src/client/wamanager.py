@@ -16,7 +16,7 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
-import sys,os
+import sys,os, shutil
 from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView
@@ -58,11 +58,20 @@ class WAManager():
 		self._d("Quitting")
 		self.app.exit();
 		
+	def isFirstRun(self):
+		checkPath = WAConstants.VHISTORY_PATH+"/"+Utilities.waversion
 		
+		return not os.path.isfile(checkPath)
+			
+	def touchVersion(self):
+		f = open(WAConstants.VHISTORY_PATH+"/"+Utilities.waversion, 'w')
+		f.close()
+
 	def createDirs(self):
 		
 		dirs = [
 			WAConstants.STORE_PATH,
+			WAConstants.VHISTORY_PATH,
 			WAConstants.APP_PATH,
 			WAConstants.MEDIA_PATH,
 			WAConstants.AUDIO_PATH,
@@ -72,7 +81,6 @@ class WAManager():
 
 			WAConstants.CACHE_PATH,
 			WAConstants.CACHE_PROFILE,
-			WAConstants.CACHE_CONTACTS,
 			WAConstants.CACHE_CONTACTS,
 			WAConstants.CACHE_CONV,
 			
@@ -128,8 +136,14 @@ class WAManager():
 		
 		gui.onProcessEventsRequested()
 		
-		self.createDirs()
+		firstRun = self.isFirstRun()
 		
+		if firstRun:
+			if os.path.isdir(WAConstants.CACHE_PATH):
+				shutil.rmtree(WAConstants.CACHE_PATH, True)
+				
+		self.createDirs()
+
 		gui.populateContacts("ALL");
 		
 		gui.populateConversations();
@@ -138,7 +152,9 @@ class WAManager():
 		
 		gui.initializationDone = True
 		gui.initialized.emit()
-
+		
+		if firstRun:
+			self.touchVersion()
 		
 		print "INIT CONNECTION"
 		gui.initConnection();

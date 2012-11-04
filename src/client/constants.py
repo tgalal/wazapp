@@ -22,6 +22,7 @@ import os
 class WAConstants():
 	
 	STORE_PATH = os.path.expanduser('~/.wazapp');
+	VHISTORY_PATH = STORE_PATH+"/v"
 	
 	#MEDIA_PATH = STORE_PATH+'/media'
 	MYDOCS_PATH = "/home/user/MyDocs"

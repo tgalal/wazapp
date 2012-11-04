@@ -278,10 +278,12 @@ WAPage {
 							ListElement { name: "Greek"; value: "el" }
 							ListElement { name: "Hebrew"; value: "he" }
 							ListElement { name: "Hindi"; value: "hi" }
+                            ListElement { name: "Hungary"; value: "hu_HU" }
 							ListElement { name: "Italian"; value: "it" }
 							ListElement { name: "Macedonian"; value: "mk" }
 							ListElement { name: "Malay"; value: "ms" }
 							ListElement { name: "Persian"; value: "fa" }
+                            ListElement { name: "Polish"; value: "pl" }
 							ListElement { name: "Portuguese (Brazil)"; value: "pt_BR" }
 							ListElement { name: "Portuguese (Portugal)"; value: "pt_PT" }
 							ListElement { name: "Romanian"; value: "ro" }
@@ -293,6 +295,9 @@ WAPage {
 							ListElement { name: "Swedish (Sweden)"; value: "sv_SE" }
 							ListElement { name: "Thai"; value: "th" }
 							ListElement { name: "Turkish"; value: "tr" }
+                            ListElement { name: "Ukrainian"; value: "uk_UA" }
+                            ListElement { name: "Urdu"; value: "ur" }
+
 							ListElement { name: "Vietnamese"; value: "vi" }
 					    }
 						initialValue: MySettings.getSetting("Language", "en")

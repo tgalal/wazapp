@@ -231,6 +231,10 @@ class MessageStore(QObject):
 			self._d("loading messages")
 			jid = c.getJid();
 			c.loadMessages();
+			
+			if self.conversations.has_key(jid) and len(self.conversations[jid].messages) > 0:
+				self._d("Duplicate convs in DB for %s!!"%jid)
+				continue
 
 			self.conversations[jid] = c
 

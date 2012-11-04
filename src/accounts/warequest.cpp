@@ -23,12 +23,12 @@
 #include <QDebug>
 
 //const QString WARequest::userAgent = "WhatsApp/2.6.61 S60Version/5.2 Device/C7-00";
-const QString WARequest::userAgent = "WhatsApp/2.8.13 S60Version/5.3 Device/C7-00";
-
+//const QString WARequest::userAgent = "WhatsApp/2.8.13 S60Version/5.3 Device/C7-00";
+const QString WARequest::userAgent = "WhatsApp/2.8.2 WP7/7.10.8773.98 Device/NOKIA-Lumia_800-H112.1402.2.3";
 
 WARequest::WARequest()
 {
-    manager =  new QNetworkAccessManager(this);
+    manager = new QNetworkAccessManager(this);
     connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(replyFinished(QNetworkReply*)));
     qDebug()<<"CONNECTED SIGNAL";
 

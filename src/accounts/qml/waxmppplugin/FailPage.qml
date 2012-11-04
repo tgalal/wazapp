@@ -33,7 +33,7 @@ Page{
 
             Label{
                 id:title
-                text:"Failed:"
+                text:qsTr("Failed:")
 
                 platformStyle: LabelStyle {
                         textColor: "red"

@@ -52,42 +52,30 @@ def qvariant_decode(data):
     
     
 class WAService(dbus.service.Object):
-	
-	
-	
-	DEFAULT_NAME = 'com.tgalal.meego.Wazapp'
-	DEFAULT_PATH = '/'
-	DEFAULT_INTF = 'com.tgalal.meego.Wazapp'
-	
-	
-	
-	def __init__(self,ui):
-		source_name = "WAService"
-		self.ui = ui
-		dbus_main_loop = dbus.glib.DBusGMainLoop(set_as_default=True)
-		session_bus = dbus.SessionBus(dbus_main_loop)
-		self.userId = os.geteuid();
-		
-		self.local_name = '.'.join([self.DEFAULT_NAME, source_name])
-		print  self.local_name
-		bus_name = dbus.service.BusName(self.local_name, bus=session_bus)
 
-		dbus.service.Object.__init__(self,object_path=self.DEFAULT_PATH,bus_name=bus_name)
-		
-		
-		
-		
-		#o = session_bus.get_object(self.INTERFACE, self.PATH)
-		#self.proxy = dbus.Interface(o, self.INTERFACE)
-		
-	
-	@dbus.service.method(DEFAULT_INTF)
-	def launch(self):
-		print "GOTCHAAA"
-		self.ui.showFullScreen();
-	
-	@dbus.service.method(DEFAULT_INTF)
-	def show(self):
-		print "GOTCHAAA"
-		self.ui.showFullScreen();
-		
+    DEFAULT_NAME = 'com.tgalal.meego.Wazapp'
+    DEFAULT_PATH = '/'
+    DEFAULT_INTF = 'com.tgalal.meego.Wazapp'
+    
+    
+    
+    def __init__(self,ui):
+        source_name = "WAService"
+        self.ui = ui
+        dbus_main_loop = dbus.glib.DBusGMainLoop(set_as_default=True)
+        session_bus = dbus.SessionBus(dbus_main_loop)
+        self.userId = os.geteuid();
+        
+        self.local_name = '.'.join([self.DEFAULT_NAME, source_name])
+        bus_name = dbus.service.BusName(self.local_name, bus=session_bus)
+        
+        dbus.service.Object.__init__(self,object_path=self.DEFAULT_PATH,bus_name=bus_name)
+
+    
+    @dbus.service.method(DEFAULT_INTF)
+    def launch(self):
+        self.ui.showFullScreen();
+    
+    @dbus.service.method(DEFAULT_INTF)
+    def show(self):
+        self.ui.showFullScreen();

@@ -35,6 +35,7 @@ public:
     void runTests();
 
 signals:
+    void success(QString);
     void success();
     void fail(QString);
 

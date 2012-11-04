@@ -19,6 +19,9 @@
 ** along with Wazapp. If not, see http://www.gnu.org/licenses/.
 **
 ****************************************************************************/
+#include <MLocale>
+#include <QTranslator>
+#include <QFile>
 #include <QtGui/QApplication>
 #include "qmlapplicationviewer.h"
 #include <QDeclarativeContext>
@@ -34,7 +37,8 @@ using namespace std;
 
 ofstream logfile;
 
-#include "utilities.h";
+#include "utilities.h"
+
 using namespace WA_UTILITIES::Utilities;
 
 void SimpleLoggingHandler(QtMsgType type, const char *msg) {
@@ -92,6 +96,18 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
     qDebug()<<"HELLO";
 
+    MLocale myLocale;
+    QString lang = myLocale.language();
+    QTranslator translator;
+
+    if (QFile::exists("/opt/waxmppplugin/qml/waxmppplugin/i18n/tr_"+ lang + ".qm"))
+    {
+        //qDebug() << "TRANSLATION:" << lang;
+        translator.load("/opt/waxmppplugin/qml/waxmppplugin/i18n/tr_" + lang);
+        app->installTranslator(&translator);
+    }
+
+
     AccountSetup::ProviderPluginProcess* plugin = new AccountSetup::ProviderPluginProcess;
     if ( plugin != AccountSetup::ProviderPluginProcess::instance() )
         qFatal("Instance not unique\n");
@@ -110,12 +126,13 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
   //  QObject::connect(viewer.data(),SIGNAL(statusUpdated(QVariant)),rootObject,SLOT(setLoadingState(QVariant)));
 
+    plugin->setReturnToAccountsList(true);
+
     switch(plugin->setupType()) {
 
         case AccountSetup::CreateNew:
             {
             viewer->init(1);
-            plugin->setReturnToAccountsList(true);
     }
             break;
 
@@ -132,7 +149,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 
        default:{
             viewer->init(1);
-            plugin->setReturnToAccountsList(true);
              }
 
 
@@ -150,7 +166,7 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
       }
 
 
-    viewer->setOrientation(QmlApplicationViewer::ScreenOrientationAuto);
+    viewer->setOrientation(QmlApplicationViewer::ScreenOrientationLockPortrait);
     viewer->showExpanded();
 
 

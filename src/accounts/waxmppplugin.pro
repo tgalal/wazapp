@@ -25,7 +25,7 @@ symbian:TARGET.CAPABILITY += NetworkServices
 
 # If your application uses the Qt Mobility libraries, uncomment the following
 # lines and add the respective components to the MOBILITY variable.
- CONFIG += mobility console
+ CONFIG += mobility console location
  MOBILITY += systeminfo messaging
 
 # Speed up launching on MeeGo/Harmattan when using applauncherd daemon
@@ -63,8 +63,7 @@ CONFIG += qdeclarative-boostable
 invoker.files = invoker/*
 invoker.path = /opt/waxmppplugin/bin
 
-wazappy.files = wazapp/* \
-                wazapp/wazapp
+wazappy.files = ../client/*
 
 wazappy.path = /opt/waxmppplugin/bin/wazapp
 
@@ -93,6 +92,31 @@ accountsiconx.path =  /usr/share/themes/blanco/meegotouch/icons
 
 INSTALLS += accountsiconx
 
+powervr.files = python.ini
+powervr.path =  /etc/powervr.d
+
+INSTALLS += powervr
+
+translation.files = qml/waxmppplugin/i18n/en.qm \
+                    qml/waxmppplugin/i18n/ar.qm \
+                    qml/waxmppplugin/i18n/bg.qm \
+                    qml/waxmppplugin/i18n/de.qm \
+                    qml/waxmppplugin/i18n/es.qm \
+                    qml/waxmppplugin/i18n/eu.qm \
+                    qml/waxmppplugin/i18n/fa.qm \
+                    qml/waxmppplugin/i18n/hr.qm \
+                    qml/waxmppplugin/i18n/it.qm \
+                    qml/waxmppplugin/i18n/nl.qm \
+                    qml/waxmppplugin/i18n/ru.qm \
+                    qml/waxmppplugin/i18n/sq.qm \
+                    qml/waxmppplugin/i18n/tr.qm \
+                    qml/waxmppplugin/i18n/vi.qm
+
+translation.path = /opt/waxmppplugin/qml/waxmppplugin/i18n
+INSTALLS += translation
+
+
+
 #notificationicons.files = icon-m-low-power-mode-wazapp-message.png \
                           #icon-s-status-notifier-wazapp-message.png \
                           #icon-s-status-wazapp-message.png
@@ -113,6 +137,19 @@ notificationconf.files = wazapp.message.new.conf
 notificationconf.path = /usr/share/meegotouch/notifications/eventtypes
 
 INSTALLS += notificationconf
+
+
+notificationicons.files = icon-m-low-power-mode-wazapp.png \
+                          icon-s-status-notifier-wazapp.png
+notificationicons.path = /usr/share/themes/blanco/meegotouch/icons
+
+INSTALLS += notificationicons
+
+contextprovider.files = org.tgalal.wazapp.context
+contextprovider.path = /usr/share/contextkit/providers
+
+INSTALLS += contextprovider
+
 
 HEADERS += \
     waaccount.h \
@@ -136,10 +173,22 @@ OTHER_FILES += \
     invoker/waxmppaccount \
     waxmpp.service \
     wazapp.message.new.conf \
-    qtc_packaging/debian_harmattan/postinst
+    qtc_packaging/debian_harmattan/postinst \
+    qtc_packaging/debian_harmattan/rules \
+    qtc_packaging/debian_harmattan/README \
+    qtc_packaging/debian_harmattan/manifest.aegis \
+    qtc_packaging/debian_harmattan/copyright \
+    qtc_packaging/debian_harmattan/control \
+    qtc_packaging/debian_harmattan/compat \
+    qtc_packaging/debian_harmattan/changelog \
+    qtc_packaging/debian_harmattan/postinst \
+    qtc_packaging/debian_harmattan/prerm
 
 contains(MEEGO_EDITION,harmattan) {
     desktopfile.files = waxmppplugin.desktop
     desktopfile.path = /usr/share/applications
     INSTALLS += desktopfile
 }
+
+
+

@@ -39,7 +39,7 @@ Page {
 
         LabeledField{
             id:codeField
-            label: "Enter your 3 digit verification code"
+            label: qsTr("Enter your 3 digit verification code")
             inputMethodHints: Qt.ImhDigitsOnly
             input_size: "medium"
             width:parent.width
@@ -57,7 +57,7 @@ Page {
             spacing:3
             anchors.horizontalCenter: parent.horizontalCenter
             ToolButton {
-                text: qsTrId("Next")
+                text: qsTr("Next")
                 //enabled: mainPage.checkFilled()
                 onClicked: {
                     if(codeField.value.length ==3){
@@ -65,12 +65,12 @@ Page {
                         saveAccount(codeField.value);
                     }
                     else{
-                        showNotification("Please enter a valid code")
+                        showNotification(qsTr("Please enter a valid code"))
                     }
                 }
             }
             ToolButton {
-                text: qsTrId("Cancel and quit")
+                text: qsTr("Cancel and quit")
                 onClicked: Qt.quit()
             }
         }
@@ -78,7 +78,7 @@ Page {
 
     Label{
         width:parent.width
-        text:"*By registering and clicking next you agree to <a href='http://www.whatsapp.com/legal/#TOS'>Whatsapp's terms of service</a>"
+        text:qsTr("*By registering and clicking next you agree to <a href='http://www.whatsapp.com/legal/#TOS'>Whatsapp's terms of service</a>")
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
         onLinkActivated: Qt.openUrlExternally(link)

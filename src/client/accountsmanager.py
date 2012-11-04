@@ -21,9 +21,14 @@ from Accounts import *
 
 from utilities import Utilities
 
+
+from wadebug import AccountsDebug;
+
 class AccountsManager():
 	def __init__():
-		''''''
+		_d = AccountsDebug()
+		self._d = _d.d;
+		
 	@staticmethod
 	def getCurrentAccount():
 		account = AccountsManager.findAccount()
@@ -33,8 +38,10 @@ class AccountsManager():
 	
 	@staticmethod	
 	def findAccount():
+		d = AccountsDebug()
+		_d = d.d;
 		imsi = Utilities.getImsi()
-		print "Looking for %s "%(imsi)
+		_d("Looking for %s "%(imsi))
 		m = Manager()
 		accountIds = m.accountList()
 		
@@ -43,7 +50,7 @@ class AccountsManager():
 			services = a.services()
 			for s in services:
 				if s.name() == "waxmpp":
-					print "found waxmpp account with imsi: %s"%(a.valueAsString("imsi"))
+					_d("found waxmpp account with imsi: %s"%(a.valueAsString("imsi")))
 					if a.valueAsString("imsi") == imsi:
 						account = a
 						waaccount = WAAccount(account.valueAsString("cc"),account.valueAsString("phoneNumber"),account.valueAsString("username"),account.valueAsString("status"),account.valueAsString("pushName"),account.valueAsString("imsi"),account.valueAsString("password"));

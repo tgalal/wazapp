@@ -23,6 +23,8 @@ from PySide.QtNetwork import QNetworkSession, QNetworkConfigurationManager,QNetw
 import sys
 import PySide
 
+from wadebug import ConnMonDebug;
+
 class ConnMonitor(QObject):
 
 	connectionSwitched = QtCore.Signal();
@@ -31,6 +33,9 @@ class ConnMonitor(QObject):
 	
 	def __init__(self):
 		super(ConnMonitor,self).__init__();
+		
+		_d = ConnMonDebug();
+		self._d = _d.d;
 		
 		self.session = None
 		self.online = False
@@ -51,7 +56,7 @@ class ConnMonitor(QObject):
 	
 	
 	def sessionStateChanged(self,state):
-		print "state changed "+str(state);
+		self._d("state changed "+str(state));
 	
 	def createSession(self):
 		
@@ -66,23 +71,23 @@ class ConnMonitor(QObject):
 			if self.config is None:
 				self.config = config
 			else:
-				self.connected.emit()
 				self.createSession();
+				self.connected.emit()
 		
 	def onOnlineStateChanged(self,state):
 		self.online = state
 		if state:
 			self.connected.emit()
-		else:
+		elif not self.isOnline():
 			self.config = None
 			self.disconnected.emit()
 	
 	def onOnline(self):
-		print "ONLINE"
+		self._d("ONLINE")
 		#self.session = QNetworkSession(self.config)
 	
 	def onOffline(self):
-		print "OFFLINE";
+		self._d("OFFLINE");
 	
 
 		

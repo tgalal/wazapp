@@ -39,18 +39,18 @@ Page{
 
 
    Label{
-       text:"Click the next button to send the registration code to"
+       text:qsTr("Click the next button to send the registration code to")
    }
 
     Button{
         text:"Save"
         onClicked: {
-            if(push_field.value.trim() == ""){
-                showNotification("Push name cannot be left empty")
+            if(push_field.value.trim() === ""){
+                showNotification(qsTr("Push name cannot be left empty"))
             }
             else{
                 actor.savePushName(push_field.value)
-                showNotification("Push name saved");
+                showNotification(qsTr("Push name saved"));
 
             }
         }

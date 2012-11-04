@@ -17,27 +17,42 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with 
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
-import time, threading, select;
-from utilities import Utilities, S40MD5Digest
-from protocoltreenode import BinTreeNodeWriter,BinTreeNodeReader,ProtocolTreeNode
-from connengine import MySocketConnection
-from walogin import WALogin;
-from funstore import FunStore
-from waeventbase import WAEventBase
-#from contacts import WAContacts;
-from messagestore import Key;
-from notifier import Notifier
-from connmon import ConnMonitor
-import sys
-from constants import WAConstants
-from waexceptions import *
-from PySide import QtCore
-from PySide.QtCore import QThread, QTimer
-from PySide.QtGui import QApplication
-from waupdater import WAUpdater
-import thread
+#from InterfaceHandlers.DBus.DBusInterfaceHandler import DBusInterfaceHandler
+from InterfaceHandlers.Lib.LibInterfaceHandler import LibInterfaceHandler
 
-class WAEventHandler(WAEventBase):
+from PySide import QtCore
+from PySide.QtCore import Qt, QObject, QTimer
+from PySide.QtGui import QApplication, QImage, QPixmap, QTransform
+from connmon import ConnMonitor
+from constants import WAConstants
+from messagestore import Key
+from notifier import Notifier
+from time import sleep
+from wadebug import WADebug
+from wamediahandler import WAMediaHandler
+from waupdater import WAUpdater
+import base64
+import hashlib
+import os
+import shutil, datetime
+import thread
+import Image
+from PIL.ExifTags import TAGS
+import subprocess
+from Context.Provider import *
+from HTMLParser import HTMLParser
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+
+class WAEventHandler(QObject):
 	
 	connecting = QtCore.Signal()
 	connected = QtCore.Signal();
@@ -51,22 +66,47 @@ class WAEventHandler(WAEventBase):
 	available = QtCore.Signal(str);
 	unavailable = QtCore.Signal(str);
 	showUI = QtCore.Signal(str);
-	messageSent = QtCore.Signal(dict);
-	messageDelivered = QtCore.Signal(dict);
+	messageSent = QtCore.Signal(int,str);
+	messageDelivered = QtCore.Signal(int,str);
 	lastSeenUpdated = QtCore.Signal(str,int);
 	updateAvailable = QtCore.Signal(dict);
 	
+	##############Media#####################
+	mediaTransferSuccess = QtCore.Signal(int,str)
+	mediaTransferError = QtCore.Signal(int)
+	mediaTransferProgressUpdated = QtCore.Signal(int,int)
 	#########################################
 	
 	sendTyping = QtCore.Signal(str);
 	sendPaused = QtCore.Signal(str);
 	getLastOnline = QtCore.Signal(str);
-	
+	getGroupInfo = QtCore.Signal(str);
+	createGroupChat = QtCore.Signal(str);
+	groupCreated = QtCore.Signal(str);
+	groupCreateFailed = QtCore.Signal(int);
+	groupInfoUpdated = QtCore.Signal(str,str)
+	addParticipants = QtCore.Signal(str, str);
+	addedParticipants = QtCore.Signal();
+	removeParticipants = QtCore.Signal(str, str);
+	removedParticipants = QtCore.Signal();
+	getGroupParticipants = QtCore.Signal(str);
+	groupParticipants = QtCore.Signal(str, str);
+	endGroupChat = QtCore.Signal(str);
+	groupEnded = QtCore.Signal();
+	setGroupSubject = QtCore.Signal(str, str);
+	groupSubjectChanged = QtCore.Signal(str);
+	getPictureIds = QtCore.Signal(str);
+	profilePictureUpdated = QtCore.Signal(str);
+	setPushName = QtCore.Signal(str, str);
+	imageRotated = QtCore.Signal(str);
+	getPicturesFinished = QtCore.Signal();
+	changeStatus = QtCore.Signal(str);
+	statusChanged = QtCore.Signal();
 	doQuit = QtCore.Signal();
-	
-	
 
 	def __init__(self,conn):
+		
+		WADebug.attach(self);
 		self.conn = conn;
 		super(WAEventHandler,self).__init__();
 		
@@ -76,28 +116,159 @@ class WAEventHandler(WAEventBase):
 		self.connMonitor.connected.connect(self.networkAvailable);
 		self.connMonitor.disconnected.connect(self.networkDisconnected);
 		
+		self.account = "";
+
+		self.blockedContacts = "";
+
+		self.resizeImages = False;
+		self.disconnectRequested = False
+
+		#self.interfaceHandler = LibInterfaceHandler()
 		
+		self.jid = self.conn.jid
+		
+		self.username = self.jid.split('@')[0]
+
+		self.interfaceHandler = LibInterfaceHandler(self.username)
+		self.registerInterfaceSignals()
+		
+		self.interfaceVersion = self.interfaceHandler.call("getVersion")
+		
+		self._d("Using Yowsup version %s"%self.interfaceVersion)
 
 		
-		#self.connMonitor.sleeping.connect(self.networkUnavailable);
-		#self.connMonitor.checked.connect(self.checkConnection);
+		self.listJids = [];
+
+		self.mediaHandlers = []
+		self.sendTyping.connect(lambda *args: self.interfaceHandler.call("typing_send", args));
+		self.sendPaused.connect(lambda *args: self.interfaceHandler.call("typing_paused",args));
+		self.getLastOnline.connect(lambda *args: self.interfaceHandler.call("presence_request", args));
+		self.getGroupInfo.connect(lambda *args: self.interfaceHandler.call("group_getInfo", args));
+		self.createGroupChat.connect(lambda *args: self.interfaceHandler.call("group_create", args));
+		self.addParticipants.connect(lambda *args: self.interfaceHandler.call("group_addParticipants", args));
+		self.removeParticipants.connect(lambda *args: self.interfaceHandler.call("group_removeParticipants", args));
+		self.getGroupParticipants.connect(lambda *args: self.interfaceHandler.call("group_getParticipants", args));
+		self.endGroupChat.connect(lambda *args: self.interfaceHandler.call("group_end", args));
+		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, self.strip(subject))));
+		self.getPictureIds.connect(lambda *args: self.interfaceHandler.call("picture_getIds", args));
+		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (self.strip(status),)));
+
+		self.state = 0
 		
 		
-		self.sendTyping.connect(self.conn.sendTyping);
-		self.sendPaused.connect(self.conn.sendPaused);
-		self.getLastOnline.connect(self.conn.getLastOnline);
+	############### NEW BACKEND STUFF
+	def strip(self, text):
+		n = text.find("</body>")
+		text = text[:n]
+		s = MLStripper()
+		s.feed(text)
+		text = s.get_data().replace("p, li { white-space: pre-wrap; }","")
+		text = text.strip()
+		return text;
+
+	def authSuccess(self, username):
+		WAXMPP.contextproperty.setValue('online')
+		self.state = 2
+		self.connected.emit()
+		print "AUTH SUCCESS"
+		print username
+
+		#self.interfaceHandler.initSignals(connId)
+		#self.interfaceHandler.initMethods(connId)
+
+		#self.registerInterfaceSignals()
+
+		self.interfaceHandler.call("ready")
+
+		self.resendUnsent()
+
+	def authComplete(self):
+		pass
+
+	def authConnFail(self,username, err):
+		self.state = 0
+		print "Auth connection failed"
+		print err
+		if self.connMonitor.isOnline():
+			QTimer.singleShot(5000, lambda: self.networkAvailable() if self.connMonitor.isOnline() else False)
+
+
+	def authFail(self, username, err):
+		self.state = 0
+		self.loginFailed.emit()
+		print "AUTH FAILED FOR %s!!" % username
+
+
+	def registerInterfaceSignals(self):
+		self.interfaceHandler.connectToSignal("message_received", self.onMessageReceived)
+		self.interfaceHandler.connectToSignal("group_messageReceived", self.onMessageReceived)
+		#self.registerSignal("status_dirty", self.statusDirtyReceived) #ignored by whatsapp?
+		self.interfaceHandler.connectToSignal("receipt_messageSent", self.onMessageSent)
+		self.interfaceHandler.connectToSignal("receipt_messageDelivered", self.onMessageDelivered)
+		self.interfaceHandler.connectToSignal("receipt_visible", self.onMessageDelivered) #@@TODO check
+		self.interfaceHandler.connectToSignal("presence_available", self.presence_available_received)
+		self.interfaceHandler.connectToSignal("presence_unavailable", self.presence_unavailable_received)
+		self.interfaceHandler.connectToSignal("presence_updated", self.onLastSeen)
+
+		self.interfaceHandler.connectToSignal("contact_gotProfilePictureId", self.onProfilePictureIdReceived)
+		self.interfaceHandler.connectToSignal("contact_gotProfilePicture", self.onGetPictureDone)
+		self.interfaceHandler.connectToSignal("contact_typing", self.typing_received)
+		self.interfaceHandler.connectToSignal("contact_paused", self.paused_received)
+
+		self.interfaceHandler.connectToSignal("group_gotParticipants", self.onGroupParticipants)
+		self.interfaceHandler.connectToSignal("group_createSuccess", self.onGroupCreated)
+		self.interfaceHandler.connectToSignal("group_createFail", lambda errorCode: self.groupCreateFailed.emit(int(errorCode)))
+		self.interfaceHandler.connectToSignal("group_endSuccess", self.onGroupEnded)
+		self.interfaceHandler.connectToSignal("group_gotInfo", self.onGroupInfo)
+		self.interfaceHandler.connectToSignal("group_infoError", self.onGroupInfoError)
 		
-		self.connected.connect(self.conn.resendUnsent);
+		self.interfaceHandler.connectToSignal("group_addParticipantsSuccess", self.onAddedParticipants)
+		self.interfaceHandler.connectToSignal("group_removeParticipantsSuccess", self.onRemovedParticipants)
+		self.interfaceHandler.connectToSignal("group_setPictureSuccess",self.onSetGroupPicture)
+		self.interfaceHandler.connectToSignal("group_setPictureError",self.onSetGroupPictureError)
+		self.interfaceHandler.connectToSignal("group_gotPicture", self.onGetPictureDone)
+		self.interfaceHandler.connectToSignal("group_subjectReceived", self.onGroupSubjectReceived)
+		self.interfaceHandler.connectToSignal("group_setSubjectSuccess", self.onGroupSetSubjectSuccess)
+
+
+		self.interfaceHandler.connectToSignal("notification_contactProfilePictureUpdated", self.onContactProfilePictureUpdatedNotification)
+		self.interfaceHandler.connectToSignal("notification_groupParticipantAdded", self.onGroupParticipantAddedNotification)
+		self.interfaceHandler.connectToSignal("notification_groupParticipantRemoved", self.onGroupParticipantRemovedNotification)
+		self.interfaceHandler.connectToSignal("notification_groupPictureUpdated", self.onGroupPictureUpdatedNotification)
 		
-		self.pingTimer = QTimer();
-		self.pingTimer.timeout.connect(self.sendPing)
-		self.pingTimer.start(180000);
+		self.interfaceHandler.connectToSignal("disconnected", self.onDisconnected)
+
+
+		self.interfaceHandler.connectToSignal("image_received", self.onImageReceived)
+		self.interfaceHandler.connectToSignal("group_imageReceived", self.onImageReceived)
+
+		self.interfaceHandler.connectToSignal("audio_received", self.onAudioReceived)
+		self.interfaceHandler.connectToSignal("group_audioReceived", self.onAudioReceived)
+
+		self.interfaceHandler.connectToSignal("video_received", self.onVideoReceived)
+		self.interfaceHandler.connectToSignal("group_videoReceived", self.onVideoReceived)
+
+		self.interfaceHandler.connectToSignal("location_received", self.onLocationReceived)
+		self.interfaceHandler.connectToSignal("group_locationReceived", self.onLocationReceived)
 		
-		#self.connMonitor.start();
+		self.interfaceHandler.connectToSignal("vcard_received", self.onVCardReceived)
+		self.interfaceHandler.connectToSignal("group_vcardReceived", self.onVCardReceived)
 		
+		self.interfaceHandler.connectToSignal("message_error", self.onMessageError)
+		
+		self.interfaceHandler.connectToSignal("profile_setPictureSuccess", self.onSetProfilePicture)
+		self.interfaceHandler.connectToSignal("profile_setPictureError", self.onSetProfilePictureError)
+		
+		self.interfaceHandler.connectToSignal("profile_setStatusSuccess", self.onProfileSetStatusSuccess)
+		
+		self.interfaceHandler.connectToSignal("auth_success", self.authSuccess)
+		self.interfaceHandler.connectToSignal("auth_fail", self.authFail)
+
+
+	################################################################
 	
 	def quit(self):
-		Utilities.debug("got quit!!!")
+		
 		#self.connMonitor.exit()
 		#self.conn.disconnect()
 		
@@ -107,6 +278,8 @@ class WAEventHandler(WAEventBase):
 		del self.conn.login
 		del self.conn.stanzaReader'''
 		#del self.conn
+		WAXMPP.contextproperty.setValue('offline')
+		self.interfaceHandler.call("disconnect")
 		self.doQuit.emit();
 		
 	
@@ -115,39 +288,536 @@ class WAEventHandler(WAEventBase):
 			self.connMonitor.connected.emit()
 		else:
 			self.connMonitor.createSession();
-		
+	
+	def setMyAccount(self, account):
+		self.account = account
 	
 	def onFocus(self):
 		'''self.notifier.disable()'''
 		
 	def onUnfocus(self):
-		'''self.notifier.enable();'''
-	
-	def checkConnection(self):
-		try:
-			if self.conn.state == 0:
-				raise Exception("Not connected");
-			elif self.conn.state == 2:
-				self.conn.sendPing();
-		except:
-			print "Connection crashed, reason: %s"%sys.exc_info()[1]
-			self.networkDisconnected()
-			self.networkAvailable();
-			
-		Utilities.debug("CHECK PASSEDDDDDDDDDDDDDDD")
+		'''self.notifier.enable();'''	
 	
 	def onLoginFailed(self):
 		self.loginFailed.emit()
 	
-	def onLastSeen(self,jid,seconds,status):
-		print "GOT LAST SEEN ON FROM %s"%(jid)
+	def onLastSeen(self,jid,seconds):
+		self._d("GOT LAST SEEN ON FROM %s"%(jid))
 		
 		if seconds is not None:
 			self.lastSeenUpdated.emit(jid,int(seconds));
-		
+
+
+	def resendUnsent(self):
+		'''
+			Resends all unsent messages, should invoke on connect
+		'''
+
+
+		messages = WAXMPP.message_store.getUnsent();
+		self._d("Resending %i old messages"%(len(messages)))
+		for m in messages:
+			media = m.getMedia()
+			jid = m.getConversation().getJid()
+			if media is not None:
+				if media.transfer_status == 2:
+					if media.mediatype_id == 6:
+						vcard = self.readVCard(m.content)
+						if vcard:
+							resultId = self.interfaceHandler.call("message_vcardSend", (jid, vcard, m.content))
+							k = Key(jid, True, resultId)
+							m.key = k.toString()
+							m.save()
+										
+					elif media.mediatype_id == 5:
+						
+							latitude,longitude = media.local_path.split(',')
+							
+							resultId = self.interfaceHandler.call("message_locationSend", (jid, latitude, longitude, media.preview))
+							k = Key(jid, True, resultId)
+							m.key = k.toString()
+							m.save()
+					else:
+						media.transfer_status = 1
+						media.save()
+			else:
+				try:
+					msgId = self.interfaceHandler.call("message_send", (jid, m.content.encode('utf-8')))
+					m.key = Key(jid, True, msgId).toString()
+					m.save()
+				except UnicodeDecodeError:
+					self._d("skipped sending an old message because UnicodeDecodeError")
+
+		self._d("Resending old messages done")
+
+	def getDisplayPicture(self, jid = None):
+		picture = "/opt/waxmppplugin/bin/wazapp/UI/common/images/user.png"
+		if jid is None:
+			return picture
+
+		try:
+			jid.index('-')
+			jid = jid.replace("@g.us","")
+			if os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + jid + ".png"):
+				picture = WAConstants.CACHE_PATH+"/contacts/" + jid + ".png"
+			else:
+				picture =  WAConstants.DEFAULT_GROUP_PICTURE
+
+		except ValueError:
+			if jid is not None and os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + jid.replace("@s.whatsapp.net","") + ".png"):
+				picture = WAConstants.CACHE_PATH+"/contacts/" + jid.replace("@s.whatsapp.net","") + ".png"
+			else:
+				picture = WAConstants.DEFAULT_CONTACT_PICTURE
+		return picture
+
+
+
+	##SECTION MESSAGERECEPTION##
+	def preMessageReceived(fn):
+
+		def wrapped(self, *args):
+			messageId = args[0]
+			jid = args[1]
+			if WAXMPP.message_store.messageExists(jid, messageId):
+				self.interfaceHandler.call("message_ack", (jid, messageId))
+				return
+
+
+
+			key = Key(jid,False,messageId);
+			msg = WAXMPP.message_store.createMessage(jid)
+
+			author = jid
+			isGroup = WAXMPP.message_store.isGroupJid(jid)
+			if isGroup:
+				author = args[2]
+
+			msgContact =  WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+
+			msg.Contact = msgContact
+			msg.setData({"status":0,"key":key.toString(),"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
+			msg.contact_id = msgContact.id
+
+			return fn(self,msg, *args[2:]) if author == jid else fn(self,msg, *args[3:]) #omits author as well if group
+
+		return wrapped
+
+	def postMessageReceived(fn):
+		def wrapped(self, *args):
+			message = fn(self, *args)
+			contact = message.getContact()
+			conversation = message.getConversation()
+
+			try:
+				contact = WAXMPP.message_store.store.getCachedContacts()[contact.number];
+			except:
+				pass
+
+
+			msgPicture = self.getDisplayPicture(conversation.getJid())
+			WAXMPP.message_store.pushMessage(conversation.getJid(), message)
+			conversation.incrementNew()
+
+
+			if conversation.isGroup():
+				self.notifier.newGroupMessage(conversation.getJid(), "%s - %s"%(contact.name or contact.number,conversation.subject.decode("utf8") if conversation.subject else ""), message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+			else:
+				self.notifier.newSingleMessage(contact.jid, contact.name or contact.number, message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+
+			if message.wantsReceipt:
+				self.interfaceHandler.call("message_ack", (conversation.getJid(), eval(message.key).id))
+
+		return wrapped
 	
+	@preMessageReceived
+	def onMessageError(self,message,errorCode):
+		self._d("Message Error {0}\n Error Code: {1}".format(message,str(errorCode)));
+	
+	@preMessageReceived
+	@postMessageReceived
+	def onMessageReceived(self, message, content, timestamp, wantsReceipt, pushName=""):
+
+		if content is not None:
+
+			content = content#.encode('utf-8')
+			message.timestamp = timestamp
+			message.content = content
+
+		message.wantsReceipt = wantsReceipt
+		return message
+
+	@preMessageReceived
+	@postMessageReceived
+	def onImageReceived(self, message, preview, url, size, wantsReceipt = True):
+		
+		self._d("MEDIA SIZE IS "+str(size))
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.remote_url = url
+		mediaItem.preview = preview
+		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_IMAGE
+		mediaItem.size = size
+
+		message.content = QtCore.QCoreApplication.translate("WAEventHandler", "Image")
+		message.Media = mediaItem
+		message.wantsReceipt = wantsReceipt
+
+		return message
+
+
+	@preMessageReceived
+	@postMessageReceived
+	def onVideoReceived(self, message, preview, url, size, wantsReceipt = True):
+
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.remote_url = url
+		mediaItem.preview = preview
+		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VIDEO
+		mediaItem.size = size
+
+		message.content = QtCore.QCoreApplication.translate("WAEventHandler", "Video")
+		message.Media = mediaItem
+		message.wantsReceipt = wantsReceipt
+
+		return message
+
+	@preMessageReceived
+	@postMessageReceived
+	def onAudioReceived(self, message, url, size, wantsReceipt = True):
+
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.remote_url = url
+		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_AUDIO
+		mediaItem.size = size
+
+		message.content = QtCore.QCoreApplication.translate("WAEventHandler", "Audio")
+		message.Media = mediaItem
+		message.wantsReceipt = wantsReceipt
+
+		return message
+
+	@preMessageReceived
+	@postMessageReceived
+	def onLocationReceived(self, message, name, preview, latitude, longitude, wantsReceipt = True):
+
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.remote_url = None
+		mediaItem.preview = preview
+		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_LOCATION
+
+		mediaItem.local_path ="%s,%s"%(latitude, longitude)
+		mediaItem.transfer_status = 2
+
+		message.content = name or QtCore.QCoreApplication.translate("WAEventHandler", "Location")
+		message.Media = mediaItem
+		message.wantsReceipt = wantsReceipt
+
+		return message
+
+	@preMessageReceived
+	@postMessageReceived
+	def onVCardReceived(self, message, name, data, wantsReceipt = True):
+
+		targetPath = WAConstants.VCARD_PATH + "/" + name + ".vcf"
+		vcardImage = None
+
+		vcardFile = open(targetPath, "w")
+		vcardFile.write(data)
+		vcardFile.close()
+
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_VCARD
+		mediaItem.transfer_status = 2
+		mediaItem.local_path = targetPath
+
+		if "PHOTO;BASE64" in data:
+			print "GETTING BASE64 PICTURE"
+			n = data.find("PHOTO;BASE64") +13
+			vcardImage = data[n:]
+			vcardImage = vcardImage.replace("END:VCARD","")
+
+
+		elif "PHOTO;TYPE=JPEG" in data:
+			n = data.find("PHOTO;TYPE=JPEG") +27
+			vcardImage = data[n:]
+			vcardImage = vcardImage.replace("END:VCARD","")
+
+		elif "PHOTO;TYPE=PNG" in data:
+			n = data.find("PHOTO;TYPE=PNG") +26
+			vcardImage = data[n:]
+			vcardImage = vcardImage.replace("END:VCARD","")
+
+		mediaItem.preview = vcardImage
+
+		message.content = name
+		message.Media = mediaItem
+		message.wantsReceipt = wantsReceipt
+
+		return message
+
+
+	## ENDSECTION MESSAGERECEPTION ##
+	
+	## MEDIA SEND/ RECEIVE ##
+	
+	def getPicture(self, jid):
+		if WAXMPP.message_store.isGroupJid(jid):
+			self.interfaceHandler.call("group_getPicture", (jid,))
+		else:
+			self.interfaceHandler.call("contact_getProfilePicture", (jid,))
+	
+	def fetchMedia(self,mediaId):
+		mediaMessage = WAXMPP.message_store.store.Message.create()
+		message = mediaMessage.findFirst({"media_id":mediaId})
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+		
+		mediaHandler = WAMediaHandler(jid,message.id,media.remote_url,media.mediatype_id,media.id,self.account)
+		
+		mediaHandler.success.connect(self._mediaTransferSuccess)
+		mediaHandler.error.connect(self._mediaTransferError)
+		mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+		
+		mediaHandler.pull();
+		
+		self.mediaHandlers.append(mediaHandler);
+		
+	def fetchGroupMedia(self,mediaId):
+		
+		mediaMessage = WAXMPP.message_store.store.Groupmessage.create()
+		message = mediaMessage.findFirst({"media_id":mediaId})
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+		
+		mediaHandler = WAMediaHandler(jid,message.id,media.remote_url,media.mediatype_id,media.id,self.account)
+		
+		mediaHandler.success.connect(self._mediaTransferSuccess)
+		mediaHandler.error.connect(self._mediaTransferError)
+		mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+		
+		mediaHandler.pull();
+		
+		self.mediaHandlers.append(mediaHandler);
+	
+
+	def uploadMedia(self,mediaId):
+		mediaMessage = WAXMPP.message_store.store.Message.create()
+		message = mediaMessage.findFirst({"media_id":mediaId})
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+		
+		mediaHandler = WAMediaHandler(jid,message.id,media.local_path,media.mediatype_id,media.id,self.account,self.resizeImages)
+		
+		mediaHandler.success.connect(self._mediaTransferSuccess)
+		mediaHandler.error.connect(self._mediaTransferError)
+		mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+		
+		mediaHandler.push();
+		
+		self.mediaHandlers.append(mediaHandler);
+		
+	def uploadGroupMedia(self,mediaId):
+		mediaMessage = WAXMPP.message_store.store.Groupmessage.create()
+		message = mediaMessage.findFirst({"media_id":mediaId})
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+		
+		mediaHandler = WAMediaHandler(jid,message.id,media.local_path,media.mediatype_id,media.id,self.account,self.resizeImages)
+		
+		mediaHandler.success.connect(self._mediaTransferSuccess)
+		mediaHandler.error.connect(self._mediaTransferError)
+		mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+		
+		mediaHandler.push();
+		
+		self.mediaHandlers.append(mediaHandler);
+	
+	
+	def _mediaTransferSuccess(self, jid, messageId, data, action, mediaId):
+		try:
+			jid.index('-')
+			message = WAXMPP.message_store.store.Groupmessage.create()
+		
+		except ValueError:
+			message = WAXMPP.message_store.store.Message.create()
+		
+		message = message.findFirst({'id':messageId});
+		
+		if(message.id):
+			print "MULTIMEDIA HANDLING DONE! ACTION: " + action
+			media = message.getMedia()
+			if (action=="download"):
+				#media.preview = data if media.mediatype_id == WAConstants.MEDIA_TYPE_IMAGE else None
+				media.local_path = data
+			else:
+				media.remote_url = data
+			media.transfer_status = 2
+			media.save()
+			self._d(media.getModelData())
+			self.mediaTransferSuccess.emit(mediaId,media.local_path)
+			if (action=="upload"):
+				self.sendMediaMessage(jid,messageId,data)
+
+		
+	def _mediaTransferError(self, jid, messageId, mediaId):
+		print "MULTIMEDIA HANDLING ERROR!!!"
+		try:
+			jid.index('-')
+			message = WAXMPP.message_store.store.Groupmessage.create()
+		
+		except ValueError:
+			message = WAXMPP.message_store.store.Message.create()
+		
+		message = message.findFirst({'id':messageId});
+		
+		if(message.id):
+			media = message.getMedia()
+			media.transfer_status = 1
+			media.save()
+			self.mediaTransferError.emit(mediaId)
+
+	## END MEDIA SEND/ RECEIVE ##
+
+	## SECTION: NOTIFICATIONS ##
+	
+	def onNotificationReceiptRequested(self, jid, notificationId):
+		self.interfaceHandler.call("notification_ack", (jid, notificationId))
+
+
+	def onContactProfilePictureUpdatedNotification(self, jid, timestamp, messageId, wantsReceipt = True):
+		if wantsReceipt:
+			self.onNotificationReceiptRequested(jid, messageId)
+
+
+		if WAXMPP.message_store.messageExists(jid, messageId):
+			return
+		
+		self.interfaceHandler.call("contact_getProfilePicture", (jid,))
+
+	def onGroupPictureUpdatedNotification(self, jid, author, timestamp, messageId, wantsReceipt = True):
+		if wantsReceipt:
+			self.onNotificationReceiptRequested(jid, messageId)
+
+		if WAXMPP.message_store.messageExists(jid, messageId):
+			return
+
+		
+		key = Key(jid, False, messageId)
+		msg = WAXMPP.message_store.createMessage(jid)
+		msg.setData({"timestamp": timestamp,"status":0,"key":key.toString(),"content":jid,"type":23})
+
+
+		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+		msg.contact_id = contact.id
+
+		msg.Conversation = WAXMPP.message_store.getOrCreateConversationByJid(jid)
+
+		msg.content = author#QtCore.QCoreApplication.translate("WAEventHandler", "%1 changed the group picture")
+
+		selfChange = contact.number == self.account
+		msg.content = msg.content.replace("%1", (contact.name or contact.number) if not selfChange else "You")
+
+		WAXMPP.message_store.pushMessage(jid, msg)
+
+		if not selfChange:
+			self.interfaceHandler.call("contact_getProfilePicture", (jid,)) #@@TODO CHECK NAMING FOR GROUPS
+
+
+	def onGroupParticipantAddedNotification(self, gJid, jid, author, timestamp, messageId, wantsReceipt = True):
+		if wantsReceipt:
+			self.onNotificationReceiptRequested(gJid, messageId)
+
+		if WAXMPP.message_store.messageExists(jid, messageId):
+			return
+
+		key = Key(gJid, False, messageId)
+
+		if jid == self.account:
+			print "THIS IS ME! GETTING OWNER..."
+			jid = gJid.split('-')[0]+"@s.whatsapp.net"
+		self._d("Contact added: " + jid)
+
+		msg = WAXMPP.message_store.createMessage(gJid)
+		msg.setData({"timestamp": timestamp,"status":0,"key":key.toString(),"content":jid,"type":20})
+
+		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(jid)
+		msg.contact_id = contact.id
+		msg.content = jid
+				
+		msg.Conversation = WAXMPP.message_store.getOrCreateConversationByJid(gJid)
+		msg.Conversation.subject = "" if msg.Conversation.subject is None else msg.Conversation.subject
+
+		if author == jid:
+			notifyContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 joined the group")
+			notifyContent = msg.content.replace("%1", contact.name or contact.number)
+		else:
+			authorContact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+			notifyContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 added %2 to the group")
+			notifyContent.replace("%1", authorContact.name or authorContact.number)
+			notifyContent = msg.content.replace("%2", contact.name or contact.number)
+			msg.contact_id = authorContact.id
+
+		WAXMPP.message_store.pushMessage(gJid,msg)
+
+		self.notifier.newGroupMessage(gJid, "%s - %s"%(contact.name or contact.number, msg.Conversation.subject.decode("utf8")), notifyContent, self.getDisplayPicture(gJid).encode('utf-8'),callback = self.notificationClicked);
+		
+
+	def onGroupParticipantRemovedNotification(self, gJid, jid, author, timestamp, messageId, wantsReceipt = True):
+		if wantsReceipt:
+			self.onNotificationReceiptRequested(gJid, messageId)
+
+		if WAXMPP.message_store.messageExists(jid, messageId):
+			return
+
+		key = Key(gJid, False, messageId)
+
+		if jid == self.account:
+			print "THIS IS ME! GETTING OWNER..."
+			jid = gJid.split('-')[0]+"@s.whatsapp.net"
+		self._d("Contact removed: " + jid)
+
+		msg = WAXMPP.message_store.createMessage(gJid)
+		msg.setData({"timestamp": timestamp,"status":0,"key":key.toString(),"content":jid,"type":21});
+		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(jid)
+		msg.contact_id = contact.id
+		msg.content = jid
+
+		msg.Conversation = WAXMPP.message_store.getOrCreateConversationByJid(gJid)
+		msg.Conversation.subject = "" if msg.Conversation.subject is None else msg.Conversation.subject
+
+		if author == jid:
+			notifyContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 left the group")
+			notifyContent = msg.content.replace("%1", contact.name or contact.number)
+		else:
+			authorContact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(author)
+			notifyContent = QtCore.QCoreApplication.translate("WAEventHandler", "%1 removed %2 from the group")
+			notifyContent.replace("%1", authorContact.name or authorContact.number)
+			notifyContent = msg.content.replace("%2", contact.name or contact.number)
+			msg.contact_id = authorContact.id
+
+		WAXMPP.message_store.pushMessage(gJid,msg)
+
+		self.notifier.newGroupMessage(gJid, "%s - %s"%(contact.name or contact.number, msg.Conversation.subject.decode("utf8")), notifyContent, self.getDisplayPicture(gJid).encode('utf-8'),callback = self.notificationClicked);
+		
+	##ENDSECTION NOTIFICATIONS##
+	
+	def onGroupSetSubjectSuccess(self, jid):
+		self.groupSubjectChanged.emit(jid);
+	
+	def onGroupSubjectReceived(self,  msgId, jid, author, newSubject, timestamp, receiptRequested):
+
+		self._d("Got group subject update")
+		g = WAXMPP.message_store.getOrCreateConversationByJid(jid);
+		contact = g.getOwner();
+		cjid = contact.jid if contact is not 0 else "";
+		
+		self.onGroupInfo(jid,cjid,newSubject,author,timestamp,g.created);
+
+	
+		if receiptRequested:
+			self.interfaceHandler.call("message_ack", (jid, msgId))
+
 	def onDirty(self,categories):
-		print categories
+		self._d(categories)
 		#ignored by whatsapp?
 	
 	def onAccountChanged(self,account_kind,expire):
@@ -159,474 +829,688 @@ class WAEventHandler(WAEventBase):
 		return
 	
 	def sendPing(self):
-		print "Pinging"
+		self._d("Pinging")
 		if self.connMonitor.isOnline() and self.conn.state == 2:
 			self.conn.sendPing();
 		else:
 			self.connMonitor.createSession();
-	
-	def onPing(self,idx):
-		print "Sending PONG"
-		self.conn.sendPong(idx)
 		
 	
 	def wtf(self,what):
-		print "%s, WTF SHOULD I DO NOW???"%(what)
+		self._d("%s, WTF SHOULD I DO NOW???"%(what))
 	
 		
 	
 	def networkAvailable(self):
-		print "NET AVAILABLE"
+		if self.state != 0:
+			return
+		self._d("NET AVAILABLE")
 		self.updater = WAUpdater()
 		self.updater.updateAvailable.connect(self.updateAvailable)
 		
-		
+		WAXMPP.contextproperty.setValue('connecting')
 		self.connecting.emit();
+		self.disconnectRequested = False
 		
 		#thread.start_new_thread(self.conn.changeState, (2,))
+		self.state = 1
+		#self.authenticate("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2")
+		#self.interfaceHandler.call("auth_login", ("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2"))
+		self.interfaceHandler.call("auth_login", (self.conn.user, self.conn.password))
 		
-		self.conn.changeState(2);
-		self.updater.run()
+		self._d("AUTH CALLED")
+		
+		#self.updater.run()
 		
 		#self.conn.disconnect()
 		
 		
-		
+	def onDisconnected(self, reason):
+		WAXMPP.contextproperty.setValue('offline')
+		self._d("Got disconnected because %s"%reason)
+		self.state = 0
+		self.disconnected.emit()
+
+		if reason == "":
+			return
+		elif reason == "closed" or reason == "dns" or reason == "network":
+			if self.connMonitor.isOnline():
+				self.networkAvailable()
+			elif reason == "network":
+				self.sleeping.emit()
+		#@@TODO ADD reason another connection
 		
 	def networkDisconnected(self):
+		self.state = 0
+		#self.interfaceHandler.call("disconnect")
+		'''if self.connMonitor.isOnline():
+			self.networkAvailable()
+			return
+		'''
 		self.sleeping.emit();
-		self.conn.changeState(0);
+		
 		#thread.start_new_thread(self.conn.changeState, (0,))
 		#self.conn.disconnect();
-		print "NET SLEEPING"
+		if not self.disconnectRequested:
+			self.disconnectRequested = True
+			thread.start_new_thread(lambda: self.interfaceHandler.call("disconnect", ("network",)), ())
+		self._d("NET SLEEPING")
+		
 		
 	def networkUnavailable(self):
 		self.disconnected.emit();
-		print "NET UNAVAILABLE";
+		self.interfaceHandler.call("disconnect")
+		self._d("NET UNAVAILABLE");
 		
 		
 	def onUnavailable(self):
-		print "SEND UNAVAILABLE"
-		self.conn.sendUnavailable();
+		self._d("SEND UNAVAILABLE")
+		self.interfaceHandler.call("presence_sendUnavailable")
 	
 	
 	def conversationOpened(self,jid):
 		self.notifier.hideNotification(jid);
 	
 	def onAvailable(self):
-		self.conn.sendAvailable();
-	
-	def send_message(self,to_id,msg_text):
+		if self.state == 2:
+			self.interfaceHandler.call("presence_sendAvailable")
 		
-		fmsg = WAXMPP.message_store.store.Message.create();
-		conversation = WAXMPP.message_store.getOrCreateConversationByJid(to_id);
-		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"conversation_id":conversation.id,"type":1})
-		WAXMPP.message_store.pushMessage(fmsg)
-		
-		self.conn.sendMessageWithBody(fmsg);
 	
-	def notificationClicked(self,jid):
-		print "SHOW UI for "+jid
-		self.showUI.emit(jid);
+	def sendMessage(self,jid,msg_text):
+		msg_text = self.strip(msg_text);
+		self._d("sending message now")
+		fmsg = WAXMPP.message_store.createMessage(jid);
+		
+		
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		msg_text = msg_text.replace("&quot;","\"")
+		msg_text = msg_text.replace("&amp;", "&");
+		msg_text = msg_text.replace("&lt;", "<");
+		msg_text = msg_text.replace("&gt;", ">");
+		msg_text = msg_text.replace("<br />", "\n");
 
-	def message_received(self,fmsg,duplicate = False):
-		msg_type = "duplicate" if duplicate else "new";
+		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
 
-		if fmsg.content is not None:
-			#self.new_message.emit({"data":fmsg.content,"user_id":fmsg.getContact().jid})
+		msgId = self.interfaceHandler.call("message_send", (jid, msg_text.encode('utf-8')))
+
+		fmsg.key = Key(jid, True, msgId).toString()
+		fmsg.save()
+		#self.conn.sendMessageWithBody(fmsg);
+
+	def sendLocation(self, jid, latitude, longitude, rotate):
+		latitude = latitude[:10]
+		longitude = longitude[:10]
+
+		self._d("Capturing preview...")
+		QPixmap.grabWindow(QApplication.desktop().winId()).save(WAConstants.CACHE_PATH+"/tempimg.png", "PNG")
+		img = QImage(WAConstants.CACHE_PATH+"/tempimg.png")
+
+		if rotate == "true":
+			rot = QTransform()
+			rot = rot.rotate(90)
+			img = img.transformed(rot)
+
+		if img.height() > img.width():
+			result = img.scaledToWidth(320,Qt.SmoothTransformation);
+			result = result.copy(result.width()/2-50,result.height()/2-50,100,100);
+		elif img.height() < img.width():
+			result = img.scaledToHeight(320,Qt.SmoothTransformation);
+			result = result.copy(result.width()/2-50,result.height()/2-50,100,100);
+		#result = img.scaled(96, 96, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation);
+
+		result.save( WAConstants.CACHE_PATH+"/tempimg2.jpg", "JPG" );
+
+		f = open(WAConstants.CACHE_PATH+"/tempimg2.jpg", 'r')
+		stream = base64.b64encode(f.read())
+		f.close()
+
+
+		os.remove(WAConstants.CACHE_PATH+"/tempimg.png")
+		os.remove(WAConstants.CACHE_PATH+"/tempimg2.jpg")
+
+		fmsg = WAXMPP.message_store.createMessage(jid);
+		
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = WAConstants.MEDIA_TYPE_LOCATION
+		mediaItem.remote_url = None
+		mediaItem.preview = stream
+		mediaItem.local_path ="%s,%s"%(latitude,longitude)
+		mediaItem.transfer_status = 2
+
+		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Location")
+		fmsg.Media = mediaItem
+
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
+		
+		
+		resultId = self.interfaceHandler.call("message_locationSend", (jid, latitude, longitude, stream))
+		k = Key(jid, True, resultId)
+		fmsg.key = k.toString()
+		fmsg.save()
+
+
+	def setBlockedContacts(self,contacts):
+		self._d("Blocked contacts: " + contacts)
+		self.blockedContacts = contacts;
+
+	
+	def setResizeImages(self,resize):
+		self._d("Resize images: " + str(resize))
+		self.resizeImages = resize;
+
+	def setPersonalRingtone(self,value):
+		self._d("Personal Ringtone: " + str(value))
+		self.notifier.personalRingtone = value;
+
+	def setPersonalVibrate(self,value):
+		self._d("Personal Vibrate: " + str(value))
+		self.notifier.personalVibrate = value;
+
+	def setGroupRingtone(self,value):
+		self._d("Group Ringtone: " + str(value))
+		self.notifier.groupRingtone = value;
+
+	def setGroupVibrate(self,value):
+		self._d("Group Vibrate: " + str(value))
+		self.notifier.groupVibrate = value;
+
+	
+	def readVCard(self, contactName):
+		
+		path = WAConstants.VCARD_PATH + "/"+contactName+".vcf"
+		stream = ""
+		if os.path.exists(path):
 			try:
-				msg_contact = WAXMPP.message_store.store.getCachedContacts()[fmsg.getContact().number];
-			except:
-				msg_contact = WAXMPP.message_store.store.Contact.create()
-				msg_contact.name= fmsg.getContact().number
-				msg_contact.picture = WAConstants.DEFAULT_CONTACT_PICTURE
-				msg_contact.jid = eval(fmsg.key.toString()).remote_jid
+				while not "END:VCARD" in stream:
+					f = open(path, 'r')
+					stream = f.read()
+					f.close()
+					sleep(0.1)
+					
 				
-			
-			self.notifier.newMessage(msg_contact.jid, msg_contact.name, fmsg.content,None if type(msg_contact.picture) == str else str(msg_contact.picture.path()),callback = self.notificationClicked);
-			
-			Utilities.debug("A {msg_type} message was received: {data}".format(msg_type=msg_type, data=fmsg.content));
-		else:
-			Utilities.debug("A {msg_type} message was received".format(msg_type=msg_type));
+				if len(stream) > 65536:
+					print "Vcard too large! Removing photo..."
+					n = stream.find("PHOTO")
+					stream = stream[:n] + "END:VCARD"
+					f = open(path, 'w')
+					f.write(stream)
+					f.close()
+			except:
+				pass
+		
+		return stream
+	
+	def sendVCard(self,jid,contactName):
+		contactName = contactName.encode('utf-8')
+		self._d("Sending vcard: " + WAConstants.VCARD_PATH + "/" + contactName + ".vcf")
 
-		if(fmsg.wantsReceipt):
-			self.conn.sendMessageReceived(fmsg);
+		
+		stream = self.readVCard(contactName)
+		if not stream:
+			return
+		#print "DATA: " + stream
+
+		fmsg = WAXMPP.message_store.createMessage(jid);
+		
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = 6
+		mediaItem.remote_url = None
+		mediaItem.local_path = WAConstants.VCARD_PATH + "/"+contactName+".vcf"
+		mediaItem.transfer_status = 2
+
+		vcardImage = ""
+
+		if "PHOTO;BASE64" in stream:
+			n = stream.find("PHOTO;BASE64") +13
+			vcardImage = stream[n:]
+			vcardImage = vcardImage.replace("END:VCARD","")
+			#mediaItem.preview = vcardImage
+
+		if "PHOTO;TYPE=JPEG" in stream:
+			n = stream.find("PHOTO;TYPE=JPEG") +27
+			vcardImage = stream[n:]
+			vcardImage = vcardImage.replace("END:VCARD","")
+			#mediaItem.preview = vcardImage
+
+		if "PHOTO;TYPE=PNG" in stream:
+			n = stream.find("PHOTO;TYPE=PNG") +26
+			vcardImage = stream[n:]
+			vcardImage = vcardImage.replace("END:VCARD","")
+			#mediaItem.preview = vcardImage
+
+		mediaItem.preview = vcardImage
+
+		fmsg.content = contactName
+		fmsg.Media = mediaItem
+
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
+		
+		resultId = self.interfaceHandler.call("message_vcardSend", (jid, stream, contactName))
+		k = Key(jid, True, resultId)
+		fmsg.key = k.toString()
+		fmsg.save()
+
+		
+	def setGroupPicture(self, jid, filepath):
+		path = self._getPictureForSending(jid, filepath)
+		self.interfaceHandler.call("group_setPicture", (jid, path))
+		
+	def setProfilePicture(self, filepath):
+		path = self._getPictureForSending(self.jid, filepath)
+		self.interfaceHandler.call("profile_setPicture", (path,))
+	
+	def _getPictureForSending(self, jid, filepath):
+		print "Preparing picture " + filepath + " for " + jid
+		image = filepath.replace("file://","")
+		rotation = 0
+
+		ret = {}
+		im = Image.open(image)
+		try:
+			info = im._getexif()
+			for tag, value in info.items():
+				decoded = TAGS.get(tag, value)
+				ret[decoded] = value
+			if ret['Orientation'] == 6:
+				rotation = 90
+		except:
+			rotation = 0
+
+		user_img = QImage(image)
+
+		if rotation == 90:
+			rot = QTransform()
+			rot = rot.rotate(90)
+			user_img = user_img.transformed(rot)
+
+
+		if user_img.height() > user_img.width():
+			preimg = user_img.scaledToWidth(480, Qt.SmoothTransformation)
+			preimg = preimg.copy( 0, preimg.height()/2-240, 480, 480);
+		elif user_img.height() < user_img.width():
+			preimg = user_img.scaledToHeight(480, Qt.SmoothTransformation)
+			preimg = preimg.copy( preimg.width()/2-240, 0, 480, 480);
+		else:
+			preimg = user_img.scaled(480, 480, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+
+		preimg.save(WAConstants.CACHE_PATH+"/temp.jpg", "JPG")
+
+		''''f = open(WAConstants.CACHE_PATH+"/temp.jpg", 'r')
+		stream = f.read()
+		stream = bytearray(stream)
+		f.close()
+		'''
+		
+		return WAConstants.CACHE_PATH+"/temp.jpg"
+		
+
+
+	def sendMediaImageFile(self,jid,image):
+		image = image.replace("file://","")
+
+		user_img = QImage(image)
+
+		if user_img.height() > user_img.width():
+			preimg = QPixmap.fromImage(QImage(user_img.scaledToWidth(64, Qt.SmoothTransformation)))
+		elif user_img.height() < user_img.width():
+			preimg = QPixmap.fromImage(QImage(user_img.scaledToHeight(64, Qt.SmoothTransformation)))
+		else:
+			preimg = QPixmap.fromImage(QImage(user_img.scaled(64, 64, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)))
+
+		preimg.save(WAConstants.CACHE_PATH+"/temp2.png", "PNG")
+		f = open(WAConstants.CACHE_PATH+"/temp2.png", 'r')
+		stream = base64.b64encode(f.read())
+		f.close()
+
+		self._d("creating PICTURE MMS for " +jid + " - file: " + image)
+		fmsg = WAXMPP.message_store.createMessage(jid);
+		
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = 2
+		mediaItem.local_path = image
+		mediaItem.transfer_status = 0
+		mediaItem.preview = stream
+		try:
+			mediaItem.size = os.path.getsize(mediaItem.local_path)
+		except:
+			pass
+
+		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Image")
+		fmsg.Media = mediaItem
+
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
+		
+
+	def sendMediaVideoFile(self,jid,video,image):
+		self._d("creating VIDEO MMS for " +jid + " - file: " + video)
+		fmsg = WAXMPP.message_store.createMessage(jid);
+
+		if image == "NOPREVIEW":
+			m = hashlib.md5()
+			url = QtCore.QUrl(video).toEncoded()
+			m.update(url)
+			image = WAConstants.THUMBS_PATH + "/screen/" + m.hexdigest() + ".jpeg"
+		else:
+			image = image.replace("file://","")
+
+		user_img = QImage(image)
+		if user_img.height() > user_img.width():
+			preimg = QPixmap.fromImage(QImage(user_img.scaledToWidth(64, Qt.SmoothTransformation)))
+		elif user_img.height() < user_img.width():
+			preimg = QPixmap.fromImage(QImage(user_img.scaledToHeight(64, Qt.SmoothTransformation)))
+		else:
+			preimg = QPixmap.fromImage(QImage(user_img.scaled(64, 64, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)))
+		preimg.save(WAConstants.CACHE_PATH+"/temp2.png", "PNG")
+
+		f = open(WAConstants.CACHE_PATH+"/temp2.png", 'r')
+		stream = base64.b64encode(f.read())
+		f.close()
+
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = 4
+		mediaItem.local_path = video.replace("file://","")
+		mediaItem.transfer_status = 0
+		mediaItem.preview = stream
+		
+		try:
+			mediaItem.size = os.path.getsize(mediaItem.local_path)
+		except:
+			pass
+
+		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Video")
+		fmsg.Media = mediaItem
+
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
+
+
+	def sendMediaRecordedFile(self,jid):	
+		recfile = WAConstants.CACHE_PATH+'/temprecord.wav'
+		now = datetime.datetime.now()
+		destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".wav"
+		shutil.copy(recfile, destfile)
+
+		# Convert to MP3 using lame
+		#destfile = WAConstants.AUDIO_PATH+"/REC_"+now.strftime("%Y%m%d_%H%M")+".mp3"
+		#pipe=subprocess.Popen(['/usr/bin/lame', recfile, destfile])
+		#pipe.wait()
+		#os.remove(recfile)
+ 
+		self._d("creating Audio Recorded MMS for " +jid)
+		fmsg = WAXMPP.message_store.createMessage(jid);
+		
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = 3
+		mediaItem.local_path = destfile
+		mediaItem.transfer_status = 0
+
+		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Audio")
+		fmsg.Media = mediaItem
+
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
+		
+
+
+	def sendMediaAudioFile(self,jid,audio):
+		self._d("creating MMS for " +jid + " - file: " + audio)
+		fmsg = WAXMPP.message_store.createMessage(jid);
+		
+		mediaItem = WAXMPP.message_store.store.Media.create()
+		mediaItem.mediatype_id = 3
+		mediaItem.local_path = audio.replace("file://","")
+		mediaItem.transfer_status = 0
+		
+		try:
+			mediaItem.size = os.path.getsize(mediaItem.local_path)
+		except:
+			pass
+
+		fmsg.content = QtCore.QCoreApplication.translate("WAEventHandler", "Audio")
+		fmsg.Media = mediaItem
+
+		if fmsg.Conversation.type == "group":
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
+			fmsg.setContact(contact);
+		
+		fmsg.setData({"status":0,"content":fmsg.content,"type":1})
+		WAXMPP.message_store.pushMessage(jid,fmsg)
+
+
+
+	def sendMediaMessage(self,jid,messageId,data):
+		try:
+			jid.index('-')
+			message = WAXMPP.message_store.store.Groupmessage.create()
+		except ValueError:
+			message = WAXMPP.message_store.store.Message.create()
+		
+		message = message.findFirst({'id':messageId});
+		media = message.getMedia()
+		url = data.split(',')[0]
+		name = data.split(',')[1]
+		size = data.split(',')[2]
+		self._d("sending media message to " + jid + " - file: " + url)
+		
+		
+		if media.mediatype_id == WAConstants.MEDIA_TYPE_IMAGE:
+			returnedId = self.interfaceHandler.call("message_imageSend", (jid, url, name, size, media.preview))
+		elif media.mediatype_id == WAConstants.MEDIA_TYPE_AUDIO:
+			returnedId = self.interfaceHandler.call("message_audioSend", (jid, url, name, size))
+		elif media.mediatype_id == WAConstants.MEDIA_TYPE_VIDEO:
+			returnedId = self.interfaceHandler.call("message_videoSend", (jid, url, name, size, media.preview))
+
+		
+		key = Key(jid, True, returnedId)
+		message.key = key.toString()
+		message.save()
+		
+		
+	
+	def rotateImage(self,filepath):
+		print "ROTATING FILE: " + filepath
+		img = QImage(filepath)
+		rot = QTransform()
+		rot = rot.rotate(90)
+		img = img.transformed(rot)
+		img.save(filepath)
+		self.imageRotated.emit(filepath)
+
+
+
+	def notificationClicked(self,jid):
+		self._d("SHOW UI for "+jid)
+		self.showUI.emit(jid);
 
 	
 	def subjectReceiptRequested(self,to,idx):
 		self.conn.sendSubjectReceived(to,idx);
-		
-		
 			
 	def presence_available_received(self,fromm):
 		if(fromm == self.conn.jid):
 			return
 		self.available.emit(fromm)
-		Utilities.debug("{Friend} is now available".format(Friend = fromm));
+		self._d("{Friend} is now available".format(Friend = fromm));
 	
 	def presence_unavailable_received(self,fromm):
 		if(fromm == self.conn.jid):
 			return
 		self.unavailable.emit(fromm)
-		Utilities.debug("{Friend} is now unavailable".format(Friend = fromm));
+		self._d("{Friend} is now unavailable".format(Friend = fromm));
 	
 	def typing_received(self,fromm):
-		Utilities.debug("{Friend} is typing ".format(Friend = fromm))
+		self._d("{Friend} is typing ".format(Friend = fromm))
 		self.typing.emit(fromm);
 
 	def paused_received(self,fromm):
-		Utilities.debug("{Friend} has stopped typing ".format(Friend = fromm))
+		self._d("{Friend} has stopped typing ".format(Friend = fromm))
 		self.paused.emit(fromm);
 
+
 	
 
-	def message_error(self,fmsg,errorCode):
-		Utilities.debug("Message Error {0}\n Error Code: {1}".format(fmsg,str(errorCode)));
 
-	def message_status_update(self,fmsg):
-		Utilities.debug("Message status updated {0}".format(fmsg.status));
-		contact = fmsg.getContact();
-		modelData = fmsg.getModelData();
-		modelData["Contact"] = contact.getModelData();
-		if fmsg.status == WAXMPP.message_store.store.Message.STATUS_SENT:
-			self.messageSent.emit(modelData);
-		elif fmsg.status == WAXMPP.message_store.store.Message.STATUS_DELIVERED:
-			self.messageDelivered.emit(modelData); 
+	def onMessageSent(self, jid, msgId):
+		self._d("IN MESSAGE SENT")
+		k = Key(jid, True, msgId)
 		
+		self._d("KEY: %s"%k.toString())
 
-class StanzaReader(QThread):
-	def __init__(self,connection):
-		self.connection = connection
-		self.inn = connection.inn;
-		self.eventHandler = None;
-		self.groupEventHandler = None;
-		super(StanzaReader,self).__init__();
-		self.requests = {};
 
-	def setEventHandler(self,handler):
-		self.eventHandler = handler;
-
-	def run(self):
-		flag = True;
-		Utilities.debug("Read thread started");
-		while flag == True:
+		waMessage =  WAXMPP.message_store.get(k);
 			
-			Utilities.debug("waiting");
-			ready = select.select([self.inn.rawIn], [], [])
-			if ready[0]:
-				try:
-					node = self.inn.nextTree();
-				except ConnectionClosedException:
-					print "Socket closed, got 0 bytes"
-					
-					if self.eventHandler.connMonitor.isOnline():
-						self.eventHandler.connMonitor.connected.emit()
-					return
-				except:
-					print "Unhandled error: %s .restarting connection " % sys.exc_info()[1]
-					if self.eventHandler.connMonitor.isOnline():
-						self.eventHandler.connMonitor.connected.emit()
-					else:
-						print "Not online, aborting restart"
-					return
-					
-					
+			
+		self._d(waMessage)
 
-				self.lastTreeRead = int(time.time())*1000;
-			    
-			    
-			    
-			    
-			    
-			    
-			    
-			    
-				if node is not None:
-					if ProtocolTreeNode.tagEquals(node,"iq"):
-						iqType = node.getAttributeValue("type")
-						idx = node.getAttributeValue("id")
-						jid = node.getAttributeValue("from");
-						
-						if iqType is None:
-							raise Exception("iq doesn't have type")
-						
-						if iqType == "result":
-							if self.requests.has_key(idx):
-								self.requests[idx](node,jid)
-								del self.requests[idx]
-							elif idx.startswith(self.connection.user):
-								accountNode = node.getChild(0)
-								ProtocolTreeNode.require(accountNode,"account")
-								kind = accountNode.getAttributeValue("kind")
-								
-								if kind == "paid":
-									self.connection.account_kind = 1
-								elif kind == "free":
-									self.connection.account_kind = 0
-								else:
-									self.connection.account_kind = -1
-								
-								expiration = accountNode.getAttributeValue("expiration")
-								
-								if expiration is None:
-									raise Exception("no expiration")
-								
-								try:
-									self.connection.expire_date = long(expiration)
-								except ValueError:
-									raise IOError("invalid expire date %s"%(expiration))
-								
-								self.eventHandler.onAccountChanged(self.connection.account_kind,self.connection.expire_date)
-						elif iqType == "error":
-							if self.requests.has_key(idx):
-								self.requests[idx](node)
-								del self.requests[idx]
-						elif iqType == "get":
-							childNode = node.getChild(0)
-							if ProtocolTreeNode.tagEquals(childNode,"ping"):
-								self.eventHandler.onPing(idx)
-							elif ProtocolTreeNode.tagEquals(childNode,"query") and jid is not None and "http://jabber.org/protocol/disco#info" == childNode.getAttributeValue("xmlns"):
-								pin = childNode.getAttributeValue("pin");
-								timeoutString = childNode.getAttributeValue("timeout");
-								try:
-									timeoutSeconds = int(timeoutString) if timoutString is not None else None
-								except ValueError:
-									raise Exception("relay-iq exception parsing timeout %s "%(timeoutString))
-								
-								if pin is not None:
-									self.eventHandler.onRelayRequest(pin,timeoutSeconds,idx)
-						elif iqType == "set":
-							childNode = node.getChild(0)
-							if ProtocolTreeNode.tagEquals(childNode,"query"):
-								xmlns = childNode.getAttributeValue("xmlns")
-								
-								if xmlns == "jabber:iq:roster":
-									itemNodes = childNode.getAllChildren("item");
-									ask = ""
-									for itemNode in itemNodes:
-										jid = itemNode.getAttributeValue("jid")
-										subscription = itemNode.getAttributeValue("subscription")
-										ask = itemNode.getAttributeValue("ask")
-						else:
-							raise Exception("Unkown iq type %s"%(iqType))
-					
-					elif ProtocolTreeNode.tagEquals(node,"presence"):
-						xmlns = node.getAttributeValue("xmlns")
-						jid = node.getAttributeValue("from")
-						
-						if (xmlns is None or xmlns == "urn:xmpp") and jid is not None:
-							presenceType = node.getAttributeValue("type")
-							if presenceType == "unavailable":
-								self.eventHandler.presence_unavailable_received(jid);
-							elif presenceType is None or presenceType == "available":
-								self.eventHandler.presence_available_received(jid);
-						
-						elif xmlns == "w" and jid is not None:
-							add = node.getAttributeValue("add");
-							remove = node.getAttributeValue("remove")
-							status = node.getAttributeValue("status")
-							
-							if add is not None:
-								print "GROUP EVENT ADD"
-							elif remove is not None:
-								print "GROUP EVENT REMOVE"
-							elif status == "dirty":
-								categories = self.parseCategories(node);
-								self.eventHandler.onDirty(categories);
-					elif ProtocolTreeNode.tagEquals(node,"message"):
-						self.parseMessage(node)	
+		if waMessage:
+			WAXMPP.message_store.updateStatus(waMessage,WAXMPP.message_store.store.Message.STATUS_SENT)
+			self.messageSent.emit(waMessage.id, jid)
 
-				
-				'''
-				if self.eventHandler is not None:
-					if ProtocolTreeNode.tagEquals(node,"presence"):
+	def onMessageDelivered(self, jid, msgId):
+		k = Key(jid, True, msgId)
 
-						fromm = node.getAttributeValue("from");
-						
-						if node.getAttributeValue("type") == "unavailable":
-							self.eventHandler.presence_unavailable_received(fromm);
-						else:
-							self.eventHandler.presence_available_received(fromm);
-					
-					elif ProtocolTreeNode.tagEquals(node,"message"):
-						self.parseMessage(node);
-					else:
-						Utilities.debug("Not implemented");
-				'''
+		waMessage =  WAXMPP.message_store.get(k);
+
+		if waMessage:
+			WAXMPP.message_store.updateStatus(waMessage,WAXMPP.message_store.store.Message.STATUS_DELIVERED)
+			self.messageDelivered.emit(waMessage.id, jid)
+			
+		self._d("IN DELIVERED")
+		self._d(waMessage)
+
+		self.interfaceHandler.call("delivered_ack", (jid, msgId))
 	
+
+	def onGroupCreated(self,jid,group_id):
+		self._d("Got group created " + group_id)
+		jname = jid.replace("@g.us","")
+		img = QImage("/opt/waxmppplugin/bin/wazapp/UI/common/images/group.png")
+		img.save(WAConstants.CACHE_PATH+"/contacts/" + jname + ".png")
+		self.groupCreated.emit(group_id);
+		
 	
-	def handlePingResponse(self,node,fromm):
-		print "Ping response received"
-		    		
-			    		
-	def handleLastOnline(self,node,jid=None):
-		firstChild = node.getChild(0);
-		ProtocolTreeNode.require(firstChild,"query");
-		seconds = firstChild.getAttributeValue("seconds");
-		status = None
-		status = firstChild.data
-		
-		try:
-			if seconds is not None and jid is not None:
-				self.eventHandler.onLastSeen(jid,int(seconds),status);
-		except:
-			print "Ignored exception in handleLastOnline "+ sys.exc_info()[1]
-			
-			
 
-	def parseCategories(self,dirtyNode):
-		categories = {}
-		if dirtyNode.children is not None:
-			for childNode in dirtyNode.getAllChildren():
-				if ProtocolTreeNode.tagEquals(childNode,"category"):
-					cname = childNode.getAttributeValue("name");
-					timestamp = childNode.getAttributeValue("timestamp")
-					categories[cname] = timestamp
-		
-		return categories
+	def onAddedParticipants(self, jid):
+		self._d("participants added!")
+		self.addedParticipants.emit();
 
-	def parseMessage(self,messageNode):
+	def onRemovedParticipants(self, jid):
+		self._d("participants removed!")
+		self.removedParticipants.emit();
+
+	def onGroupEnded(self, jid):
+		self._d("group deleted!")
+		#@@TODO use the fucking jid
+		self.groupEnded.emit();
+		
+	def onGroupInfoError(self, jid, code):
+		self.groupInfoUpdated.emit(jid,"ERROR")
 	
-		#throw media in the garbage
-		
-		if messageNode.getChild("media") is not None:
-			return
+	def onGroupInfo(self,jid,ownerJid,subject,subjectOwnerJid,subjectT,creation):
+		self._d("Got group info")
 	
-		fmsg = WAXMPP.message_store.store.Message.create()
+		self.groupInfoUpdated.emit(jid,jid+"<<->>"+str(ownerJid)+"<<->>"+subject+"<<->>"+subjectOwnerJid+"<<->>"+str(subjectT)+"<<->>"+str(creation))
+		WAXMPP.message_store.updateGroupInfo(jid,ownerJid,subject,subjectOwnerJid,subjectT,creation)
+		#self.conn.sendGetPicture("g.us",jid,"group")
 		
-		fmsg.wantsReceipt = False
+	def onGroupParticipants(self,jid,jids):
+		self._d("GOT group participants")
+		self.groupParticipants.emit(jid, ",".join(jids));
+		conversation = WAXMPP.message_store.getOrCreateConversationByJid(jid);
 		
+		# DO WE REALLY NEED TO ADD EVERY CONTACT ?
+		for j in jids:
+			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(j)
+			conversation.addContact(contact.id);
 		
-		msg_id = messageNode.getAttributeValue("id");
-		attribute_t = messageNode.getAttributeValue("t");
-		fromAttribute = messageNode.getAttributeValue("from");
-		author = messageNode.getAttributeValue("author");
-
-		typeAttribute = messageNode.getAttributeValue("type");
-
-		if typeAttribute == "error":
-			errorCode = 0;
-			errorNodes = messageNode.getAllChildren("error");
-			for errorNode in errorNodes:
-				codeString = errorNode.getAttributeValue("code")
-				try:
-					errorCode = int(codeString);
-				except ValueError:
-					'''catch value error'''
-			message = None;
-			if fromAttribute is not None and msg_id is not None:
-				key = Key(fromAttribute,True,msg_id);
-				message = message_store.get(key.toString());
-
-			if message is not None:
-				message.status = 7
-				self.eventHandler.message_error(message,errorCode);
+		WAXMPP.message_store.sendConversationReady(jid);
 		
-		elif typeAttribute == "subject":
-			receiptRequested = False;
-			requestNodes = messageNode.getAllChildren("request");
-			for requestNode in requestNodes:
-				if requestNode.getAttributeValue("xmlns") == "urn:xmpp:receipts":
-					receiptRequested = True;
-			
-			bodyNode = messageNode.getChild("body");
-			newSubject = None if bodyNode is None else bodyNode.data;
+	
+	def onProfileSetStatusSuccess(self, jid, messageId):
+		self.statusChanged.emit()
+		self.interfaceHandler.call("delivered_ack", (jid, messageId))
 
-			if newSubject is not None and self.groupEventHandler is not None:
-				self.groupEventHandler.group_new_subject(fromAttribute,author,newSubject,int(attribute_t));
-			
-			if receiptRequested and self.eventHandler is not None:
-				self.eventHandler.subjectReceiptRequested(fromAttribute,msg_id);
+	def onProfilePictureIdReceived(self,jid, pictureId):
+		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(jid)
 
-		elif typeAttribute == "chat":
-			duplicate = False;
-			wantsReceipt = False;
-			messageChildren = [] if messageNode.children is None else messageNode.children
-
-			for childNode in messageChildren:
-				if ProtocolTreeNode.tagEquals(childNode,"composing"):
-						if self.eventHandler is not None:
-							self.eventHandler.typing_received(fromAttribute);
-				elif ProtocolTreeNode.tagEquals(childNode,"paused"):
-						if self.eventHandler is not None:
-							self.eventHandler.paused_received(fromAttribute);
-				
-				elif ProtocolTreeNode.tagEquals(childNode,"body") and msg_id is not None:
-					msgdata = childNode.data;
-					key = Key(fromAttribute,False,msg_id);
-					ret = WAXMPP.message_store.get(key.toString());
-
-					
-					if ret is None:
-						conversation = WAXMPP.message_store.getOrCreateConversationByJid(fromAttribute);
-						fmsg.setData({"status":0,"key":key.toString(),"content":msgdata,"conversation_id":conversation.id,"type":WAXMPP.message_store.store.Message.TYPE_RECEIVED});
-						
-						WAXMPP.message_store.pushMessage(fmsg)
-						fmsg.key = key
-						
-						#if self.eventHandler is not None:
-						#self.eventHandler.message_received(fmsg);
-					else:
-						fmsg.key = eval(ret.key)
-						duplicate = True;
-				elif not (ProtocolTreeNode.tagEquals(childNode,"active")):
-					if ProtocolTreeNode.tagEquals(childNode,"request"):
-						fmsg.wantsReceipt = True;
-					
-					elif ProtocolTreeNode.tagEquals(childNode,"notify"):
-						fmsg.notify_name = childNode.getAttributeValue("name");
-					elif ProtocolTreeNode.tagEquals(childNode,"x"):
-						xmlns = childNode.getAttributeValue("xmlns");
-						if "jabber:x:event" == xmlns and msg_id is not None:
-							
-							key = Key(fromAttribute,True,msg_id);
-							message = WAXMPP.message_store.get(key.toString());
-							if message is not None:
-								WAXMPP.message_store.updateStatus(message,WAXMPP.message_store.store.Message.STATUS_SENT)
-								
-								if self.eventHandler is not None:
-									self.eventHandler.message_status_update(message);
-						elif "jabber:x:delay" == xmlns:
-							continue; #TODO FORCED CONTINUE, WHAT SHOULD I DO HERE? #wtf?
-							stamp_str = childNode.getAttributeValue("stamp");
-							if stamp_str is not None:
-								stamp = stamp_str	
-								fmsg.timestamp = stamp;
-								fmsg.offline = True;
-					else:
-						if ProtocolTreeNode.tagEquals(childNode,"delay") or not ProtocolTreeNode.tagEquals(childNode,"received") or msg_id is None:
-							continue;
-						key = Key(fromAttribute,True,msg_id);
-						message = WAXMPP.message_store.get(key.toString());
-						if message is not None:
-							WAXMPP.message_store.updateStatus(message,WAXMPP.message_store.store.Message.STATUS_DELIVERED)
-							if self.eventHandler is not None:
-								self.eventHandler.message_status_update(message);
-							print  self.connection.supports_receipt_acks
-							if self.connection.supports_receipt_acks:
-								
-								receipt_type = childNode.getAttributeValue("type");
-								if receipt_type is None or receipt_type == "delivered":
-									self.connection.sendDeliveredReceiptAck(fromAttribute,msg_id); 
-								elif receipt_type == "visible":
-									self.connection.sendVisibleReceiptAck(fromAttribute,msg_id);  
-					
-			
-			
-			if fmsg.timestamp is None:
-				fmsg.timestamp = time.time()*1000;
-				fmsg.offline = False;
-			
-			if self.eventHandler is not None:
-				self.eventHandler.message_received(fmsg,duplicate);
-			
+		cjid = jid.replace("@s.whatsapp.net","").replace("@g.us","")
+		if contact.pictureid != str(pictureId) or not os.path.isfile("%s/%s.jpg"%(WAConstants.CACHE_PROFILE, cjid)) or not os.path.isfile("%s/%s.png"%(WAConstants.CACHE_CONTACTS, cjid)):
+			contact.setData({"pictureid":pictureId})
+			contact.save()
+			self.interfaceHandler.call("contact_getProfilePicture", (jid,))
 
 
+		self.getPicturesFinished.emit()
+
+	def onGetPictureDone(self, jid, tmpfile):
+
+		if os.path.exists(tmpfile):
+			
+			cjid = jid.replace("@s.whatsapp.net","").replace("@g.us","")
+			shutil.move(tmpfile, WAConstants.CACHE_PATH+"/contacts/" + cjid + ".jpg")
+	
+			if os.path.isfile(WAConstants.CACHE_PATH+"/contacts/" + cjid + ".png"):
+				os.remove(WAConstants.CACHE_PATH+"/contacts/" + cjid + ".png")
+
+			self.profilePictureUpdated.emit(jid);
+	
+		self.getPicturesFinished.emit()
+		
+	def onSetProfilePicture(self):
+		self._d("GETTING MY PICTURE")
+		self.interfaceHandler.call("profile_getPicture")#@@TODO DON'T REFETCH?
+
+
+	def onSetProfilePictureError(self, errorCode):
+		self.profilePictureUpdated.emit(self.jid);
+
+
+	def onSetGroupPicture(self,jid):
+		self.interfaceHandler.call("group_getPicture", (jid,))
+
+
+	def onSetGroupPictureError(self, jid, errorCode):
+		self.profilePictureUpdated.emit(jid);
 
 class WAXMPP():
 	message_store = None
-	def __init__(self,domain,resource,user,push_name,password):
 	
+	myService = Service(SessionBus, 'org.tgalal.wazapp')
+	myService.setAsDefault()
+	contextproperty = Property('Wazapp.Online')
+	contextproperty.setValue('offline')
+		
+	def __init__(self,domain,resource,user,push_name,password):
+		
+		WADebug.attach(self);
+		
 		self.domain = domain;
 		self.resource = resource;
 		self.user=user;
@@ -634,14 +1518,9 @@ class WAXMPP():
 		self.password = password;
 		self.jid = user+'@'+domain
 		self.fromm = user+'@'+domain+'/'+resource;
-		self.supports_receipt_acks = False;
-		self.msg_id = 0;
-		self.state = 0 #0 disconnected 1 connecting 2 connected
 		self.retry = True
-		self.eventHandler = WAEventHandler(self);
-		self.conn =MySocketConnection();		
-		self.stanzaReader = None
-		self.login = None;
+		self.eventHandler = WAEventHandler(self);	
+		
 		
 		self.disconnectRequested = False
 		
@@ -649,382 +1528,19 @@ class WAXMPP():
 		
 		self.verbose = True
 		self.iqId = 0;
-		self.lock = threading.Lock()
+	
 		
 		self.waiting = 0;
 		
 		#super(WAXMPP,self).__init__();
 		
-		self.eventHandler.initialConnCheck();
+		#self.eventHandler.initialConnCheck();
 		
 		#self.do_login();
-		
-	
-	
-	
 	def setContactsManager(self,contactsManager):
 		self.contactsManager = contactsManager
 		
-	def setReceiptAckCapable(self,can):
-		#print "Switching to True"
-		self.supports_receipt_acks = True;
-		#print self.supports_receipt_acks
-
-		
-	
-	
-	
-	def onLoginSuccess(self):
-		self.changeState(4)
-		
-		self.connectionTries = 0
-		c = StanzaReader(self);
-		
-		c.setEventHandler(self.eventHandler);
-		
-		#initial presence
-		self.stanzaReader = c
-		
-		self.stanzaReader.start();
-		
-		
-		self.sendClientConfig('','',False,'');
-		self.sendAvailableForChat();
-		self.eventHandler.connected.emit();
-		
-		
-
-	def onConnectionError(self):
-		self.login.wait()
-		self.conn.close()	
-
-		self.changeState(3)
-		
-		'''
-		if self.connTries < 4:
-			print "trying connect "+str(self.connTries)
-			self.retryLogin()
-		else:
-			print "Too many tries, trying in 30000"
-			t = QTimer.singleShot(30000,self.retryLogin)
-		'''
-	
-	
-	
-	def disconnect(self):
-		self.conn.close()
-	
-	def retryLogin(self):
-		self.changeState(3);
-	
-	def changeState(self,newState):
-		print "Entering critical area"
-		self.waiting+=1
-		self.lock.acquire()
-		self.waiting-=1
-		print "inside critical area"
-		
-		if self.state == 0:
-			if newState == 2:
-				self.state = 1
-				self.do_login();
-				
-		elif self.state == 1:
-			#raise Exception("mutex violated! I SHOULDN'T BE HERE !!!")
-			if newState == 0:
-				self.retry = False
-			elif newState == 2:
-				self.retry = True
-			elif newState == 3: #failed
-				if self.retry:
-					
-					
-					if self.connTries >= 3:
-						print "%i or more failed connections. Will try again in 30 seconds" % self.connTries
-						QTimer.singleShot(30000,self.retryLogin)
-						self.connTries-=1
-						
-					else:	
-						self.do_login()
-						self.connTries+=1
-				else:
-					self.connTries = 0
-					self.state = 0
-					self.retry = True
-					
-			elif newState == 4:#connected
-				self.connTries = 0
-				self.retry = True
-				self.state = 2
-		elif self.state == 2:
-			if newState == 2:
-				self.disconnect()
-				self.state = 1
-				self.do_login()
-			elif newState == 0:
-				self.disconnect()
-				self.state = 0
-		
-		
-		print "Releasing lock"
-		self.lock.release()
-		
-		
-			
-
-	def do_login(self):
-		
-		self.conn = conn = MySocketConnection();
-		#conn.connect((HOST, PORT));
-
-		self.inn = BinTreeNodeReader(conn,WALogin.dictionary);
-		self.out = BinTreeNodeWriter(conn,WALogin.dictionary);
-		
-		
-		self.login = WALogin(conn,self.inn,self.out,S40MD5Digest());
-		
-		
-		self.login.setConnection(self);
-		
-		self.login.loginSuccess.connect(self.onLoginSuccess)
-		self.login.loginFailed.connect(self.eventHandler.onLoginFailed);
-		
-		self.login.connectionError.connect(self.onConnectionError)
-		self.login.start();
-		
-		'''try:
-			self.login.login();
-		except:
-			print "LOGIN FAILED"
-			#sys.exit()
-			return
-		'''
-		
 
 
-
-		#fmsg = FMessage();
-		#fmsg.setData('201006960035@s.whatsapp.net',True,"Hello World");
-		
-		#self.sendIq();
-		#self.inn.nextTree();
-		#print self.inn.inn.buf;
-		#exit();
-		#self.inn.nextTree();
-		
-		
-		
-		#self.sendMessageWithBody("ok");
-		#node = self.inn.nextTree();
-		#print node.toString();
-
-		#self.sendSubscribe("201006960035@s.whatsapp.net");
-		
-		#self.sendMessageWithBody("OK");
-		#self.sendMessageWithBody("OK");
-		#node = self.inn.nextTree();
-		#print node.toString();
-		#raw_input();
-		#self.sendMessageWithBody(fmsg);
 	
-	
-	def resendUnsent(self):
-		'''
-			Resends all unsent messages, should invoke on connect
-		'''
-		
-		
-		messages = WAXMPP.message_store.getUnsent();
-		print "Resending %i old messages"%(len(messages))
-		for m in messages:
-			self.sendMessageWithBody(m);
-		
-		
-	
-	def sendTyping(self,jid):
-		print "SEND TYPING TO JID"
-		composing = ProtocolTreeNode("composing",{"xmlns":"http://jabber.org/protocol/chatstates"})
-		message = ProtocolTreeNode("message",{"to":jid,"type":"chat"},[composing]);
-		self.out.write(message);
-		
-	
-		
-	def sendPaused(self,jid):
-		print "SEND PAUSED TO JID"
-		composing = ProtocolTreeNode("paused",{"xmlns":"http://jabber.org/protocol/chatstates"})
-		message = ProtocolTreeNode("message",{"to":jid,"type":"chat"},[composing]);
-		self.out.write(message);
-
-	
-	
-	def getSubjectMessage(self,to,msg_id,child):
-		messageNode = ProtocolTreeNode("message",{"to":to,"type":"subject","id":msg_id},[child]);
-		
-		return messageNode
-	
-	def sendSubjectReceived(self,to,msg_id):
-		print "Sending subject recv receipt"
-		receivedNode = ProtocolTreeNode("received",{"xmlns": "urn:xmpp:receipts"});
-		messageNode = self.getSubjectMessage(to,msg_id,receivedNode);
-		self.out.write(messageNode);
-
-	def sendMessageReceived(self,fmsg):
-		receivedNode = ProtocolTreeNode("received",{"xmlns": "urn:xmpp:receipts"})
-		messageNode = ProtocolTreeNode("message",{"to":fmsg.key.remote_jid,"type":"chat","id":fmsg.key.id},[receivedNode]);
-		self.out.write(messageNode);
-
-
-	def sendDeliveredReceiptAck(self,to,msg_id):
-		self.out.write(self.getReceiptAck(to,msg_id,"delivered"));
-	
-	def sendVisibleReceiptAck(self,to,msg_id):
-		self.out.write(self.getReceiptAck(to,msg_id,"visible"));
-	
-	def getReceiptAck(self,to,msg_id,receiptType):
-		ackNode = ProtocolTreeNode("ack",{"xmlns":"urn:xmpp:receipts","type":receiptType})
-		messageNode = ProtocolTreeNode("message",{"to":to,"type":"chat","id":msg_id},[ackNode]);
-		return messageNode;
-
-	def makeId(self,prefix):
-		self.iqId += 1
-		idx = ""
-		if self.verbose:
-			idx += prefix + str(self.iqId);
-		else:
-			idx = "%x" % self.iqId
-		
-		return idx
-		 	
-	
-	def sendPing(self):
-		
-		idx = self.makeId("ping_")
-		self.stanzaReader.requests[idx] = self.stanzaReader.handlePingResponse;
-		
-		pingNode = ProtocolTreeNode("ping",{"xmlns":"w:p"});
-		iqNode = ProtocolTreeNode("iq",{"id":idx,"type":"get","to":self.domain},[pingNode]);
-		self.out.write(iqNode);
-		
-	
-	def sendPong(self,idx):
-		iqNode = ProtocolTreeNode("iq",{"type":"result","to":self.domain,"id":idx})
-		self.out.write(iqNode);
-	
-	def getLastOnline(self,jid):
-		
-		if len(jid.split('-')) == 2: #SUPER CANCEL SUBSCRIBE TO GROUP
-			return
-		
-		self.sendSubscribe(jid);
-		
-		print "presence request Initiated for %s"%(jid)
-		idx = self.makeId("last_")
-		self.stanzaReader.requests[idx] = self.stanzaReader.handleLastOnline;
-		
-		query = ProtocolTreeNode("query",{"xmlns":"jabber:iq:last"});
-		iqNode = ProtocolTreeNode("iq",{"id":idx,"type":"get","to":jid},[query]);
-		self.out.write(iqNode)
-	
-	
-	def sendIq(self):
-		node = ProtocolTreeNode("iq",{"to":"g.us","type":"get","id":str(int(time.time()))+"-0"},None,'expired');
-		self.out.write(node);
-
-		node = ProtocolTreeNode("iq",{"to":"s.whatsapp.net","type":"set","id":str(int(time.time()))+"-1"},None,'expired');
-		self.out.write(node);
-
-	def sendAvailableForChat(self):
-		presenceNode = ProtocolTreeNode("presence",{"name":self.push_name})
-		self.out.write(presenceNode);
-		
-	def sendAvailable(self):
-		if self.state != 2:
-			return
-		presenceNode = ProtocolTreeNode("presence",{"type":"available"})
-		self.out.write(presenceNode);
-	
-	
-	def sendUnavailable(self):
-		if self.state != 2:
-			return
-		presenceNode = ProtocolTreeNode("presence",{"type":"unavailable"})
-		self.out.write(presenceNode);
-		
-
-	def sendSubscribe(self,to):
-			presenceNode = ProtocolTreeNode("presence",{"type":"subscribe","to":to});
-			
-			self.out.write(presenceNode);
-
-	def sendMessageWithBody(self,fmsg):
-			#bodyNode = ProtocolTreeNode("body",None,message.data);
-			#self.out.write(self.getMessageNode(message,bodyNode));
-
-			bodyNode = ProtocolTreeNode("body",None,None,fmsg.content);
-			self.out.write(self.getMessageNode(fmsg,bodyNode));
-			self.msg_id+=1;
-
-	
-	def sendClientConfig(self,sound,pushID,preview,platform):
-		idx = self.makeId("config_");
-		configNode = ProtocolTreeNode("config",{"xmlns":"urn:xmpp:whatsapp:push","sound":sound,"id":pushID,"preview":"1" if preview else "0","platform":platform})
-		iqNode = ProtocolTreeNode("iq",{"id":idx,"type":"set","to":self.domain},[configNode]);
-		
-		self.out.write(iqNode);
-		
-	
-	def getMessageNode(self,fmsg,child):
-			requestNode = None;
-			serverNode = ProtocolTreeNode("server",None);
-			xNode = ProtocolTreeNode("x",{"xmlns":"jabber:x:event"},[serverNode]);
-			childCount = (0 if requestNode is None else 1) +2;
-			messageChildren = [None]*childCount;
-			i = 0;
-			if requestNode is not None:
-				messageChildren[i] = requestNode;
-				i+=1;
-			#System.currentTimeMillis() / 1000L + "-"+1
-			messageChildren[i] = xNode;
-			i+=1;
-			messageChildren[i]= child;
-			i+=1;
-			
-			key = eval(fmsg.key)
-			messageNode = ProtocolTreeNode("message",{"to":key.remote_jid,"type":"chat","id":key.id},messageChildren)
-			
-			
-			return messageNode;
-
-
-
-
-class FMessage():
-	generating_id = 0;
-	generating_header = str(int(time.time()))+"-";
-	def __init__(self,key = None, remote_jid = None,from_me=None,data=None,image=None):
-		self.data = data;
-		self.wantsReceipt = False;
-		self.timestamp = None;
-		if key is not None:
-			self.setKey(key);
-		elif remote_jid is not None and from_me is not None and data is not None:
-			self.setData(remote_jid,from_me,data,image)
-	
-	def setKey(self,key):
-		self.key = key;
-		WAXMPP.message_store.put(key,self);
-
-	def setData(self, remote_jid ,from_me,data,image=None):
-		localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id))
-
-		while WAXMPP.message_store.get(localKey) is not None:
-			FMessage.generating_id += 1
-			localKey = Key(remote_jid,from_me,FMessage.generating_header+str(FMessage.generating_id))
-			
-		WAXMPP.message_store.put(localKey,self);
-		self.key = localKey;
-		if data is not None:
-			self.data = data;
-			self.thumb_image = image;
-			self.timestamp = int(time.time())*1000;
 

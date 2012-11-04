@@ -27,8 +27,20 @@ Page{
     property string pushName;
     property string status:"Offline"
 
+    function saveAccount()
+    {
+        if(push_field.value.trim() == ""){
+            showNotification(qsTr("Push name cannot be left empty"))
+        }
+        else{
+            actor.savePushName(push_field.value)
+            showNotification(qsTr("Push name saved"));
+            Qt.quit()
+        }
+    }
+
     tools:editTools
-    anchors.margins: 5
+//    anchors.margins: 5
 
     Column{
        anchors.fill: parent
@@ -41,7 +53,7 @@ Page{
    Label{
        id:userId
        width:parent.width
-       text:"This Wazapp account is connected to "+phoneNumber
+       text: qsTr("This Wazapp account is connected to %1").arg(phoneNumber)
        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
    }
 
@@ -54,23 +66,23 @@ Page{
 
     LabeledField{
         id:push_field
-        label: "Your push name"
+        label: qsTr("Your push name")
         width:parent.width
         value: pushName?pushName:"";
     }
 
-    Button{
-        text:"Save"
+    /*Button{
+        text:qsTr("Save")
         onClicked: {
             if(push_field.value.trim() == ""){
-                showNotification("Push name cannot be left empty")
+                showNotification(qsTr("Push name cannot be left empty"))
             }
             else{
                 actor.savePushName(push_field.value)
-                showNotification("Push name saved");
+                showNotification(qsTr("Push name saved"));
 
             }
         }
-    }
+    }*/
 }
 }

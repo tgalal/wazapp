@@ -72,8 +72,8 @@ WAPage {
 
         //contact not found, create
         var contact = new ContactsManager.Contact(c.jid);
-
-        //contactsModel.append(contact);
+        contact.iscontact = "no"
+        contactsModel.append(contact);
 
         return ContactsManager.contactsViews[ContactsManager.contactsViews.length-1];
 

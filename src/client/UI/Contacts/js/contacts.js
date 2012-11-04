@@ -30,7 +30,7 @@ function Contact(jid){
     var tmp = jid.split('@');
     this.number = tmp[0];
     this.name = this.number;
-    this.picture = "none";
+    this.picture = defaultProfilePicture
     this.status = "";
 	this.pushname = "";
 	//this.newContact = false;

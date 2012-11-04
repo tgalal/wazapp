@@ -29,7 +29,7 @@ from wadebug import NotifierDebug
 import dbus
 
 class Notifier():
-	def __init__(self,audio=True,vibra=False):
+	def __init__(self,audio=True,vibra=True):
 		_d = NotifierDebug();
 		self._d = _d.d;
 

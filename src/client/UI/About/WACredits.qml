@@ -43,8 +43,9 @@ WAPage {
                label: "Tarek Galal (tgalal)"
                role: "Official author, Wazapp creator"
                twitter: "http://twitter.com/tgalal"
-               url: "http://www.wazapp.im"
+               url: "http://posts.tgalal.com"
                github: "https://github.com/tgalal"
+               linkedin: "http://www.linkedin.com/profile/view?id=45300606"
            }
 
            GroupSeparator{
@@ -57,7 +58,6 @@ WAPage {
                label: "Matias Perez (Cepiperez)"
                role: "UI Champion"
                twitter: "http://twitter.com/negrocepi"
-               //url: "http://www.wazapp.im"
            }
 
            CreditItem{
@@ -65,7 +65,6 @@ WAPage {
                label: "Bojan Komljenovic (Knobtviker)"
                role: "Developer"
                twitter: "http://twitter.com/knobtviker"
-               url: ""
            }
 
            GroupSeparator{
@@ -79,7 +78,13 @@ WAPage {
                label: "Andrey Kozhevnikov (Coderus)"
                role: "Developer"
                twitter: "http://twitter.com/iCODeRUS"
-               //url: "http://www.wazapp.im"
+           }
+
+           CreditItem{
+               image: "images/contribs/andreas.png"
+               label: "Andreas Adler (The Best Isaac)"
+               role: "Icons Artist"
+               url: "http://talk.maemo.org/member.php?u=59328"
            }
        }
    }

@@ -13,6 +13,7 @@ Row{
     property string url;
     property string jid;
     property string github;
+    property string linkedin;
 
     function unFocus(){
         contribWazapp.pressed = false
@@ -53,6 +54,14 @@ Row{
             }
 
             ImageButton{
+                id:contribTwit
+                source: "../images/icons/twitter.png"
+                visible:twitter?true:false
+                onClicked: Qt.openUrlExternally(twitter)
+            }
+
+
+            ImageButton{
                 id:contribGithub
                 source:"../images/icons/github.png"
                 visible:github?true:false
@@ -60,12 +69,12 @@ Row{
                 onClicked: Qt.openUrlExternally(github)
             }
 
-
             ImageButton{
-                id:contribTwit
-                source: "../images/icons/twitter.png"
-                visible:twitter?true:false
-                onClicked: Qt.openUrlExternally(twitter)
+                id:contribLinkedin
+                source:"../images/icons/linkedin.png"
+                visible:linkedin?true:false
+
+                onClicked: Qt.openUrlExternally(linkedin)
             }
 
             ImageButton{

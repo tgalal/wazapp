@@ -41,7 +41,7 @@ WAPage {
                id:tgalalCredit
                image: "images/contribs/tarek.png"
                label: "Tarek Galal (tgalal)"
-               role: qsTr("Official author, Wazapp creator")
+               role: "Official author, Wazapp creator"
                twitter: "http://twitter.com/tgalal"
                url: "http://www.wazapp.im"
                github: "https://github.com/tgalal"
@@ -49,13 +49,13 @@ WAPage {
 
            GroupSeparator{
                 color:"#27a01b"
-                title:qsTr("Major Contributors")
+                title:"Major Contributors"
            }
 
            CreditItem{
                image: "images/contribs/matias.png"
                label: "Matias Perez (Cepiperez)"
-               role: qsTr("UI Champion")
+               role: "UI Champion"
                twitter: "http://twitter.com/negrocepi"
                //url: "http://www.wazapp.im"
            }
@@ -63,19 +63,24 @@ WAPage {
            CreditItem{
                image: "images/contribs/bojan.png"
                label: "Bojan Komljenovic (Knobtviker)"
-               role: qsTr("Developer")
+               role: "Developer"
                twitter: "http://twitter.com/knobtviker"
                url: ""
            }
 
+           GroupSeparator{
+                color:"#27a01b"
+                title:qsTr("Thanks to")
+           }
+
+
            CreditItem{
                image: "images/contribs/andrey.png"
                label: "Andrey Kozhevnikov (Coderus)"
-               role: qsTr("Developer")
+               role: "Developer"
                twitter: "http://twitter.com/iCODeRUS"
                //url: "http://www.wazapp.im"
            }
-
        }
    }
 

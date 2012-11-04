@@ -81,6 +81,13 @@ WAPage {
            }
 
            CreditItem{
+               image: "images/contribs/fabian.png"
+               label: "Fabian Sauter (brkn)"
+               role: "Developer, Wiki Creator"
+               url: "http://wiki.maemo.org/Wazapp"
+           }
+
+           CreditItem{
                image: "images/contribs/andreas.png"
                label: "Andreas Adler (The Best Isaac)"
                role: "Icons Artist"

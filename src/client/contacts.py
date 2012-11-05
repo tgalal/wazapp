@@ -49,7 +49,10 @@ class ContactsSyncer(WARequest):
 			phoneContacts = c.getPhoneContacts();
 			for c in phoneContacts:
 				for number in c[2]:
-					self.cn = self.cn + str(number) + ","
+					try:
+						self.cn = self.cn + str(number) + ","
+					except UnicodeEncodeError:
+						continue
 			self.parts = self.cn.split(',')
 		self.base_url = "sro.whatsapp.net";
 		self.req_file = "/client/iphone/bbq.php";

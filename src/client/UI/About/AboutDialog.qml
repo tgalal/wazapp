@@ -163,6 +163,7 @@ Dialog {
                 ImageTextLink{
                     source: "images/icons/facebook.png"
                     text:"www.fb.me/WazappIM"
+                    url: "http://www.fb.me/WazappIM"
                     inverted: true
                 }
 

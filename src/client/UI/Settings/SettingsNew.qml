@@ -360,6 +360,7 @@ WAPage {
 					Row {
 						width: parent.width
 						spacing: 16
+						visible: backgroundSelector.subtitle == qsTr("(no background)") ? false : true
 
 					Label {
 							id: sliderText

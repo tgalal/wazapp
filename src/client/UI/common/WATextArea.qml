@@ -79,6 +79,40 @@ FocusScope {
         return [res, pos];
 
     }
+    
+    function insert(object) {
+	var text = root.text
+	text = text.replace("text-indent:0px;\"><br />","text-indent:0px;\">").replace("-qt-paragraph-type:empty;", "")
+	var before = text.split("text-indent:0px;\">")[0] + "text-indent:0px;\">"
+	var after = "</p>" + text.split("</p>")[1]
+	var richText = text.split("text-indent:0px;\">")[1].split("</p>")[0]
+
+	
+	var listText = []
+	for(var i =0; i<richText.length; i++)
+	{
+	    if (richText[i] == "<")
+	    {
+		var j =  richText.indexOf(">", i+1)
+		listText.push(richText.substring(i, j+1))
+		i = j
+	    }
+	    else if (richText[i] == "&")
+	    {
+		var j =  richText.indexOf(";", i+1)
+		listText.push(richText.substring(i, j+1))
+		i = j
+	    }
+	    else
+		listText.push(richText[i])
+	}
+	listText.splice(root.cursorPosition,0,object)
+	var result = before + listText.join("") + after
+	
+	root.lastPosition = root.cursorPosition
+	root.text = result
+	root.cursorPosition = root.lastPosition + 1
+    }
 
     function copy() {
         textEdit.copy()

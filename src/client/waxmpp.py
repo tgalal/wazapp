@@ -159,10 +159,12 @@ class WAEventHandler(QObject):
 	############### NEW BACKEND STUFF
 	def strip(self, text):
 		n = text.find("</body>")
-		text = text[:n]
-		s = MLStripper()
-		s.feed(text)
-		text = s.get_data().replace("p, li { white-space: pre-wrap; }","")
+		if (n != -1): #there are no dead body to hide, sometimes.
+			text = text[:n]
+		#why? it kill anything good
+		#s = MLStripper()
+		#s.feed(text)
+		#text = s.get_data().replace("p, li { white-space: pre-wrap; }","")
 		text = text.strip()
 		return text;
 
@@ -926,11 +928,11 @@ class WAEventHandler(QObject):
 			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
 			fmsg.setContact(contact);
 		
+		msg_text = msg_text.replace("<br />", "\n");
 		msg_text = msg_text.replace("&quot;","\"")
-		msg_text = msg_text.replace("&amp;", "&");
 		msg_text = msg_text.replace("&lt;", "<");
 		msg_text = msg_text.replace("&gt;", ">");
-		msg_text = msg_text.replace("<br />", "\n");
+		msg_text = msg_text.replace("&amp;", "&");
 
 		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
 		WAXMPP.message_store.pushMessage(jid,fmsg)

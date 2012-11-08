@@ -306,7 +306,15 @@ class MessageStore(QObject):
 		for m in messages:
 			msg = m.getModelData()
 			msg['formattedDate'] = datetime.datetime.fromtimestamp(int(msg['timestamp'])/1000).strftime('%d-%m-%Y %H:%M')
-			msg['content'] = msg['content'].decode('utf-8');
+			try:
+				undecoded = msg['content'].decode('utf-8'); #maybe usless?
+			except:
+				undecoded = msg['content']
+			undecoded = undecoded.replace("&","&amp;")
+			undecoded = undecoded.replace("<","&lt;")
+			undecoded = undecoded.replace(">","&gt;")
+			undecoded = undecoded.replace("\n","<br />")
+			msg['content'] = undecoded
 			msg['jid'] = jid
 			msg['contact'] = m.getContact().getModelData()
 			media = m.getMedia()

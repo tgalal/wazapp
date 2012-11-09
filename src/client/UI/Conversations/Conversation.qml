@@ -747,14 +747,11 @@ WAPage {
                         forceFocusToChatText()
 
                         var toSend = chat_text.getCleanText();
-                        var res = toSend[0];
-                        if (res.trim() != "")
+                        var res = toSend[0].trim();
+                        if (res != "")
                         {
-							//var cleanedmessage = Helpers.getCode(chat_text.text);
-							var res  = chat_text.getCleanText()
-							//appWindow.sendMessage(jid,cleanedmessage);
-							appWindow.sendMessage(jid,res[0]);
-                            chat_text.text = "";
+				appWindow.sendMessage(jid,res, toSend[1]);
+				chat_text.text = "";
                         }
                         forceFocusToChatText()
 

@@ -171,7 +171,7 @@ WAPage {
                     font.pixelSize: 22
                     color: "gray"
                     visible: contactStatus!==""
-                    text: Helpers.emojify(contactStatus)
+                    text: Helpers.emojify2(contactStatus)
                     width: parent.width
                 }
             }

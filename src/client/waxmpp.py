@@ -167,6 +167,7 @@ class WAEventHandler(QObject):
 		return text;
 
 	def authSuccess(self, username):
+		self.updater = WAUpdater() ##Create a new instance ONLY after succesful, prevents falling into update check loop when can't connection to whatsapp
 		WAXMPP.contextproperty.setValue('online')
 		self.state = 2
 		self.connected.emit()
@@ -846,8 +847,6 @@ class WAEventHandler(QObject):
 			return
 		self._d("NET AVAILABLE")
 		self.updater = WAUpdater()
-		self.updater.updateAvailable.connect(self.updateAvailable)
-		
 		WAXMPP.contextproperty.setValue('connecting')
 		self.connecting.emit();
 		self.disconnectRequested = False
@@ -856,11 +855,16 @@ class WAEventHandler(QObject):
 		self.state = 1
 		#self.authenticate("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2")
 		#self.interfaceHandler.call("auth_login", ("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2"))
-		self.interfaceHandler.call("auth_login", (self.conn.user, self.conn.password))
+		thread.start_new_thread(self.interfaceHandler.call, ("auth_login", (self.conn.user, self.conn.password)))
 		
 		self._d("AUTH CALLED")
 		
-		self.updater.run()
+		
+		
+		if not self.updater.isFinished() and not self.updater.isRunning():
+			#it is a new instance since it never finished and never run before
+			self.updater.updateAvailable.connect(self.updateAvailable)
+			self.updater.start()
 		
 		#self.conn.disconnect()
 		

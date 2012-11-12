@@ -118,7 +118,7 @@ class WAEventHandler(QObject):
 		
 		self.account = "";
 
-		self.blockedContacts = "";
+		self.blockedContacts = [];
 
 		self.resizeImages = False;
 		self.disconnectRequested = False
@@ -381,11 +381,15 @@ class WAEventHandler(QObject):
 		def wrapped(self, *args):
 			messageId = args[0]
 			jid = args[1]
-			for blockedJid in self.blockedContacts.split(","):
-				if blockedJid == jid:
-					self.interfaceHandler.call("message_ack", (jid, messageId))
-					self._d("BLOCKED MESSAGE FROM " + jid)
-					return
+			
+			try:
+				self.blockedContacts.index(jid);
+				#self.interfaceHandler.call("message_ack", (jid, messageId))
+				self._d("BLOCKED MESSAGE FROM " + jid)
+				return
+			except ValueError:
+				pass
+
 			if WAXMPP.message_store.messageExists(jid, messageId):
 				self.interfaceHandler.call("message_ack", (jid, messageId))
 				return
@@ -1006,7 +1010,7 @@ class WAEventHandler(QObject):
 
 	def setBlockedContacts(self,contacts):
 		self._d("Blocked contacts: " + contacts)
-		self.blockedContacts = contacts;
+		self.blockedContacts = contacts.split(',');
 
 	
 	def setResizeImages(self,resize):

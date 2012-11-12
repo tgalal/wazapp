@@ -81,11 +81,10 @@ FocusScope {
     
     function insert(object) {
 	var text = root.text
-	text = text.replace("text-indent:0px;\"><br />","text-indent:0px;\">").replace("-qt-paragraph-type:empty;", "")
-	var before = text.split("text-indent:0px;\">")[0] + "text-indent:0px;\">"
-	var after = "</p>" + text.split("</p>")[1]
-	var richText = text.split("text-indent:0px;\">")[1].split("</p>")[0]
-
+	var richText = text.split("</head>")[1].split("</body>")[0]
+	richText = richText.replace(/\<p[^\>]*\>/g, "").replace(/<\/p>/g, "")
+	richText = richText.replace(/\<body[^\>]*\>\n/g, "")
+	richText = richText.replace(/\n/g, "<br />")
 	
 	var listText = []
 	for(var i =0; i<richText.length; i++)
@@ -106,39 +105,11 @@ FocusScope {
 		listText.push(richText[i])
 	}
 	listText.splice(root.cursorPosition,0,object)
-	var result = before + listText.join("") + after
+	var result = listText.join("")
 	
 	root.lastPosition = root.cursorPosition
 	root.text = result
 	root.cursorPosition = root.lastPosition + 1
-    }
-    
-    function count() {
-	var text = root.text
-	text = text.replace("text-indent:0px;\"><br />","text-indent:0px;\">").replace("-qt-paragraph-type:empty;", "")
-	var before = text.split("text-indent:0px;\">")[0] + "text-indent:0px;\">"
-	var after = "</p>" + text.split("</p>")[1]
-	var richText = text.split("text-indent:0px;\">")[1].split("</p>")[0]
-	
-	var res = 0
-	for(var i =0; i<richText.length; i++)
-	{
-	    if (richText[i] == "<")
-	    {
-		var j =  richText.indexOf(">", i+1)
-		res++
-		i = j
-	    }
-	    else if (richText[i] == "&")
-	    {
-		var j =  richText.indexOf(";", i+1)
-		res++
-		i = j
-	    }
-	    else
-		res++
-	}
-	return res
     }
 
     function copy() {

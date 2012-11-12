@@ -610,7 +610,7 @@ WAPage {
 			onOptionsRequested: {
 
 				consoleDebug("options requested ") // + ConversationHelper.getContact(model.author.jid).contactName)
-                copy_facilitator.text = model.content.replace(/<br \/>/g, "\n").replace(/&lt;/, "<").replace(/&gt;/, ">").replace(/&quot;/, "\"").replace(/&amp;/g, "&");
+                copy_facilitator.text = model.content.replace(/<br \/>/g, "\n").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&amp;/g, "&");
                 selectedMessage = model;
                 selectedMessageIndex = index
 				showContactDetails = model.type==0 && name==model.author.jid.split('@')[0]

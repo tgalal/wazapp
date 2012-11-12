@@ -155,6 +155,8 @@ class WAEventHandler(QObject):
 
 		self.state = 0
 		
+		self.updater = WAUpdater()
+		
 		
 	############### NEW BACKEND STUFF
 	def strip(self, text):
@@ -846,21 +848,15 @@ class WAEventHandler(QObject):
 		if self.state != 0:
 			return
 		self._d("NET AVAILABLE")
-		self.updater = WAUpdater()
 		WAXMPP.contextproperty.setValue('connecting')
 		self.connecting.emit();
 		self.disconnectRequested = False
-		
-		#thread.start_new_thread(self.conn.changeState, (2,))
+
 		self.state = 1
-		#self.authenticate("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2")
-		#self.interfaceHandler.call("auth_login", ("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2"))
 		thread.start_new_thread(self.interfaceHandler.call, ("auth_login", (self.conn.user, self.conn.password)))
 		
 		self._d("AUTH CALLED")
-		
-		
-		
+
 		if not self.updater.isFinished() and not self.updater.isRunning():
 			#it is a new instance since it never finished and never run before
 			self.updater.updateAvailable.connect(self.updateAvailable)

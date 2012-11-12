@@ -41,23 +41,24 @@ class Notifier():
 		self.groupRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
 		self.groupVibrate = True;
 		
-		#QCoreApplication.setApplicationName("Wazapp");  used to get media volume
+		QCoreApplication.setApplicationName("Wazapp");
 
 
 		self.audioOutput = Phonon.AudioOutput(Phonon.MusicCategory, None)
 		self.mediaObject = Phonon.MediaObject(None)
 		Phonon.createPath(self.mediaObject, self.audioOutput)		
 
+		self.profileChanged(0, 0, self.getCurrentProfile(), 0)
 		bus = dbus.SessionBus()
 		mybus = bus.get_object('com.nokia.profiled', '/com/nokia/profiled')
 		self.nface = dbus.Interface(mybus, 'com.nokia.profiled')
 		self.nface.connect_to_signal("profile_changed", self.profileChanged)
-		prof = self.getCurrentProfile()
-		reply = self.nface.get_value(prof,"ringing.alert.volume");
-		self.currentProfile = prof
-		self.currentVolume = "1.0" if reply=="100" else "0." + reply
-		self._d("Checking current profile: " + prof + " - Volume: " + self.currentVolume)
-		self.audioOutput.setVolume(float(self.currentVolume))
+		#prof = self.getCurrentProfile()
+		#reply = self.nface.get_value(prof,"ringing.alert.volume");
+		#self.currentProfile = prof
+		#self.currentVolume = "1.0" if reply=="100" else "0." + reply
+		#self._d("Checking current profile: " + prof + " - Volume: " + self.currentVolume)
+		#self.audioOutput.setVolume(float(self.currentVolume))
 
 		
 		#self.newMessageSound = WAConstants.DEFAULT_SOUND_NOTIFICATION #fetch from settings
@@ -101,9 +102,10 @@ class Notifier():
 		nface = dbus.Interface(mynbus, 'com.nokia.profiled')
 		reply = nface.get_value(profile,"ringing.alert.volume");
 		self.currentProfile = profile
-		self.currentVolume = "1.0" if reply=="100" else "0." + reply
+		volume = int(reply) / 100.0
+		self.currentVolume = str(volume)
 		self._d("Checking current profile: " + profile + " - Volume: " + self.currentVolume)
-		self.audioOutput.setVolume(float(self.currentVolume))
+		self.audioOutput.setVolume(volume)
 
 	
 	def enable(self):

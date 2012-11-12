@@ -33,7 +33,7 @@ class ContactsSyncer(WARequest):
 	'''
 	Interfaces with whatsapp contacts server to get contact list
 	'''
-	contactsRefreshSuccess = QtCore.Signal(str,str,int);
+	contactsRefreshSuccess = QtCore.Signal(str,str);
 	contactsRefreshFail = QtCore.Signal();
 	contactsSyncStatus = QtCore.Signal(str);
 
@@ -110,11 +110,9 @@ class ContactsSyncer(WARequest):
 
 				if is_valid:
 					contact = self.store.Contact.getOrCreateContactByJid(jid)
-					length = len(newSatus)
-					newSatus = newSatus.encode('utf-8')
-					contact.status = newSatus
+					contact.status = newSatus.encode('utf-8')
 					contact.save()
-					self.contactsRefreshSuccess.emit(self.mode, newSatus, length);#holy bug. when sending string to it recieving wigh garbage at the end
+					self.contactsRefreshSuccess.emit(self.mode, newSatus.encode("unicode_escape"));
 
 		else:
 			for c in contacts:
@@ -136,7 +134,7 @@ class ContactsSyncer(WARequest):
 					contact.iscontact = "yes"
 					contact.save()
 
-			self.contactsRefreshSuccess.emit(self.mode, "", -1);	
+			self.contactsRefreshSuccess.emit(self.mode, "");	
 
 		
 	def onRefreshing(self):
@@ -153,7 +151,7 @@ class ContactsSyncer(WARequest):
 class WAContacts(QObject):
 
 	refreshing = QtCore.Signal();
-	contactsRefreshed = QtCore.Signal(str,str,int);
+	contactsRefreshed = QtCore.Signal(str,str);
 	contactsRefreshFailed = QtCore.Signal();
 	contactsSyncStatusChanged = QtCore.Signal(str);
 	contactUpdated = QtCore.Signal(str);

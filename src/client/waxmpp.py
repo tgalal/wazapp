@@ -149,9 +149,9 @@ class WAEventHandler(QObject):
 		self.removeParticipants.connect(lambda *args: self.interfaceHandler.call("group_removeParticipants", args));
 		self.getGroupParticipants.connect(lambda *args: self.interfaceHandler.call("group_getParticipants", args));
 		self.endGroupChat.connect(lambda *args: self.interfaceHandler.call("group_end", args));
-		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, self.strip(subject))));
+		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, subject.decode("unicode_escape").encode('utf-8'))));
 		self.getPictureIds.connect(lambda *args: self.interfaceHandler.call("picture_getIds", args));
-		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (self.strip(status),)));
+		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (status.decode("unicode_escape").encode('utf-8'),)));
 
 		self.state = 0
 		
@@ -916,10 +916,11 @@ class WAEventHandler(QObject):
 			self.interfaceHandler.call("presence_sendAvailable")
 		
 	
-	def sendMessage(self,jid,msg_text,count):
+	def sendMessage(self,jid,msg_text):
 		self._d("sending message now")
 		fmsg = WAXMPP.message_store.createMessage(jid);
 		
+		msg_text = msg_text.decode("unicode_escape")
 		
 		if fmsg.Conversation.type == "group":
 			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
@@ -930,7 +931,7 @@ class WAEventHandler(QObject):
 		msg_text = msg_text.replace("&lt;", "<");
 		msg_text = msg_text.replace("&gt;", ">");
 		msg_text = msg_text.replace("&amp;", "&");
-		msg_text = msg_text[:count]
+		#msg_text = msg_text[:count]
 
 		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
 		WAXMPP.message_store.pushMessage(jid,fmsg)

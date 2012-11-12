@@ -748,10 +748,9 @@ WAPage {
 
                         var toSend = chat_text.getCleanText();
                         var res = toSend[0].trim();
-                        if (res != "")
-                        {
-				appWindow.sendMessage(jid,res, toSend[1]);
-				chat_text.text = "";
+                        if (res != "") {
+                            appWindow.sendMessage(jid, Helpers.unicodeEscape(res));
+                            chat_text.text = "";
                         }
                         forceFocusToChatText()
 

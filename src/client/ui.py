@@ -284,14 +284,14 @@ class WAUI(QDeclarativeView):
 
 		
 
-	def populateContacts(self, mode, status="", length=-1):
+	def populateContacts(self, mode, status=""):
 		#syncer = ContactsSyncer(self.store);
 		
 		#self.c.refreshing.connect(syncer.onRefreshing);
 		#syncer.done.connect(c.updateContacts);
 		if (mode == "STATUS"):
 			self._d("UPDATE CONTACT STATUS");
-			self.rootObject().updateContactStatus(status[:length])
+			self.rootObject().updateContactStatus(status.decode("unicode_escape"))
 
 		else:
 			if not self.initializationDone:

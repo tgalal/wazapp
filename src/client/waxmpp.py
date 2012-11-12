@@ -1325,7 +1325,7 @@ class WAEventHandler(QObject):
 		message = message.findFirst({'id':messageId});
 		media = message.getMedia()
 		url = data.split(',')[0]
-		name = data.split(',')[1]
+		name = url.split('/')[-1]
 		size = data.split(',')[2]
 		self._d("sending media message to " + jid + " - file: " + url)
 		

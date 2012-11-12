@@ -112,8 +112,8 @@ Item {
 				y: 0
 				onClicked:{
                     var toSend = status_text.getCleanText();
-                    var res = toSend[0];
-					if ( res.trim() != "")
+                    var res = toSend[0].trim();
+					if ( res != "")
                     {
                         requested = true;
 						tempStatus = res.trim();

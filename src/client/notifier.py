@@ -165,6 +165,8 @@ class Notifier():
 		self.newMessage(jid,contactName,message,self.personalRingtone, self.personalVibrate, picture, callback)
 	
 	def newMessage(self,jid,contactName,message,ringtone,vibration,picture=None,callback=False):
+	  
+		message = message.replace("<br />", "\n").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&amp;", "&")
 		
 		self._d("NEW NOTIFICATION! Ringtone: " + ringtone + " - Vibrate: " + str(vibration))
 

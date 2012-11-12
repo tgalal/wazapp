@@ -610,7 +610,7 @@ WAPage {
 			onOptionsRequested: {
 
 				consoleDebug("options requested ") // + ConversationHelper.getContact(model.author.jid).contactName)
-                copy_facilitator.text = model.content;
+                copy_facilitator.text = model.content.replace(/<br \/>/g, "\n").replace(/&lt;/, "<").replace(/&gt;/, ">").replace(/&quot;/, "\"").replace(/&amp;/g, "&");
                 selectedMessage = model;
                 selectedMessageIndex = index
 				showContactDetails = model.type==0 && name==model.author.jid.split('@')[0]
@@ -747,12 +747,11 @@ WAPage {
                         forceFocusToChatText()
 
                         var toSend = chat_text.getCleanText();
-                        var res = toSend[0];
-                        if (res.trim() != "")
+                        var res = toSend[0].trim();
+                        if (res != "")
                         {
-							var cleanedmessage = Helpers.getCode(chat_text.text);
-							appWindow.sendMessage(jid,cleanedmessage);
-                            chat_text.text = "";
+				appWindow.sendMessage(jid,res, toSend[1]);
+				chat_text.text = "";
                         }
                         forceFocusToChatText()
 
@@ -772,20 +771,6 @@ WAPage {
 					enabled: blockedContacts.indexOf(jid)==-1
 
                     property bool alreadyFocused: false
-
-					function cleanTextWithoutLines(txt){
-						var repl = "p, li { white-space: pre-wrap; }";
-						var res = txt;
-						var pos = 0;
-						var result = Helpers.getCode(res);
-						res = result[0]
-						pos = result[1]
-						while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
-						res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
-						res = res.replace(/^\s+/,"");
-						while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-						return [res, pos];
-					}
 
 					onHeightChanged: {
 						//consoleDebug("TEXT AREA HEIGHT: " + parseInt(chat_text.height))
@@ -833,19 +818,7 @@ WAPage {
 							sendButtonClicked();
 							forceFocusToChatText()
 						} else {
-							lastPosition = chat_text.cursorPosition
-							var str = cleanTextWithoutLines(chat_text.text)
-
-							var pos = str.indexOf("<br />")
-							var newPosition = lastPosition
-							while(pos>-1 && pos<lastPosition) {
-								lastPosition = lastPosition +5
-								pos = str.indexOf("<br />", pos+1)
-							}
-							
-							str = str.substring(0,lastPosition) + "<br />" + str.slice(lastPosition)
-							chat_text.text = Helpers.emojify2(str)
-							chat_text.cursorPosition = newPosition + 1
+							chat_text.insert("<br />")
 						}
 					}
 

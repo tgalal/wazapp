@@ -101,7 +101,7 @@ WAStackWindow {
     signal consoleDebug(string text);
 
     signal changeStatus(string new_status)
-    signal sendMessage(string jid, string msg);
+    signal sendMessage(string jid, string msg, int count);
     signal requestPresence(string jid);
     signal refreshContacts(string mode, string jid);
     signal sendTyping(string jid);
@@ -250,7 +250,24 @@ WAStackWindow {
         browserUpdated();
     }
 
+    function addRecentEmoji(emojicode) {
 
+	var emoji = []
+	var emojilist = MySettings.getSetting("RecentEmoji", "")
+
+	if (emojilist!="")
+		emoji = emojilist.split(',')
+
+	for (var i=0; i<emoji.length; ++i) {
+		if (emoji[i]==emojicode) {
+			emoji.splice(i,1)
+			break;
+		}
+	}
+
+	emoji.push(emojicode)
+	MySettings.setSetting("RecentEmoji", emoji.toString())
+    }
 
     signal groupCreated(string group_id)
     signal groupCreateFailed(int errorCode)

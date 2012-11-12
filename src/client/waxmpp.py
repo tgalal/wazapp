@@ -427,8 +427,8 @@ class WAEventHandler(QObject):
 
 
 			msgPicture = self.getDisplayPicture(conversation.getJid())
-			WAXMPP.message_store.pushMessage(conversation.getJid(), message)
 			conversation.incrementNew()
+			WAXMPP.message_store.pushMessage(conversation.getJid(), message)
 
 
 			if conversation.isGroup():

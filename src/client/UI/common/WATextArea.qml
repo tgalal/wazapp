@@ -70,22 +70,28 @@ FocusScope {
         var res = root.text
         var result = Helpers.getCode(res);
         res = result[0]
-        var pos = result[1]
-        res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
+        if (res.indexOf("-qt-paragraph-type:empty;") != -1)
+	    res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
         while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
         res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
         res = res.replace(/^\s+/,"");
         while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-        return [res, pos];
+        return [res, result[1]];
 
     }
     
     function insert(object) {
 	var text = root.text
+	consoleDebug("insert()")
+	consoleDebug(text)
 	var richText = text.split("</head>")[1].split("</body>")[0]
+	if (richText.indexOf("-qt-paragraph-type:empty;") != -1)
+	    richText = richText.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
 	richText = richText.replace(/\<p[^\>]*\>/g, "").replace(/<\/p>/g, "")
 	richText = richText.replace(/\<body[^\>]*\>\n/g, "")
 	richText = richText.replace(/\n/g, "<br />")
+	
+	consoleDebug(richText.length)
 	
 	var listText = []
 	for(var i =0; i<richText.length; i++)

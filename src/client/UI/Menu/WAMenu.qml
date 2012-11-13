@@ -35,11 +35,10 @@ Menu {
 
 		MenuItem {
             text: qsTr("Create group");
-            enabled: connectionStatus=="online"
+            //enabled: connectionStatus=="online"
             onClicked: {
-                //selectedContacts = ""
-                //participantsModel.clear()
-				pageStack.push (Qt.resolvedUrl("../Groups/CreateGroup.qml"))
+
+                runIfOnline(function(){pageStack.push (Qt.resolvedUrl("../Groups/CreateGroup.qml"))}, true);
 			}
         }
 
@@ -52,12 +51,11 @@ Menu {
         MenuItem {
             id:sync_item
             text: qsTr("Sync Contacts");
-			enabled: connectionStatus=="online"
             //onClicked: { console.log("SYNC"); syncClicked(); }
 			onClicked: {
 				//shareSyncContacts.mode = "sync"
 				//pageStack.push(shareSyncContacts)
-				appWindow.onSyncClicked()
+                runIfOnline(function(){appWindow.onSyncClicked()}, true);
 				//openContactPicker("true", qsTr("Sync Contacts"))
 			}
         }

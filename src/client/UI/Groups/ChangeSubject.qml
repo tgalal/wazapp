@@ -117,12 +117,17 @@ WAPage {
 					anchors.rightMargin: 0
 					y: 0
 					onClicked: {
-                        var toSend = subject_text.getCleanText();
-                        var res = toSend[0].trim();
-                        if (res != "") {
-                            setGroupSubject(jid, Helpers.unicodeEscape(res))
-                            pageStack.pop()
-                        }
+
+                       runIfOnline(function(){
+
+                           var toSend = subject_text.getCleanText();
+                           var res = toSend[0].trim();
+                           if (res != "") {
+                               setGroupSubject(jid, Helpers.unicodeEscape(res))
+                               pageStack.pop()
+                           }
+                       }, true);
+
 					}
 				}
 			}

@@ -186,6 +186,34 @@ WAStackWindow {
 
     signal populatePhoneContacts()
 
+    function runIfOnline(func, showNotificationIfFalse, notificationMessage){
+
+        /*
+         *  isOnline(func) => runs the func if and only if connection is online
+         *  isOnline(func, showNotificationIfFalse) => shows default not-online message as an osd notification if offline
+         *  isOnline(func, True, "Hello") => shows "Hello" as an osd notification if offline
+         *
+         *  return true/false depending on connection online/offline, regardless of the invoked function output
+         */
+
+
+        if(!func)
+            return;
+
+        if (connectionStatus=="online") {
+            func();
+            return true;
+        }
+
+        if(showNotificationIfFalse){
+            var message = notificationMessage?notificationMessage:qsTr("You must be online to perform this action");
+            showNotification(message)
+        }
+
+       return false;
+
+    }
+
     signal thumbnailUpdated()
     function onThumbnailUpdated() {
         thumbnailUpdated()

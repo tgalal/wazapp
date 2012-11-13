@@ -742,9 +742,14 @@ WAPage {
         id:setProfilePicture
         onSelected: {
             pageStack.pop()
-            picture.state = "loading"
-            breathe()
-            setMyProfilePicture(path)
+
+            runIfOnline(function(){
+                picture.state = "loading"
+                breathe()
+                setMyProfilePicture(path)
+
+            }, true)
+
         }
     }
 

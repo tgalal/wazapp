@@ -471,6 +471,7 @@ class WAEventHandler(QObject):
 			message.timestamp = timestamp
 			message.content = content
 
+		message.pushname = pushName
 		message.wantsReceipt = wantsReceipt
 		return message
 

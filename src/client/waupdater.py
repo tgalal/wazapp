@@ -22,6 +22,7 @@ from distutils.version import StrictVersion
 from utilities import Utilities
 
 from wadebug import UpdaterDebug;
+import time, sys
 
 class WAUpdater(WAJsonRequest):
 	updateAvailable = QtCore.Signal(dict)
@@ -33,21 +34,31 @@ class WAUpdater(WAJsonRequest):
 		self.base_url = "wazapp.im"
 		self.req_file = "/whatsup/"
 		
+		self.interval = 60*60 #seconds
+		
 	
 		super(WAUpdater,self).__init__();
 	
 	def run(self):
-		self._d("Checking for updates")
-		res = self.sendRequest()
-		if res:
-			#current = self.version.split('.');
-			#latest = res['v'].split('.')
-			curr = Utilities.waversion
-			test = curr.split('.');
+		while True:
+			self._d("Checking for updates")
+			try:
+				res = self.sendRequest()
+				if res:
+					#current = self.version.split('.');
+					#latest = res['v'].split('.')
+					curr = Utilities.waversion
+					test = curr.split('.');
+					
+					if len(test) == 4:
+						curr = '.'.join(test[:3])
+						
+					if StrictVersion(str(res['l'])) > curr:
+						self._d("UPDATE AVAILABLE!")
+						self.updateAvailable.emit(res)
+			except:
+					self._d("Coudn't check for updates error thrown: %s" %  sys.exc_info()[1])
+
+			time.sleep(self.interval)
 			
-			if len(test) == 4:
-				curr = '.'.join(test[:3])
-				
-			if StrictVersion(str(res['l'])) > curr:
-				self._d("UPDATE AVAILABLE!")
-				self.updateAvailable.emit(res)
+					

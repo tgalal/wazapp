@@ -77,10 +77,10 @@ Rectangle{
 
 		onUpdateContactName: {
 			if (jid == ujid) {
-				if (title = jid.split('@')[0]) {
+				//if (title = jid.split('@')[0]) {
 					consoleDebug("Update push name in Chat")
 					chat_title.text = npush
-				}
+				//}
 			}
 		}
 	}

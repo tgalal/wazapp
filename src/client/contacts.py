@@ -33,7 +33,7 @@ class ContactsSyncer(WARequest):
 	'''
 	Interfaces with whatsapp contacts server to get contact list
 	'''
-	contactsRefreshSuccess = QtCore.Signal(str,str);
+	contactsRefreshSuccess = QtCore.Signal(str,str,dict);
 	contactsRefreshFail = QtCore.Signal();
 	contactsSyncStatus = QtCore.Signal(str);
 
@@ -112,7 +112,7 @@ class ContactsSyncer(WARequest):
 					contact = self.store.Contact.getOrCreateContactByJid(jid)
 					contact.status = newSatus.encode('utf-8')
 					contact.save()
-					self.contactsRefreshSuccess.emit(self.mode, newSatus.encode("unicode_escape"));
+					self.contactsRefreshSuccess.emit(self.mode, newSatus.encode("unicode_escape"), contact);
 
 		else:
 			for c in contacts:
@@ -134,7 +134,7 @@ class ContactsSyncer(WARequest):
 					contact.iscontact = "yes"
 					contact.save()
 
-			self.contactsRefreshSuccess.emit(self.mode, "");	
+			self.contactsRefreshSuccess.emit(self.mode, "", []);	
 
 		
 	def onRefreshing(self):
@@ -151,7 +151,7 @@ class ContactsSyncer(WARequest):
 class WAContacts(QObject):
 
 	refreshing = QtCore.Signal();
-	contactsRefreshed = QtCore.Signal(str,str);
+	contactsRefreshed = QtCore.Signal(str,str,dict);
 	contactsRefreshFailed = QtCore.Signal();
 	contactsSyncStatusChanged = QtCore.Signal(str);
 	contactUpdated = QtCore.Signal(str);

@@ -153,7 +153,7 @@ class WAEventHandler(QObject):
 		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, subject.decode("unicode_escape").encode('utf-8'))));
 		self.getPictureIds.connect(lambda *args: self.interfaceHandler.call("picture_getIds", args));
 		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (status.decode("unicode_escape").encode('utf-8'),)));
-		self.setMyPushName.connect(lambda pushname: self.interfaceHandler.call("presence_sendAvailableForChat", (pushname,)));
+		self.setMyPushName.connect(lambda pushname: self.interfaceHandler.call("presence_sendAvailableForChat", (pushname.encode('utf-8'),)));
 
 
 		self.state = 0
@@ -454,11 +454,12 @@ class WAEventHandler(QObject):
 
 		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(message.getContact().jid)
 
-		if contact.pushname!=pushName and pushName!="" and contact.iscontact!="yes":
+		if contact.pushname!=pushName and pushName!="":
 			self._d("Setting Push Name: "+pushName+" to "+contact.jid)
 			contact.setData({"jid":contact.jid,"pushname":pushName})
 			contact.save()
-			self.setPushName.emit(contact.jid,pushName)
+			if contact.iscontact!="yes":
+				self.setPushName.emit(contact.jid,pushName)
 
 		if contact.pictureid == None:
 			self.getPictureIds.emit(contact.jid)
@@ -937,7 +938,7 @@ class WAEventHandler(QObject):
 	
 	def onAvailable(self, pushname):
 		if self.state == 2:
-			self.interfaceHandler.call("presence_sendAvailableForChat", (pushname,))
+			self.interfaceHandler.call("presence_sendAvailableForChat", (pushname.encode('utf-8'),))
 		
 	
 	def sendMessage(self,jid,msg_text):

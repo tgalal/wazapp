@@ -503,7 +503,7 @@ WAPage {
 						profileUser = jid
                         //pageStack.push (Qt.resolvedUrl("../Groups/GroupProfile.qml"))
                         openProfile();
-                        //conversationProfile.item.getInfo();
+                        conversationProfile.item.getInfo();
 					}
 				}
 			}

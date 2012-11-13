@@ -317,6 +317,7 @@ class MessageStore(QObject):
 			msg['content'] = undecoded
 			msg['jid'] = jid
 			msg['contact'] = m.getContact().getModelData()
+			msg['pushname'] = msg['contact']['pushname']
 			media = m.getMedia()
 			msg['media']= media.getModelData() if media is not None else None
 			msg['msg_id'] = msg['id']

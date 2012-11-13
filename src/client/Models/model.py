@@ -271,8 +271,11 @@ class Model(object):
 	
 	def setInstanceVariable(self,variable,value=None):
 		#variable = "idx" if variable == "id" else variable
-		if ((variable == "timestamp" or variable == "created") and value is None):
-			value =	int(time.time()*1000);
+		if value is None:
+			if variable == "timestamp":
+				value =	int(time.time())
+			elif variable == "created":
+				value =	int(time.time()*1000)
 			
 		vars(self)[variable] = value
 	

@@ -70,22 +70,28 @@ FocusScope {
         var res = root.text
         var result = Helpers.getCode(res);
         res = result[0]
-        res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
+        if (res.indexOf("-qt-paragraph-type:empty;") != -1)
+	    res = res.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
         while(res.indexOf("<br />")>-1) res = res.replace("<br />", "wazappLineBreak");
         res = res.replace(/<[^>]*>?/g, "").replace(repl,"");
         res = res.replace(/^\s+/,"");
         while(res.indexOf("wazappLineBreak")>-1) res = res.replace("wazappLineBreak", "<br />");
-        return [res, count()];
+        return [res, result[1]];
 
     }
     
     function insert(object) {
 	var text = root.text
-	text = text.replace("text-indent:0px;\"><br />","text-indent:0px;\">").replace("-qt-paragraph-type:empty;", "")
-	var before = text.split("text-indent:0px;\">")[0] + "text-indent:0px;\">"
-	var after = "</p>" + text.split("</p>")[1]
-	var richText = text.split("text-indent:0px;\">")[1].split("</p>")[0]
-
+	consoleDebug("insert()")
+	consoleDebug(text)
+	var richText = text.split("</head>")[1].split("</body>")[0]
+	if (richText.indexOf("-qt-paragraph-type:empty;") != -1)
+	    richText = richText.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
+	richText = richText.replace(/\<p[^\>]*\>/g, "").replace(/<\/p>/g, "")
+	richText = richText.replace(/\<body[^\>]*\>\n/g, "")
+	richText = richText.replace(/\n/g, "<br />")
+	
+	consoleDebug(richText.length)
 	
 	var listText = []
 	for(var i =0; i<richText.length; i++)
@@ -106,39 +112,11 @@ FocusScope {
 		listText.push(richText[i])
 	}
 	listText.splice(root.cursorPosition,0,object)
-	var result = before + listText.join("") + after
+	var result = listText.join("")
 	
 	root.lastPosition = root.cursorPosition
 	root.text = result
 	root.cursorPosition = root.lastPosition + 1
-    }
-    
-    function count() {
-	var text = root.text
-	text = text.replace("text-indent:0px;\"><br />","text-indent:0px;\">").replace("-qt-paragraph-type:empty;", "")
-	var before = text.split("text-indent:0px;\">")[0] + "text-indent:0px;\">"
-	var after = "</p>" + text.split("</p>")[1]
-	var richText = text.split("text-indent:0px;\">")[1].split("</p>")[0]
-	
-	var res = 0
-	for(var i =0; i<richText.length; i++)
-	{
-	    if (richText[i] == "<")
-	    {
-		var j =  richText.indexOf(">", i+1)
-		res++
-		i = j
-	    }
-	    else if (richText[i] == "&")
-	    {
-		var j =  richText.indexOf(";", i+1)
-		res++
-		i = j
-	    }
-	    else
-		res++
-	}
-	return res
     }
 
     function copy() {

@@ -156,6 +156,7 @@ WAStackWindow {
     signal breathe()
     signal playSoundFile(string soundfile);
     signal stopSoundFile();
+    signal setMyPushName(string pushname);
 
 
     signal openContactPicker(string multi, string title); //TESTING...
@@ -381,6 +382,7 @@ WAStackWindow {
     property string connectionStatus
     function onConnected(){
         setIndicatorState("online")
+	setMyPushName(myPushName)
         //getPictures();
     }
     signal connectionClosed();
@@ -562,17 +564,19 @@ WAStackWindow {
 
 
 
-    property string contactForStatus //@@FUCKING RETARTED
-    function updateContactStatus(status) {
+    //property string contactForStatus //@@FUCKING RETARTED
+    function updateContactStatus(ujid,status) {
         for(var i =0; i<contactsModel.count; i++)
         {
-            if(contactForStatus == contactsModel.get(i).jid) {
+            if(ujid == contactsModel.get(i).jid) {
                 consoleDebug("FOUNDED CONTACT " + contactsModel.get(i).jid +" - " + status)
                 contactsModel.get(i).status = status
+				break;
             }
         }
 
     }
+
 
 
     property string myAccount: ""
@@ -620,26 +624,35 @@ WAStackWindow {
         setBlockedContacts(blockedContacts)
     }
 
-    function updateContactsData(contacts){
-        var added = 0
+    function updateContactsData(contacts, ujid, npush){
         for(var i =0; i<contacts.length; i++) {
             var add = true
-            for(var j =0; j<contactsModel.count; j++) {
-                if (contactsModel.get(j).jid==contacts[i].jid) {
-                    contactsModel.get(j).name = contacts[i].name
-                    add = false
-                    break
-                }
-            }
-            if (add) {
-                //contacts[i].newContact = true;
-                contactsModel.insert(i, contacts[i]);
-                currentContacts = currentContacts + "," + contacts[i].jid
-                newContacts = newContacts +1
-                //contactsAdded.title = newContacts
-            }
+	    if (contacts[i].jid==ujid) {
+		for(var j =0; j<contactsModel.count; j++) {
+		    if (contactsModel.get(j).jid==ujid) {
+			consoleDebug("Updating " + ujid + " push name to " + npush)
+			contactsModel.get(j).name = npush
+			contactsModel.get(j).alphabet = npush[0].toUpperCase()
+			//contactsModel.move(j ,i, 1)
+			//contactsModel.sync()
+			add = false
+			break
+		    }
+		}
+		if (add) {
+		    consoleDebug("Adding new contact using push name")
+		    contactsModel.insert(i, contacts[i]);
+		    currentContacts = currentContacts + "," + contacts[i].jid
+		    newContacts = newContacts +1
+		    //contactsAdded.title = newContacts
+		} 
+		break;
+	    }
         }
+	updateContactName(ujid,npush);
+	//refreshSuccessed()
     }
+
 
 
 

@@ -36,6 +36,24 @@ class AccountsManager():
 		return account
 		
 	
+	@staticmethod
+	#copy-pasted function because account instance dying by some reason at the end of executing findAccount
+	def setPushName(pushname):
+		m = Manager()
+		accountIds = m.accountList()
+		imsi = Utilities.getImsi()
+		for aId in accountIds:
+			a = m.account(aId)
+			services = a.services()
+			for s in services:
+				if s.name() == "waxmpp":
+					if a.valueAsString("imsi") == imsi:
+						account = a
+						account.setValue("pushName",pushname)
+						account.sync()
+
+
+	
 	@staticmethod	
 	def findAccount():
 		d = AccountsDebug()

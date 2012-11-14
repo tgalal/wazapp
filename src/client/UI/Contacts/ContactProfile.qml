@@ -222,7 +222,7 @@ WAPage {
                 onClicked: {
                         updateSingleStatus=true //@@retarded
                         statusButton.enabled=false
-                        contactForStatus = contactJid //@@retarded
+                        //contactForStatus = contactJid //@@retarded
                         refreshContacts("STATUS", contactJid.split('@')[0]) //@@retarded
                 }
             }

@@ -101,6 +101,7 @@ class WAEventHandler(QObject):
 	imageRotated = QtCore.Signal(str);
 	getPicturesFinished = QtCore.Signal();
 	changeStatus = QtCore.Signal(str);
+	setMyPushName = QtCore.Signal(str);
 	statusChanged = QtCore.Signal();
 	doQuit = QtCore.Signal();
 
@@ -152,6 +153,8 @@ class WAEventHandler(QObject):
 		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, subject.decode("unicode_escape").encode('utf-8'))));
 		self.getPictureIds.connect(lambda *args: self.interfaceHandler.call("picture_getIds", args));
 		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (status.decode("unicode_escape").encode('utf-8'),)));
+		self.setMyPushName.connect(lambda pushname: self.interfaceHandler.call("presence_sendAvailableForChat", (pushname.encode('utf-8'),)));
+
 
 		self.state = 0
 		
@@ -448,12 +451,26 @@ class WAEventHandler(QObject):
 	@postMessageReceived
 	def onMessageReceived(self, message, content, timestamp, wantsReceipt, pushName=""):
 
+		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(message.getContact().jid)
+
+		if contact.pushname!=pushName and pushName!="":
+			self._d("Setting Push Name: "+pushName+" to "+contact.jid)
+			contact.setData({"jid":contact.jid,"pushname":pushName})
+			contact.save()
+			if contact.iscontact!="yes":
+				self.setPushName.emit(contact.jid,pushName)
+
+		if contact.pictureid == None:
+			self.getPictureIds.emit(contact.jid)
+
+
 		if content is not None:
 
 			content = content#.encode('utf-8')
 			message.timestamp = timestamp
 			message.content = content
 
+		message.pushname = pushName
 		message.wantsReceipt = wantsReceipt
 		return message
 
@@ -920,9 +937,9 @@ class WAEventHandler(QObject):
 	def conversationOpened(self,jid):
 		self.notifier.hideNotification(jid);
 	
-	def onAvailable(self):
+	def onAvailable(self, pushname):
 		if self.state == 2:
-			self.interfaceHandler.call("presence_sendAvailable")
+			self.interfaceHandler.call("presence_sendAvailableForChat", (pushname.encode('utf-8'),))
 		
 	
 	def sendMessage(self,jid,msg_text):

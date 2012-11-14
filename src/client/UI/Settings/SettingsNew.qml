@@ -657,6 +657,29 @@ WAPage {
                         text: Helpers.emojify2(currentStatus)
 					}
 
+					GroupSeparator {
+						title: qsTr("Push Name")
+						height: 36
+					}
+
+					WATextArea {
+						id: push_text
+						width: parent.width
+						wrapMode: TextEdit.Wrap
+						textFormat: Text.PlainText
+						textColor: "black"
+						text: myPushName
+					}
+
+					Button
+					{
+						platformStyle: ButtonStyle { inverted: true }
+						width: 160
+						height: 50
+						text: qsTr("Save")
+						anchors.right: push_text.right
+						onClicked: setMyPushName(push_text.text)
+					}
 
 
 					

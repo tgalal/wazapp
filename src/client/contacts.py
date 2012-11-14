@@ -134,7 +134,7 @@ class ContactsSyncer(WARequest):
 					contact.iscontact = "yes"
 					contact.save()
 
-			self.contactsRefreshSuccess.emit(self.mode, []);	
+			self.contactsRefreshSuccess.emit(self.mode, {});	
 
 		
 	def onRefreshing(self):

@@ -1017,6 +1017,7 @@ WAPage {
 				loadMoreMessages(1);
 			}
 			updateLastMessage();
+		}
             }
 
             WAMenuItem{

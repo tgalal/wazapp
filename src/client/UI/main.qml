@@ -109,6 +109,7 @@ WAStackWindow {
     signal quit()
     signal deleteConversation(string jid);
     signal deleteMessage(string jid, int msg_id);
+    signal tryDeleteMediaFile(string filepath);
     signal conversationActive(string jid);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);

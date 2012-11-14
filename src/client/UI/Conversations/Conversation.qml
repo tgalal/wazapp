@@ -601,7 +601,7 @@ WAPage {
             from_me: model.type
             progress: model.progress
 			msg_id: model.msg_id
-            name: mediatype_id==10 || from_me==1 || !isGroup? "" : model.type==22? model.author.jid : getAuthor(model.author.jid)
+            name: mediatype_id==10 || from_me==1 || !isGroup? "" : model.type==22? model.author.jid : getAuthor(model.author.jid) //WHAT THE FUCK IS model type 22?!!!!
             author: model.author
 		 	state_status: isGroup && model.status == "pending"? "delivered" : model.status
 			isGroup: conversation_view.isGroup()

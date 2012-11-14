@@ -626,30 +626,57 @@ WAStackWindow {
         setBlockedContacts(blockedContacts)
     }
 
+    function updateContactPushName(jid, pushName){
+
+        if(!pushName)
+            return
+
+          for(var j =0; j<contactsModel.count; j++) {
+              var contact = contactsModel.get(j);
+              if (contact.jid == jid) {
+                    consoleDebug("Updating " + jid + " push name to " + pushName)
+                    contact.name = pushName
+                    contact.alphabet =  pushName[0].toUpperCase()
+
+                    var conv = waChats.findConversation(jid)
+
+                    if(conv) {
+                        conv.onChange()
+                    }
+
+                    return;
+              }
+
+          }
+
+    }
+
     function updateContactsData(contacts, ujid, npush){
         for(var i =0; i<contacts.length; i++) {
             var add = true
-	    if (contacts[i].jid==ujid) {
-		for(var j =0; j<contactsModel.count; j++) {
-		    if (contactsModel.get(j).jid==ujid) {
-			consoleDebug("Updating " + ujid + " push name to " + npush)
-			contactsModel.get(j).name = npush
-			contactsModel.get(j).alphabet = npush[0].toUpperCase()
-			//contactsModel.move(j ,i, 1)
-			//contactsModel.sync()
-			add = false
-			break
-		    }
-		}
-		if (add) {
-		    consoleDebug("Adding new contact using push name")
-		    contactsModel.insert(i, contacts[i]);
-		    currentContacts = currentContacts + "," + contacts[i].jid
-		    newContacts = newContacts +1
-		    //contactsAdded.title = newContacts
-		} 
-		break;
-	    }
+            if (contacts[i].jid==ujid) {
+
+                for(var j =0; j<contactsModel.count; j++) {
+                    if (contactsModel.get(j).jid==ujid) {
+
+                    consoleDebug("Updating " + ujid + " push name to " + npush)
+                    contactsModel.get(j).name = npush
+                    contactsModel.get(j).alphabet = npush[0].toUpperCase()
+                    //contactsModel.move(j ,i, 1)
+                    //contactsModel.sync()
+                    add = false
+                    break
+                    }
+                }
+                if (add) {
+                    consoleDebug("Adding new contact using push name")
+                    contactsModel.insert(i, contacts[i]);
+                    currentContacts = currentContacts + "," + contacts[i].jid
+                    newContacts = newContacts +1
+                    //contactsAdded.title = newContacts
+                }
+                break;
+            }
         }
 	updateContactName(ujid,npush);
 	//refreshSuccessed()

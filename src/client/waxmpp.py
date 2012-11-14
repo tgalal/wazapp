@@ -419,24 +419,31 @@ class WAEventHandler(QObject):
 	def postMessageReceived(fn):
 		def wrapped(self, *args):
 			message = fn(self, *args)
-			contact = message.getContact()
+			contact = message.Contact#getContact()
 			conversation = message.getConversation()
 
+
+			msgPicture = self.getDisplayPicture(conversation.getJid())
+			conversation.incrementNew()
+			WAXMPP.message_store.pushMessage(conversation.getJid(), message)
+			
+			if contact.iscontact!="yes":
+				self.setPushName.emit(contact.jid,contact.pushname)
+				
+			
+			pushName = contact.pushname
+			
 			try:
 				contact = WAXMPP.message_store.store.getCachedContacts()[contact.number];
 			except:
 				pass
 
 
-			msgPicture = self.getDisplayPicture(conversation.getJid())
-			conversation.incrementNew()
-			WAXMPP.message_store.pushMessage(conversation.getJid(), message)
-
 
 			if conversation.isGroup():
-				self.notifier.newGroupMessage(conversation.getJid(), "%s - %s"%(contact.name or contact.number,conversation.subject.decode("utf8") if conversation.subject else ""), message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newGroupMessage(conversation.getJid(), "%s - %s"%(contact.name or pushName or contact.number,conversation.subject.decode("utf8") if conversation.subject else ""), message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			else:
-				self.notifier.newSingleMessage(contact.jid, contact.name or contact.number, message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newSingleMessage(contact.jid, contact.name or pushName or contact.number, message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 
 			if message.wantsReceipt:
 				self.interfaceHandler.call("message_ack", (conversation.getJid(), eval(message.key).id))
@@ -457,8 +464,7 @@ class WAEventHandler(QObject):
 			self._d("Setting Push Name: "+pushName+" to "+contact.jid)
 			contact.setData({"jid":contact.jid,"pushname":pushName})
 			contact.save()
-			if contact.iscontact!="yes":
-				self.setPushName.emit(contact.jid,pushName)
+			message.Contact = contact
 
 		if contact.pictureid == None:
 			self.getPictureIds.emit(contact.jid)
@@ -469,7 +475,7 @@ class WAEventHandler(QObject):
 			content = content#.encode('utf-8')
 			message.timestamp = timestamp
 			message.content = content
-
+	
 		message.pushname = pushName
 		message.wantsReceipt = wantsReceipt
 		return message

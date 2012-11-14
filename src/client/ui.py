@@ -276,8 +276,9 @@ class WAUI(QDeclarativeView):
 	
 	def updatePushName(self, jid, push):
 		self._d("UPDATING CONTACTS");
-		contacts = self.c.getContacts();
-		self.rootObject().updateContactsData(contacts, jid, push);
+		#contacts = self.c.getContacts();
+		#self.rootObject().updateContactsData(contacts, jid, push);
+		self.rootObject().updateContactPushName(jid, push)
 		#self.rootObject().updateContactName.emit(jid,push);
 
 

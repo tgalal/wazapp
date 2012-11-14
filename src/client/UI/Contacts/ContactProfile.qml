@@ -171,7 +171,7 @@ WAPage {
                     font.pixelSize: 22
                     color: "gray"
                     visible: contactStatus!==""
-                    text: Helpers.emojify(contactStatus)
+                    text: Helpers.emojify2(contactStatus)
                     width: parent.width
                 }
             }
@@ -222,7 +222,7 @@ WAPage {
                 onClicked: {
                         updateSingleStatus=true //@@retarded
                         statusButton.enabled=false
-                        contactForStatus = contactJid //@@retarded
+                        //contactForStatus = contactJid //@@retarded
                         refreshContacts("STATUS", contactJid.split('@')[0]) //@@retarded
                 }
             }

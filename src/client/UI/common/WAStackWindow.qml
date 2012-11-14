@@ -79,12 +79,20 @@ Window {
         color: platformStyle.backgroundColor
         anchors { top: statusBar.bottom; left: parent.left; bottom: parent.bottom; right: parent.right; }
     }
+    
+    Connections {
+	    target: appWindow
+	    onSetBackground: {
+		    var result = backgroundimg.replace("file://","")
+		    myBackgroundImage = result
+	    }
+    }
 
     Image {
         id: backgroundImage
-        visible: platformStyle.background != ""
-        source: window.inPortrait ? platformStyle.portraitBackground : platformStyle.landscapeBackground
-        fillMode: platformStyle.backgroundFillMode
+        source: myBackgroundImage!="none" ? myBackgroundImage : ""
+        fillMode: Image.PreserveAspectCrop
+        opacity: parseInt(myBackgroundOpacity) / 10.0
         anchors { top: statusBar.bottom; left: parent.left; bottom: parent.bottom; right: parent.right; }
     }
 

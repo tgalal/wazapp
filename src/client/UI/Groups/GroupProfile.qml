@@ -152,19 +152,26 @@ WAPage {
 			anchors.horizontalCenter: parent.horizontalCenter
             enabled: !working && (addedCount || removedCount)
             onClicked: {
-                working = true
-                if (ProfileHelper.removed.length) {
-                   // waitForRemove = true
-                    removeParticipants(jid, ProfileHelper.removed.join(","))
-                }
 
-                if(ProfileHelper.added.length){
-                   // waitForAdd = true
-                    addParticipants(jid, ProfileHelper.added.join(","))
-                }
+                runIfOnline(function(){
 
-                pageStack.pop()
-                working = false
+                    working = true
+                    if (ProfileHelper.removed.length) {
+                       // waitForRemove = true
+                        removeParticipants(jid, ProfileHelper.removed.join(","))
+                    }
+
+                    if(ProfileHelper.added.length){
+                       // waitForAdd = true
+                        addParticipants(jid, ProfileHelper.added.join(","))
+                    }
+
+                    pageStack.pop()
+                    working = false
+
+                }, true);
+
+
 			}
         }
 
@@ -294,7 +301,7 @@ WAPage {
             font.pixelSize: 22
             text: qsTr("Change group subject")
             enabled: !working && groupSubjectOwner!=""
-            onClicked: pageStack.push(groupSubjectChanger)
+            onClicked: runIfOnline(function(){pageStack.push(groupSubjectChanger)}, true);
         }
 
         Button {
@@ -304,7 +311,7 @@ WAPage {
             font.pixelSize: 22
             text: qsTr("Change group picture")
             enabled: !working
-            onClicked: pageStack.push(setProfilePicture)
+            onClicked: runIfOnline(function(){pageStack.push(setProfilePicture)}, true);
         }
 
         Separator {

@@ -258,11 +258,14 @@ WAPage {
 			anchors.horizontalCenter: parent.horizontalCenter
 			width: 300
             text: creatingGroup?qsTr("Creating"):qsTr("Create");
-            enabled: subject_text.text!=="" && groupParticipants._removedCount != participantsModel.count && !creatingGroup && connectionStatus=="online" //@@todo timeout
+            enabled: subject_text.text!=="" && groupParticipants._removedCount != participantsModel.count && !creatingGroup //@@todo timeout
             onClicked: {
-                createStage = 1
-				creatingGroup = true
-                createGroupChat(subject_text.text)
+                runIfOnline(function(){
+                    createStage = 1
+                    creatingGroup = true
+                    createGroupChat(subject_text.text)
+
+                }, true);
 			}
         }
        

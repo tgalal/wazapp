@@ -296,7 +296,12 @@ var emoji_code = [
 var multiByteEmojiRegex = new RegExp("("+"\\u"+emoji_code.filter(function(el){return el.indexOf("1F")==0}).map(function(el){var uni =getUnicodeCharacter("0x"+el)[0]; return uni.charCodeAt(0).toString(16)+"|"+uni.charCodeAt(1).toString(16) }).join("|").split("|").getUnique().join("|\\u")+")", "g")
 
 
-
+function unicodeEscape(str) {
+    var code, pref = {1: '\\x0', 2: '\\x', 3: '\\u0', 4: '\\u'};
+    return str.replace(/\W/g, function(c) {
+        return pref[(code = c.charCodeAt(0).toString(16)).length] + code;
+    });
+}
 
 function newlinefy(inputText) {
     var replacedText, replacePattern1;

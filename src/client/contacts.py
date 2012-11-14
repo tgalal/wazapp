@@ -33,7 +33,7 @@ class ContactsSyncer(WARequest):
 	'''
 	Interfaces with whatsapp contacts server to get contact list
 	'''
-	contactsRefreshSuccess = QtCore.Signal(str,str);
+	contactsRefreshSuccess = QtCore.Signal(str,dict);
 	contactsRefreshFail = QtCore.Signal();
 	contactsSyncStatus = QtCore.Signal(str);
 
@@ -49,7 +49,10 @@ class ContactsSyncer(WARequest):
 			phoneContacts = c.getPhoneContacts();
 			for c in phoneContacts:
 				for number in c[2]:
-					self.cn = self.cn + str(number) + ","
+					try:
+						self.cn = self.cn + str(number) + ","
+					except UnicodeEncodeError:
+						continue
 			self.parts = self.cn.split(',')
 		self.base_url = "sro.whatsapp.net";
 		self.req_file = "/client/iphone/bbq.php";
@@ -96,7 +99,7 @@ class ContactsSyncer(WARequest):
 			newStatus = ""
 			for c in contacts:
 				is_valid = False;
-				newSatus = c.firstChild.data.encode('utf-8') if c.firstChild is not None else ""
+				newSatus = c.firstChild.data if c.firstChild is not None else ""
 				for (name, value) in c.attributes.items():
 					if name == "p":
 						number = value
@@ -107,9 +110,9 @@ class ContactsSyncer(WARequest):
 
 				if is_valid:
 					contact = self.store.Contact.getOrCreateContactByJid(jid)
-					contact.status = newSatus
+					contact.status = newSatus.encode("unicode_escape")
 					contact.save()
-					self.contactsRefreshSuccess.emit(self.mode, contact.status);	
+					self.contactsRefreshSuccess.emit(self.mode, contact);
 
 		else:
 			for c in contacts:
@@ -131,7 +134,7 @@ class ContactsSyncer(WARequest):
 					contact.iscontact = "yes"
 					contact.save()
 
-			self.contactsRefreshSuccess.emit(self.mode, "");	
+			self.contactsRefreshSuccess.emit(self.mode, {});	
 
 		
 	def onRefreshing(self):
@@ -148,7 +151,7 @@ class ContactsSyncer(WARequest):
 class WAContacts(QObject):
 
 	refreshing = QtCore.Signal();
-	contactsRefreshed = QtCore.Signal(str,str);
+	contactsRefreshed = QtCore.Signal(str,dict);
 	contactsRefreshFailed = QtCore.Signal();
 	contactsSyncStatusChanged = QtCore.Signal(str);
 	contactUpdated = QtCore.Signal(str);

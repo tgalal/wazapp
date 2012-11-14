@@ -28,7 +28,7 @@ WAPage {
    WAHeader{
        id:header
        height: 73
-       title: "Support Wazapp"
+       title: qsTr("Support Wazapp")
    }
 
    Row{
@@ -65,7 +65,7 @@ WAPage {
 
            Button{
                anchors.horizontalCenter: parent.horizontalCenter
-               text:"Donate"
+               text:qsTr("Donate")
                onClicked: {
                    Qt.openUrlExternally("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PWX6647R3CD5L")
                }

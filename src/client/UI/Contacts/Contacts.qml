@@ -343,7 +343,7 @@ WAPage {
 		MenuLayout {
 			WAMenuItem {
 				height: 80
-                text: blockedContacts.indexOf(contactMenu.selectedJid)==-1? qsTr("Block contact") : qsTr("Unblock contact")
+                text: blockedContacts.indexOf(contactMenu.selectedJid)==-1? qsTr("Ignore messages") : qsTr("Allow messages")
 				onClicked: { 
                     if (blockedContacts.indexOf(contactMenu.selectedJid)==-1)
                         blockContact(contactMenu.selectedJid)

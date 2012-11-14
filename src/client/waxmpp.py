@@ -937,9 +937,12 @@ class WAEventHandler(QObject):
 	def conversationOpened(self,jid):
 		self.notifier.hideNotification(jid);
 	
-	def onAvailable(self, pushname):
+	def onAvailable(self, pushName=""):
 		if self.state == 2:
-			self.interfaceHandler.call("presence_sendAvailableForChat", (pushname.encode('utf-8'),))
+			if pushName:
+				self.interfaceHandler.call("presence_sendAvailableForChat", (pushName.encode('utf-8'),))
+			else:
+				self.interfaceHandler.call("presence_sendAvailable")
 		
 	
 	def sendMessage(self,jid,msg_text):

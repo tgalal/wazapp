@@ -664,11 +664,12 @@ WAPage {
 
 					WATextArea {
 						id: push_text
+                        property string pushNameCached:typeof(myPushName) != "undefined"?myPushName:""
 						width: parent.width
 						wrapMode: TextEdit.Wrap
 						textFormat: Text.PlainText
 						textColor: "black"
-						text: myPushName
+                        text: typeof(myPushName) != "undefined"?myPushName:""
 					}
 
 					Button
@@ -676,13 +677,20 @@ WAPage {
 						platformStyle: ButtonStyle { inverted: true }
 						width: 160
 						height: 50
-						text: qsTr("Save")
+                        text: qsTr("Save")
 						anchors.right: push_text.right
-						onClicked: setMyPushName(push_text.text)
-					}
+                        onClicked: {//no need to run only when online, since pushname is sent on connect anyway
+                            var pName = push_text.text.trim()
+                            if(pName.length==0) {
+                                showNotification(qsTr("Push name can't be empty"));
+                                push_text.text = push_text.pushNameCached
+                                return
+                            }
 
-
-					
+                            setMyPushName(push_text.text);
+                            showNotification(qsTr("Push name updated"));
+                        }
+                    }
 				}
 
 			}

@@ -382,7 +382,9 @@ WAStackWindow {
     property string connectionStatus
     function onConnected(){
         setIndicatorState("online")
-	setMyPushName(myPushName)
+
+        if(typeof(myPushName) != "undefined")
+            setMyPushName(myPushName)
         //getPictures();
     }
     signal connectionClosed();

@@ -74,7 +74,7 @@ class WAManager():
 				self.createDirs()		
 		
 		
-		triggerables = ["0.9.12"]
+		triggerables = ["0.9.12", Utilities.waversion]
 		
 		self._d("Processing version triggers")
 		for v in triggerables:
@@ -153,7 +153,8 @@ class WAManager():
 		store.updateDatabase()
 		store.initModels()
 		
-		gui = WAUI(account.jid, account.pushName);
+		gui = WAUI(account.jid);
+		gui.setAccountPushName(account.pushName)
 		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
 		#gui.setSource(url)
 		gui.initConnections(store);

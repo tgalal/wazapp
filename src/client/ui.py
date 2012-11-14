@@ -46,7 +46,7 @@ class WAUI(QDeclarativeView):
 	phoneContactsReady = QtCore.Signal(list)
 
 	
-	def __init__(self, accountJid, accountPushName):
+	def __init__(self, accountJid):
 		
 		_d = UIDebug();
 		self._d = _d.d;
@@ -72,12 +72,11 @@ class WAUI(QDeclarativeView):
 
 		self.filelist = []
 		self.accountJid = accountJid;
-		self.accountPushName = accountPushName;
+		self.accountPushName = None;
 
 		self.rootContext().setContextProperty("waversion", Utilities.waversion);
 		self.rootContext().setContextProperty("WAConstants", WAConstants.getAllProperties());
 		self.rootContext().setContextProperty("myAccount", accountJid);
-		self.rootContext().setContextProperty("myPushName", accountPushName);
 		
 		currProfilePicture = WAConstants.CACHE_PROFILE + "/" + accountJid.split("@")[0] + ".jpg"
 		self.rootContext().setContextProperty("currentPicture", currProfilePicture if os.path.exists(currProfilePicture) else "")
@@ -88,6 +87,11 @@ class WAUI(QDeclarativeView):
 		self.focus = False
 		self.whatsapp = None
 		self.idleTimeout = None
+		
+	
+	def setAccountPushName(self, pushName):
+		self.accountPushName = pushName;
+		self.rootContext().setContextProperty("myPushName", pushName);
 		
 	
 	def preQuit(self):
@@ -195,7 +199,8 @@ class WAUI(QDeclarativeView):
 			self.idleTimeout.cancel()
 		
 		self.whatsapp.eventHandler.onFocus();
-		self.whatsapp.eventHandler.onAvailable(self.accountPushName);
+		#self.whatsapp.eventHandler.onAvailable(self.accountPushName); Is it necessary everytime?
+		self.whatsapp.eventHandler.onAvailable();
 	
 	def closeEvent(self,e):
 		self._d("HIDING")

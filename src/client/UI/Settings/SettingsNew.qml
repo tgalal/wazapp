@@ -254,7 +254,7 @@ WAPage {
 						title: qsTr("Message removing")
 					}
 					SwitchItem {
-						title: qsTr("Delete received files with messages")
+						title: qsTr("Delete received files")
 						check: removeReceivedMedia
 						onCheckChanged: {
 							MySettings.setSetting("RemoveReceivedMedia", value)

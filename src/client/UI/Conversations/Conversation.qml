@@ -996,7 +996,7 @@ WAPage {
                 text: qsTr("Remove message")
 				bottomItem: !profileMenuItem.visible
                 onClicked:{
-			if (selectedMessage.type == 0 && selectedMessage.mediatype_id > 1 selectedMessage.mediatype_id != 5 && typeof(selectedMessage.media.local_path) != "undefined" && removeReceivedMedia)
+			if (selectedMessage.type == 0 && selectedMessage.mediatype_id > 1 && selectedMessage.mediatype_id != 5 && typeof(selectedMessage.media.local_path) != "undefined" && removeReceivedMedia)
 			{
 				tryDeleteMediaFile(selectedMessage.media.local_path)
 			}

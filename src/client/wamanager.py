@@ -58,13 +58,46 @@ class WAManager():
 		self._d("Quitting")
 		self.app.exit();
 		
-	def isFirstRun(self):
-		checkPath = WAConstants.VHISTORY_PATH+"/"+Utilities.waversion
 		
-		return not os.path.isfile(checkPath)
+	def processVersionTriggers(self):
+		'''
+			ONLY FOR MASTER VERSIONS, NO TRIGGERS FOR ANY DEV VERSIONS
+			Triggers are executed in ascending order of versions.
+			Versions added to triggerables, must have a corresponding function in this format:
+				version x.y.z corresponds to function name: t_x_y_z
+		'''
+
+		def t_0_9_12():
+			#clear cache
+			if os.path.isdir(WAConstants.CACHE_PATH):
+				shutil.rmtree(WAConstants.CACHE_PATH, True)
+				self.createDirs()		
+		
+		
+		triggerables = ["0.9.12", Utilities.waversion]
+		
+		self._d("Processing version triggers")
+		for v in triggerables:
+			if not self.isPreviousVersion(v):
+				self._d("Running triggers for %s"%v)
+				try:
+					fname = "t_%s" % v.replace(".","_")
+					eval("%s()"%fname)
+					self.touchVersion(v)
+				except NameError:
+					self._d("Couldn't find associated function, skipping triggers for %s"%v)
+					pass
+			else:
+				self._d("Nothing to do for %s"%v)
+
+	
+	def isPreviousVersion(self, v):
+
+		checkPath = WAConstants.VHISTORY_PATH+"/"+v
+		return os.path.isfile(checkPath)
 			
-	def touchVersion(self):
-		f = open(WAConstants.VHISTORY_PATH+"/"+Utilities.waversion, 'w')
+	def touchVersion(self, v):
+		f = open(WAConstants.VHISTORY_PATH+"/"+v, 'w')
 		f.close()
 
 	def createDirs(self):
@@ -121,6 +154,7 @@ class WAManager():
 		store.initModels()
 		
 		gui = WAUI(account.jid);
+		gui.setAccountPushName(account.pushName)
 		#url = QUrl('/opt/waxmppplugin/bin/wazapp/UI/main.qml')
 		#gui.setSource(url)
 		gui.initConnections(store);
@@ -136,13 +170,11 @@ class WAManager():
 		
 		gui.onProcessEventsRequested()
 		
-		firstRun = self.isFirstRun()
-		
-		if firstRun:
-			if os.path.isdir(WAConstants.CACHE_PATH):
-				shutil.rmtree(WAConstants.CACHE_PATH, True)
 				
 		self.createDirs()
+		
+		
+		self.processVersionTriggers()
 
 		gui.populateContacts("ALL");
 		
@@ -153,8 +185,6 @@ class WAManager():
 		gui.initializationDone = True
 		gui.initialized.emit()
 		
-		if firstRun:
-			self.touchVersion()
 		
 		print "INIT CONNECTION"
 		gui.initConnection();

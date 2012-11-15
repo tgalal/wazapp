@@ -111,19 +111,26 @@ Item {
                 anchors.rightMargin: 0
 				y: 0
 				onClicked:{
-                    var toSend = status_text.getCleanText();
-                    var res = toSend[0];
-					if ( res.trim() != "")
-                    {
-                        requested = true;
-						tempStatus = res.trim();
-                        var cleanedmessage = Helpers.getCode(status_text.text);
-                        changeStatus(cleanedmessage);
-                        send_button.text = qsTr("Updating") + "..."
-                        send_button.enabled = false
-                        status_text.enabled = false
-                        emoji_button.enabled = false
-					}
+
+                    runIfOnline(function(){
+
+                        var toSend = status_text.getCleanText();
+                        var res = toSend[0].trim();
+                        if ( res != "")
+                        {
+                            requested = true;
+                            tempStatus = res.trim();
+                            var cleanedmessage = status_text.getCleanText()
+                            changeStatus(Helpers.unicodeEscape(res));
+                            send_button.text = qsTr("Updating") + "..."
+                            send_button.enabled = false
+                            status_text.enabled = false
+                            emoji_button.enabled = false
+                        }
+
+                    }, true)
+
+
 				}
 			}
 		}

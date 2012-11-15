@@ -101,6 +101,7 @@ class WAEventHandler(QObject):
 	imageRotated = QtCore.Signal(str);
 	getPicturesFinished = QtCore.Signal();
 	changeStatus = QtCore.Signal(str);
+	setMyPushName = QtCore.Signal(str);
 	statusChanged = QtCore.Signal();
 	doQuit = QtCore.Signal();
 
@@ -118,7 +119,7 @@ class WAEventHandler(QObject):
 		
 		self.account = "";
 
-		self.blockedContacts = "";
+		self.blockedContacts = [];
 
 		self.resizeImages = False;
 		self.disconnectRequested = False
@@ -149,20 +150,24 @@ class WAEventHandler(QObject):
 		self.removeParticipants.connect(lambda *args: self.interfaceHandler.call("group_removeParticipants", args));
 		self.getGroupParticipants.connect(lambda *args: self.interfaceHandler.call("group_getParticipants", args));
 		self.endGroupChat.connect(lambda *args: self.interfaceHandler.call("group_end", args));
-		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, self.strip(subject))));
+		self.setGroupSubject.connect(lambda jid, subject: self.interfaceHandler.call("group_setSubject", (jid, subject.decode("unicode_escape").encode('utf-8'))));
 		self.getPictureIds.connect(lambda *args: self.interfaceHandler.call("picture_getIds", args));
-		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (self.strip(status),)));
+		self.changeStatus.connect(lambda status: self.interfaceHandler.call("profile_setStatus", (status.decode("unicode_escape").encode('utf-8'),)));
+		self.setMyPushName.connect(lambda pushname: self.interfaceHandler.call("presence_sendAvailableForChat", (pushname.encode('utf-8'),)));
+
 
 		self.state = 0
+		
+		self.updater = None
 		
 		
 	############### NEW BACKEND STUFF
 	def strip(self, text):
 		n = text.find("</body>")
-		text = text[:n]
-		s = MLStripper()
-		s.feed(text)
-		text = s.get_data().replace("p, li { white-space: pre-wrap; }","")
+		if (n != -1): #there are no dead body to hide, sometimes.
+			text = text[:n]
+		text = text.replace("text-indent:0px;\"></br >", "text-indent:0px;\">")
+		text = text.split("</p>")[0].split("text-indent:0px;\">")[1]
 		text = text.strip()
 		return text;
 
@@ -378,6 +383,15 @@ class WAEventHandler(QObject):
 		def wrapped(self, *args):
 			messageId = args[0]
 			jid = args[1]
+			
+			try:
+				self.blockedContacts.index(jid);
+				#self.interfaceHandler.call("message_ack", (jid, messageId))
+				self._d("BLOCKED MESSAGE FROM " + jid)
+				return
+			except ValueError:
+				pass
+
 			if WAXMPP.message_store.messageExists(jid, messageId):
 				self.interfaceHandler.call("message_ack", (jid, messageId))
 				return
@@ -405,24 +419,31 @@ class WAEventHandler(QObject):
 	def postMessageReceived(fn):
 		def wrapped(self, *args):
 			message = fn(self, *args)
-			contact = message.getContact()
+			contact = message.Contact#getContact()
 			conversation = message.getConversation()
 
+
+			msgPicture = self.getDisplayPicture(conversation.getJid())
+			conversation.incrementNew()
+			WAXMPP.message_store.pushMessage(conversation.getJid(), message)
+			
+			if contact.iscontact!="yes":
+				self.setPushName.emit(contact.jid,contact.pushname)
+				
+			
+			pushName = contact.pushname
+			
 			try:
 				contact = WAXMPP.message_store.store.getCachedContacts()[contact.number];
 			except:
 				pass
 
 
-			msgPicture = self.getDisplayPicture(conversation.getJid())
-			WAXMPP.message_store.pushMessage(conversation.getJid(), message)
-			conversation.incrementNew()
-
 
 			if conversation.isGroup():
-				self.notifier.newGroupMessage(conversation.getJid(), "%s - %s"%(contact.name or contact.number,conversation.subject.decode("utf8") if conversation.subject else ""), message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newGroupMessage(conversation.getJid(), "%s - %s"%(contact.name or pushName or contact.number,conversation.subject.decode("utf8") if conversation.subject else ""), message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			else:
-				self.notifier.newSingleMessage(contact.jid, contact.name or contact.number, message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newSingleMessage(contact.jid, contact.name or pushName or contact.number, message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 
 			if message.wantsReceipt:
 				self.interfaceHandler.call("message_ack", (conversation.getJid(), eval(message.key).id))
@@ -437,12 +458,25 @@ class WAEventHandler(QObject):
 	@postMessageReceived
 	def onMessageReceived(self, message, content, timestamp, wantsReceipt, pushName=""):
 
+		contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(message.getContact().jid)
+
+		if contact.pushname!=pushName and pushName!="":
+			self._d("Setting Push Name: "+pushName+" to "+contact.jid)
+			contact.setData({"jid":contact.jid,"pushname":pushName})
+			contact.save()
+			message.Contact = contact
+
+		if contact.pictureid == None:
+			self.getPictureIds.emit(contact.jid)
+
+
 		if content is not None:
 
 			content = content#.encode('utf-8')
 			message.timestamp = timestamp
 			message.content = content
-
+	
+		message.pushname = pushName
 		message.wantsReceipt = wantsReceipt
 		return message
 
@@ -845,22 +879,20 @@ class WAEventHandler(QObject):
 		if self.state != 0:
 			return
 		self._d("NET AVAILABLE")
-		self.updater = WAUpdater()
-		self.updater.updateAvailable.connect(self.updateAvailable)
-		
 		WAXMPP.contextproperty.setValue('connecting')
 		self.connecting.emit();
 		self.disconnectRequested = False
-		
-		#thread.start_new_thread(self.conn.changeState, (2,))
+
 		self.state = 1
-		#self.authenticate("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2")
-		#self.interfaceHandler.call("auth_login", ("4915225256022", "6a65a936b8caa360ac1d8f983087ebd2"))
-		self.interfaceHandler.call("auth_login", (self.conn.user, self.conn.password))
+		thread.start_new_thread(self.interfaceHandler.call, ("auth_login", (self.conn.user, self.conn.password)))
 		
 		self._d("AUTH CALLED")
-		
-		self.updater.run()
+
+		if self.updater is None:
+			#it is a new instance since it never finished and never run before
+			self.updater = WAUpdater()
+			self.updater.updateAvailable.connect(self.updateAvailable)
+			self.updater.start()
 		
 		#self.conn.disconnect()
 		
@@ -911,26 +943,30 @@ class WAEventHandler(QObject):
 	def conversationOpened(self,jid):
 		self.notifier.hideNotification(jid);
 	
-	def onAvailable(self):
+	def onAvailable(self, pushName=""):
 		if self.state == 2:
-			self.interfaceHandler.call("presence_sendAvailable")
+			if pushName:
+				self.interfaceHandler.call("presence_sendAvailableForChat", (pushName.encode('utf-8'),))
+			else:
+				self.interfaceHandler.call("presence_sendAvailable")
 		
 	
 	def sendMessage(self,jid,msg_text):
-		msg_text = self.strip(msg_text);
 		self._d("sending message now")
 		fmsg = WAXMPP.message_store.createMessage(jid);
 		
+		msg_text = msg_text.decode("unicode_escape")
 		
 		if fmsg.Conversation.type == "group":
 			contact = WAXMPP.message_store.store.Contact.getOrCreateContactByJid(self.conn.jid)
 			fmsg.setContact(contact);
 		
+		msg_text = msg_text.replace("<br />", "\n");
 		msg_text = msg_text.replace("&quot;","\"")
-		msg_text = msg_text.replace("&amp;", "&");
 		msg_text = msg_text.replace("&lt;", "<");
 		msg_text = msg_text.replace("&gt;", ">");
-		msg_text = msg_text.replace("<br />", "\n");
+		msg_text = msg_text.replace("&amp;", "&");
+		#msg_text = msg_text[:count]
 
 		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
 		WAXMPP.message_store.pushMessage(jid,fmsg)
@@ -1000,7 +1036,7 @@ class WAEventHandler(QObject):
 
 	def setBlockedContacts(self,contacts):
 		self._d("Blocked contacts: " + contacts)
-		self.blockedContacts = contacts;
+		self.blockedContacts = contacts.split(',');
 
 	
 	def setResizeImages(self,resize):
@@ -1315,7 +1351,7 @@ class WAEventHandler(QObject):
 		message = message.findFirst({'id':messageId});
 		media = message.getMedia()
 		url = data.split(',')[0]
-		name = data.split(',')[1]
+		name = url.split('/')[-1]
 		size = data.split(',')[2]
 		self._d("sending media message to " + jid + " - file: " + url)
 		

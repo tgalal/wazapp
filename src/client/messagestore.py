@@ -135,7 +135,9 @@ class MessageStore(QObject):
 				if m.type == m.TYPE_SENT and m.status != m.STATUS_DELIVERED:
 					continue
 			
-			t = datetime.datetime.fromtimestamp(int(m.timestamp)/1000).strftime('%d-%m-%Y %H:%M')
+			
+			tx = int(m.timestamp)/1000 if len(str(m.timestamp)) > 10 else int(m.timestamp)
+			t = datetime.datetime.fromtimestamp(tx).strftime('%d-%m-%Y %H:%M')
 			author = contacts[m.contact_id] if conv.isGroup() else (contacts[conv.contact_id] if m.type == m.TYPE_RECEIVED else "You")
 			content = m.content if not m.media_id else "[media omitted]"
 			try:
@@ -305,10 +307,20 @@ class MessageStore(QObject):
 		
 		for m in messages:
 			msg = m.getModelData()
-			msg['formattedDate'] = datetime.datetime.fromtimestamp(int(msg['timestamp'])/1000).strftime('%d-%m-%Y %H:%M')
-			msg['content'] = msg['content'].decode('utf-8');
+			t = int(msg['timestamp'])/1000 if len(str(msg['timestamp'])) > 10 else int(msg['timestamp']) #keeping backwards compatibility
+			msg['formattedDate'] = datetime.datetime.fromtimestamp(t).strftime('%d-%m-%Y %H:%M')
+			try:
+				undecoded = msg['content'].decode('utf-8'); #maybe usless?
+			except:
+				undecoded = msg['content']
+			undecoded = undecoded.replace("&","&amp;")
+			undecoded = undecoded.replace("<","&lt;")
+			undecoded = undecoded.replace(">","&gt;")
+			undecoded = undecoded.replace("\n","<br />")
+			msg['content'] = undecoded
 			msg['jid'] = jid
 			msg['contact'] = m.getContact().getModelData()
+			msg['pushname'] = msg['contact']['pushname']
 			media = m.getMedia()
 			msg['media']= media.getModelData() if media is not None else None
 			msg['msg_id'] = msg['id']

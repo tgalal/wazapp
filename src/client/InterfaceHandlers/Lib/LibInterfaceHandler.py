@@ -16,9 +16,10 @@ class LibInterfaceHandler(InterfaceHandlerBase):
 	
 	def __init__(self, username):
 		self.connectionManager = YowsupConnectionManager()
+		self.connectionManager.setAutoPong(True)
 		
-		self.signalInterface = self.connectionManager.getSignalInterface()
-		self.methodInterface = self.connectionManager.getMethodInterface()
+		self.signalInterface = self.connectionManager.getSignalsInterface()
+		self.methodInterface = self.connectionManager.getMethodsInterface()
 		
 		super(LibInterfaceHandler,self).__init__();
 		

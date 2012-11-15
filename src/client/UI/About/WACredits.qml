@@ -20,7 +20,7 @@ WAPage {
        WAHeader{
            id:header
            height:73
-           title:"Wazapp Champions"
+           title:qsTr("Wazapp Champions")
        }
 
        Column{
@@ -41,7 +41,7 @@ WAPage {
                id:tgalalCredit
                image: "images/contribs/tarek.png"
                label: "Tarek Galal (tgalal)"
-               role: "Official author, Wazapp creator"
+               role: qsTr("Official author, Wazapp creator")
                twitter: "http://twitter.com/tgalal"
                url: "http://posts.tgalal.com"
                github: "https://github.com/tgalal"
@@ -50,20 +50,20 @@ WAPage {
 
            GroupSeparator{
                 color:"#27a01b"
-                title:"Major Contributors"
+                title:qsTr("Major Contributors")
            }
 
            CreditItem{
                image: "images/contribs/matias.png"
                label: "Matias Perez (Cepiperez)"
-               role: "UI Champion"
+               role: qsTr("UI Champion")
                twitter: "http://twitter.com/negrocepi"
            }
 
            CreditItem{
                image: "images/contribs/bojan.png"
                label: "Bojan Komljenovic (Knobtviker)"
-               role: "Developer"
+               role: qsTr("Developer")
                twitter: "http://twitter.com/knobtviker"
            }
 
@@ -76,21 +76,21 @@ WAPage {
            CreditItem{
                image: "images/contribs/andrey.png"
                label: "Andrey Kozhevnikov (Coderus)"
-               role: "Developer"
+               role: qsTr("Developer")
                twitter: "http://twitter.com/iCODeRUS"
            }
 
            CreditItem{
                image: "images/contribs/fabian.png"
                label: "Fabian Sauter (brkn)"
-               role: "Developer, Wiki Creator"
+               role: qsTr("Developer, Wiki Creator")
                url: "http://wiki.maemo.org/Wazapp"
            }
 
            CreditItem{
                image: "images/contribs/andreas.png"
                label: "Andreas Adler (The Best Isaac)"
-               role: "Icons Artist"
+               role: qsTr("Icons Artist")
                url: "http://talk.maemo.org/member.php?u=59328"
            }
        }

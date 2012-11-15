@@ -156,6 +156,7 @@ WAStackWindow {
     signal breathe()
     signal playSoundFile(string soundfile);
     signal stopSoundFile();
+    signal setMyPushName(string pushname);
 
 
     signal openContactPicker(string multi, string title); //TESTING...
@@ -185,6 +186,34 @@ WAStackWindow {
     property string currentJid: ""
 
     signal populatePhoneContacts()
+
+    function runIfOnline(func, showNotificationIfFalse, notificationMessage){
+
+        /*
+         *  isOnline(func) => runs the func if and only if connection is online
+         *  isOnline(func, showNotificationIfFalse) => shows default not-online message as an osd notification if offline
+         *  isOnline(func, True, "Hello") => shows "Hello" as an osd notification if offline
+         *
+         *  return true/false depending on connection online/offline, regardless of the invoked function output
+         */
+
+
+        if(!func)
+            return;
+
+        if (connectionStatus=="online") {
+            func();
+            return true;
+        }
+
+        if(showNotificationIfFalse){
+            var message = notificationMessage?notificationMessage:qsTr("You must be online to perform this action");
+            showNotification(message)
+        }
+
+       return false;
+
+    }
 
     signal thumbnailUpdated()
     function onThumbnailUpdated() {
@@ -250,7 +279,24 @@ WAStackWindow {
         browserUpdated();
     }
 
+    function addRecentEmoji(emojicode) {
 
+	var emoji = []
+	var emojilist = MySettings.getSetting("RecentEmoji", "")
+
+	if (emojilist!="")
+		emoji = emojilist.split(',')
+
+	for (var i=0; i<emoji.length; ++i) {
+		if (emoji[i]==emojicode) {
+			emoji.splice(i,1)
+			break;
+		}
+	}
+
+	emoji.push(emojicode)
+	MySettings.setSetting("RecentEmoji", emoji.toString())
+    }
 
     signal groupCreated(string group_id)
     signal groupCreateFailed(int errorCode)
@@ -336,6 +382,9 @@ WAStackWindow {
     property string connectionStatus
     function onConnected(){
         setIndicatorState("online")
+
+        if(typeof(myPushName) != "undefined")
+            setMyPushName(myPushName)
         //getPictures();
     }
     signal connectionClosed();
@@ -517,17 +566,19 @@ WAStackWindow {
 
 
 
-    property string contactForStatus //@@FUCKING RETARTED
-    function updateContactStatus(status) {
+    //property string contactForStatus //@@FUCKING RETARTED
+    function updateContactStatus(ujid,status) {
         for(var i =0; i<contactsModel.count; i++)
         {
-            if(contactForStatus == contactsModel.get(i).jid) {
+            if(ujid == contactsModel.get(i).jid) {
                 consoleDebug("FOUNDED CONTACT " + contactsModel.get(i).jid +" - " + status)
                 contactsModel.get(i).status = status
+				break;
             }
         }
 
     }
+
 
 
     property string myAccount: ""
@@ -575,26 +626,62 @@ WAStackWindow {
         setBlockedContacts(blockedContacts)
     }
 
-    function updateContactsData(contacts){
-        var added = 0
+    function updateContactPushName(jid, pushName){
+
+        if(!pushName)
+            return
+
+          for(var j =0; j<contactsModel.count; j++) {
+              var contact = contactsModel.get(j);
+              if (contact.jid == jid) {
+                    consoleDebug("Updating " + jid + " push name to " + pushName)
+                    contact.name = pushName
+                    contact.alphabet =  pushName[0].toUpperCase()
+
+                    var conv = waChats.findConversation(jid)
+
+                    if(conv) {
+                        conv.onChange()
+                    }
+
+                    return;
+              }
+
+          }
+
+    }
+
+    function updateContactsData(contacts, ujid, npush){
         for(var i =0; i<contacts.length; i++) {
             var add = true
-            for(var j =0; j<contactsModel.count; j++) {
-                if (contactsModel.get(j).jid==contacts[i].jid) {
-                    contactsModel.get(j).name = contacts[i].name
+            if (contacts[i].jid==ujid) {
+
+                for(var j =0; j<contactsModel.count; j++) {
+                    if (contactsModel.get(j).jid==ujid) {
+
+                    consoleDebug("Updating " + ujid + " push name to " + npush)
+                    contactsModel.get(j).name = npush
+                    contactsModel.get(j).alphabet = npush[0].toUpperCase()
+                    //contactsModel.move(j ,i, 1)
+                    //contactsModel.sync()
                     add = false
                     break
+                    }
                 }
-            }
-            if (add) {
-                //contacts[i].newContact = true;
-                contactsModel.insert(i, contacts[i]);
-                currentContacts = currentContacts + "," + contacts[i].jid
-                newContacts = newContacts +1
-                //contactsAdded.title = newContacts
+                if (add) {
+                    consoleDebug("Adding new contact using push name")
+                    contactsModel.insert(i, contacts[i]);
+                    currentContacts = currentContacts + "," + contacts[i].jid
+                    newContacts = newContacts +1
+                    //contactsAdded.title = newContacts
+                }
+                break;
             }
         }
+	updateContactName(ujid,npush);
+	//refreshSuccessed()
     }
+
 
 
 

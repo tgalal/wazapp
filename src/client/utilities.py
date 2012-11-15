@@ -22,9 +22,9 @@ import string
 from QtMobility.SystemInfo import QSystemDeviceInfo,QSystemNetworkInfo
 class Utilities():
 
-	debug_mode = 1;
+	debug_mode = 0;
 	
-	waversion = "0.9.12"
+	waversion = "0.9.13"
 	
 
 	

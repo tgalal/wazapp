@@ -171,7 +171,7 @@ WAPage {
                     font.pixelSize: 22
                     color: "gray"
                     visible: contactStatus!==""
-                    text: Helpers.emojify(contactStatus)
+                    text: Helpers.emojify2(contactStatus)
                     width: parent.width
                 }
             }
@@ -197,7 +197,7 @@ WAPage {
 
         Label {
             id: blockLabel
-            text: qsTr("Contact blocked")
+            text: qsTr("Message from this contact are ignored")
             font.bold: true
             font.pixelSize: 26
             color: "red"
@@ -222,7 +222,7 @@ WAPage {
                 onClicked: {
                         updateSingleStatus=true //@@retarded
                         statusButton.enabled=false
-                        contactForStatus = contactJid //@@retarded
+                        //contactForStatus = contactJid //@@retarded
                         refreshContacts("STATUS", contactJid.split('@')[0]) //@@retarded
                 }
             }
@@ -233,7 +233,7 @@ WAPage {
                 height: 50
                 width: parent.width
                 font.pixelSize: 22
-                text: blockedContacts.indexOf(contactJid)==-1? qsTr("Block contact") : qsTr("Unblock contact")
+                text: blockedContacts.indexOf(contactJid)==-1? qsTr("Ignore messages") : qsTr("Allow messages")
                 onClicked: {
                     if (blockedContacts.indexOf(contactJid)==-1)
                         blockContact(contactJid)

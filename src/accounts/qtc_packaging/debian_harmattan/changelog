@@ -1,3 +1,50 @@
+wazapp (0.9.13) testing; urgency=high
+    * updated translations
+    * Changed Block/Unblock to Ignore/Allow messages
+    * Changed naming of block/unblock to Ignore/Allow messages until blockingis properly implemented
+    * Enhanced updating pushnames; Now directly updating the target push name in UI
+    * Enhanced pushname set and fixed touch curr version
+    * Setting push name now shows success osd notification
+    * Push name can't be empty
+    * Focus in now sends normal available message instead of pushname everytime
+    * Pushname is now only sent when changed, and when connected
+    * Fixed touch current version if it doesn't have a function to trigger
+    * Empty dict fixed
+    * Added triggers for previous versions
+    * Added runIfOnline function, fixes #199
+    * Now updater runs a check once every 1  hour
+    * Changed model default value for timestamp to be in seconds
+    * Fixed #40 Incorrect time for offline messages
+    * Fixed incorrect new messages bubble count being always minus 1
+    * Fix for pasting emoji/linebreak on empty textarea
+    * Returned original getCleanText return value
+    * Sound notifications fix
+    * Conversation message copy fix
+    * Better checking if contact is blocked
+    * Now escaping unicode characters before passing to a signal, unescape at slot.
+    * Fixed abnormal exit of updater thread causing seg fault
+    * Fixed translations in credits and support by Coderus, closes #184
+    * Enabled autoPong in Yowsup
+    * Updated Yowsup function names
+    * Fixing fix for fixing bug of holy spirit
+    * sendMediaMessage fix; fix for sending media with not ascii name.
+    * Fixed new holy bug reincarnation
+    * Fixed status update was broken after modifying strip function
+    * Filtering messages from blocked contacts by client
+    * Added EmojiDialog recent tab
+    * Add EmojiDialog tapAndHold behaviour
+    * Fixed TextArea Emoji insertion
+    * Fixed TextArea Line break
+    * Fixed TextArea "<&>" marks
+    * Fixed Conversaion bubble text copy
+    * Fixed New message notification text
+    * Hiding opacity row when no background selected
+    * Background image moved to pageStack
+    * Fixed handling of non ascii chars appearing for some reason in some phone numbers fetched by skype. Fixes #167
+    * Fixed facebook button URL
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Thu, 15 Nov 2012 06:20:04 +0200
+
 wazapp (0.9.12) testing; urgency=high
   * Now using Yowsup!
   * Credits page modifications

@@ -75,6 +75,7 @@ WAStackWindow {
     property bool dialogOpened: false
     property int mainBubbleColor
     property bool sendWithEnterKey
+    property bool removeReceivedMedia
     property bool resizeImages
     //property string selectedPicture//@@THIS IS FUCKING RETARDED!!!!!!!!
     property string selectedContactName: ""//@@THIS IS FUCKING RETARDED!!!!!!!!

@@ -23,6 +23,7 @@ Item {
     property int bubbleColor:1
     property string thumb
     property variant media
+    property string media_path
     property variant author
     property int progress: 0
 
@@ -124,7 +125,7 @@ Item {
 			name: delegateContainer.name
 			state_status:delegateContainer.state_status
 			media: delegateContainer.media
-            localPath: delegateContainer.media.local_path?delegateContainer.media.local_path:""
+            localPath: delegateContainer.media.local_path?delegateContainer.media.local_path:elegateContainer.media_path
 			message: delegateContainer.message
 			bubbleColor:delegateContainer.bubbleColor;
             mediaSize: delegateContainer.media.size?delegateContainer.media.size:0
@@ -144,6 +145,7 @@ Item {
 						consoleDebug("MESSAGE SENT! BUBBLE " + media.id + " - " + filepath)
 						transferState = 2
 						localPath = filepath
+						delegateContainer.media_path = filepath
 						transferState = "success"
 						progress = 0
 					}

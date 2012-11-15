@@ -4,7 +4,7 @@ import time
 class WADebug():
 	
 	def __init__(self):
-		self.enabled = True
+		self.enabled = False
 		
 		cname = self.__class__.__name__
 		self.type= cname[:cname.index("Debug")]

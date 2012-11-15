@@ -249,6 +249,18 @@ WAPage {
 							setResizeImages(resizeImages)
 						}
 					}
+					
+					GroupSeparator {
+						title: qsTr("Message removing")
+					}
+					SwitchItem {
+						title: qsTr("Delete received files with messages")
+						check: removeReceivedMedia
+						onCheckChanged: {
+							MySettings.setSetting("RemoveReceivedMedia", value)
+							removeReceivedMedia = value=="Yes"
+						}
+					}
 
 					GroupSeparator {
 						title: qsTr("Language")

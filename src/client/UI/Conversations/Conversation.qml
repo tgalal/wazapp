@@ -973,16 +973,6 @@ WAPage {
         id:copy_facilitator
         visible:false
     }
-    
-    QueryDialog {
-        id: deleteMedia
-        property string filepath
-        titleText: qsTr("Confirm deletion")
-        message: qsTr("Do you want to delete received file?")
-        acceptButtonText: qsTr("Yes")
-        rejectButtonText: qsTr("No")
-        onAccepted: { tryDeleteMediaFile(filepath); }
-    }
 
     Menu {
         id: bubbleMenu
@@ -1006,10 +996,9 @@ WAPage {
                 text: qsTr("Remove message")
 				bottomItem: !profileMenuItem.visible
                 onClicked:{
-			if (selectedMessage.type == 0 && selectedMessage.mediatype_id > 1 && selectedMessage.media.transfer_status == 2 && selectedMessage.mediatype_id != 5)
+			if (selectedMessage.type == 0 && selectedMessage.mediatype_id > 1 selectedMessage.mediatype_id != 5 && typeof(selectedMessage.media.local_path) != "undefined" && removeReceivedMedia)
 			{
-				deleteMedia.filepath = selectedMessage.media.local_path
-				deleteMedia.open()
+				tryDeleteMediaFile(selectedMessage.media.local_path)
 			}
 			deleteMessage(jid, selectedMessage.msg_id)
 			conv_data.remove(selectedMessageIndex)

@@ -56,6 +56,7 @@ WAStackWindow {
         theme.inverted = MySettings.getSetting("ThemeColor", "White")=="Black"
         mainBubbleColor = parseInt(MySettings.getSetting("BubbleColor", "1"))
         sendWithEnterKey = MySettings.getSetting("SendWithEnterKey", "Yes")=="Yes"
+	removeReceivedMedia = MySettings.getSetting("RemoveReceivedMedia", "Yes")=="Yes"
         resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes"
         orientation = parseInt(MySettings.getSetting("Orientation", "0"))
         vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")

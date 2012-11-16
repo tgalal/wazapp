@@ -4,7 +4,9 @@ import "." 1.0
 import Qt.labs.components 1.0
 import "/usr/lib/qt4/imports/com/nokia/meego/UIConstants.js" as UI
 import "/usr/lib/qt4/imports/com/nokia/meego/EditBubble.js" as Popup
-import "/usr/lib/qt4/imports/com/nokia/meego/TextAreaHelper.js" as TextAreaHelper
+import "/usr/lib/qt4/imports/com/nokia/meego/Magnifier.js" as MagnifierPopup
+import "/usr/lib/qt4/imports/com/nokia/meego/SelectionHandles.js" as SelectionHandles
+import "js/WATextAreaHelper.js" as WATextAreaHelper
 import "js/Global.js" as Helpers
 
 FocusScope {
@@ -14,11 +16,11 @@ FocusScope {
     signal enterKeyClicked
     signal inputPanelChanged
     property int lastPosition:0
+    property alias textColor: textEdit.color
 
     // Common public API
     property alias text: textEdit.text
     property alias placeholderText: prompt.text
-    property alias textColor: textEdit.color
 
     property alias font: textEdit.font
     property alias cursorPosition: textEdit.cursorPosition
@@ -44,15 +46,19 @@ FocusScope {
 
     property bool platformEnableEditBubble: true
 
-    property Item platformStyle: TextAreaStyle {}
+    property QtObject platformStyle: TextFieldStyle {}
     property alias style: root.platformStyle
 
     property alias platformPreedit: inputMethodObserver.preedit
 
+    //force a western numeric input panel even when vkb is set to arabic
+    property alias platformWesternNumericInputEnforced: textEdit.westernNumericInputEnforced
+    property bool platformSelectable: true
+
     onPlatformSipAttributesChanged: {
         platformSipAttributes.registerInputElement(textEdit)
     }
-
+    
     function _getCleanText() {
         var repl = "p, li { white-space: pre-wrap; }";
         var res = root.text
@@ -162,7 +168,6 @@ FocusScope {
     }
 
     function closeSoftwareInputPanel() {
-        console.log("TextArea's function closeSoftwareInputPanel is deprecated. Use function platformCloseSoftwareInputPanel instead.")
         platformCloseSoftwareInputPanel()
     }
 
@@ -172,7 +177,6 @@ FocusScope {
     }
 
     function openSoftwareInputPanel() {
-        console.log("TextArea's function openSoftwareInputPanel is deprecated. Use function platformOpenSoftwareInputPanel instead.")
         platformOpenSoftwareInputPanel()
     }
 
@@ -181,6 +185,57 @@ FocusScope {
         textEdit.openSoftwareInputPanel();
     }
 
+    Connections {
+        target: platformWindow
+
+        onActiveChanged: {
+            if(platformWindow.active) {
+                if (__hadFocusBeforeMinimization) {                                                                                                         
+                    __hadFocusBeforeMinimization = false                                                                                                      
+                    if (root.parent)                                                                                                                          
+                        root.focus = true                                                                                                                     
+                    else                                                                                                                                      
+                        textInput.focus = true                                                                                                                
+                }
+                if (!readOnly) {
+                    if (activeFocus) {
+                        platformOpenSoftwareInputPanel();
+                        repositionTimer.running = true;
+                    }
+                }
+            } else {
+                if (activeFocus) {
+                    platformCloseSoftwareInputPanel();
+                    Popup.close(textEdit);
+                    SelectionHandles.close(textEdit);
+
+                    __hadFocusBeforeMinimization = true                                                                                                                                                                                           
+                    if (root.parent)                                                                                     
+                        root.parent.focus = true                                           
+                    else                                                                       
+                        textInput.focus = false
+                }
+            }
+        }
+
+        onAnimatingChanged: {
+            if (!platformWindow.animating && root.activeFocus) {
+                WATextAreaHelper.repositionFlickable(contentMovingAnimation);
+            }
+        }
+    }
+
+    // private
+    property int __preeditDisabledMask: Qt.ImhHiddenText|                       
+                                        Qt.ImhNoPredictiveText|                
+                                        Qt.ImhDigitsOnly|                      
+                                        Qt.ImhFormattedNumbersOnly|             
+                                        Qt.ImhDialableCharactersOnly|           
+                                        Qt.ImhEmailCharactersOnly|              
+                                        Qt.ImhUrlCharactersOnly 
+    
+    property bool __hadFocusBeforeMinimization: false
+    
     implicitWidth: platformStyle.defaultWidth
     implicitHeight: Math.max (UI.FIELD_DEFAULT_HEIGHT,
                               textEdit.height + (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize))
@@ -193,19 +248,22 @@ FocusScope {
         } else if (!activeFocus) {
             if (!readOnly)
                 platformCloseSoftwareInputPanel();
-
             Popup.close(textEdit);
+            SelectionHandles.close(textEdit);
+            MagnifierPopup.close(); 
         }
     }
 
     BorderImage {
         id: background
-        source: {
-            if(root.errorHighlight) return root.platformStyle.backgroundError
-            else if(root.readOnly) return root.platformStyle.backgroundDisabled
-            else if(textEdit.activeFocus) return root.platformStyle.backgroundSelected
-            else return root.platformStyle.background
-        }
+	source: errorHighlight?
+                platformStyle.backgroundError:
+            readOnly?
+                platformStyle.backgroundDisabled:
+            textEdit.activeFocus? 
+                platformStyle.backgroundSelected:
+                platformStyle.background
+
         anchors.fill: parent
         border.left: root.platformStyle.backgroundCornerMargin; border.top: root.platformStyle.backgroundCornerMargin
         border.right: root.platformStyle.backgroundCornerMargin; border.bottom: root.platformStyle.backgroundCornerMargin
@@ -220,15 +278,46 @@ FocusScope {
         anchors.topMargin: (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize) / 2
         anchors.bottomMargin: (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize) / 2
 
-        // memory allocation optimization: cursorPosition is checked to minimize displayText evaluations
-        //visible: !textEdit.text && prompt.text && !textEdit.inputMethodComposing
         font: root.platformStyle.textFont
         color: "gray"
         elide: Text.ElideRight
-        onVisibleChanged: {
-            if (prompt.visible) platformCloseSoftwareInputPanel()
-            else platformOpenSoftwareInputPanel()
-        }
+
+        // opacity for default state
+        opacity:  1.0
+
+        states: [
+            State {
+                name: "unfocused"
+                // memory allocation optimization: cursorPosition is checked to minimize displayText evaluations
+                when: !root.activeFocus && textEdit.cursorPosition == 0 && !textEdit.text && prompt.text && !textEdit.inputMethodComposing
+                PropertyChanges { target: prompt; opacity: 1.0; }
+            },
+            State {
+                name: "focused"
+                // memory allocation optimization: cursorPosition is checked to minimize displayText evaluations
+                when: root.activeFocus && textEdit.cursorPosition == 0 && !textEdit.text && prompt.text && !textEdit.inputMethodComposing
+                PropertyChanges { target: prompt; opacity: 0.6; }
+            }
+        ]
+
+        transitions: [
+            Transition {
+                from: "unfocused"; to: "focused";
+                reversible: true
+                SequentialAnimation {
+                    PauseAnimation { duration: 60 }
+                    NumberAnimation { target: prompt; properties: "opacity"; duration: 150 }
+                }
+            },
+            Transition {
+                from: "focused"; to: "";
+                reversible: true
+                SequentialAnimation {
+                    PauseAnimation { duration:  60 }
+                    NumberAnimation { target: prompt; properties: "opacity"; duration: 100 }
+                }
+            }
+        ]
     }
 
     MouseArea {
@@ -239,6 +328,25 @@ FocusScope {
         onClicked: {
             if (!textEdit.activeFocus) {
                 textEdit.forceActiveFocus();
+
+                // activate to preedit and/or move the cursor
+                var preeditDisabled = root.inputMethodHints &                   
+                                      root.__preeditDisabledMask
+                var injectionSucceeded = false;
+                var mappedMousePos = mapToItem(textEdit, mouseX, mouseY);
+                var newCursorPosition = textEdit.positionAt(mappedMousePos.x, mappedMousePos.y, TextInput.CursorOnCharacter);
+                if (!preeditDisabled) {
+                    var beforeText = root.text;
+                    if (!WATextAreaHelper.atSpace(newCursorPosition, beforeText)
+                        && newCursorPosition != beforeText.length
+                        && !(newCursorPosition == 0 || WATextAreaHelper.atSpace(newCursorPosition - 1, beforeText))) {
+
+                        injectionSucceeded = WATextAreaHelper.injectWordToPreedit(newCursorPosition, beforeText);
+                    }
+                }
+                if (!injectionSucceeded) {
+                    textEdit.cursorPosition=newCursorPosition;
+                }
             }
         }
     }
@@ -253,6 +361,13 @@ FocusScope {
         Keys.onEnterPressed: { enterKeyClicked() }
         Keys.onReturnPressed: { enterKeyClicked() }
 
+        // this properties are evaluated by the input method framework
+        property bool westernNumericInputEnforced: false
+        property bool suppressInputMethod: !activeFocusOnPress
+
+        onWesternNumericInputEnforcedChanged: {
+            inputContext.update();
+        }
 
         x: UI.PADDING_XLARGE
         y: (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize) / 2
@@ -268,34 +383,46 @@ FocusScope {
         persistentSelection: false
         focus: true
 
+        function updateMagnifierPosition(posX, posY) {
+            var yAdjustment = 0
+            var magnifier = MagnifierPopup.popup;
+            var cursorHeight = textEdit.positionToRectangle(0,0).height;
+            var mappedPos =  mapToItem(magnifier.parent, posX - magnifier.width / 2,
+                                       posY - magnifier.height / 2 - cursorHeight - 70);
+
+            magnifier.xCenter = mapToItem(magnifier.sourceItem, posX, 0).x;
+            magnifier.x = mappedPos.x;
+            if (-root.mapFromItem(magnifier.__rootElement, 0,0).y - posY < (magnifier.height / 1.5)) {
+                yAdjustment = Math.max(0,(magnifier.height / 1.5) + root.mapFromItem(magnifier.__rootElement, 0,0).y - posY);
+            } else {
+                yAdjustment = 0;
+            }
+            magnifier.yCenter = mapToItem(magnifier.sourceItem, 0, posY - cursorHeight + 50).y
+            magnifier.y = mappedPos.y + yAdjustment;
+        }
+
         Component.onDestruction: {
             Popup.close(textEdit);
+            SelectionHandles.close(textEdit);
         }
 
         onTextChanged: {
             if(root.activeFocus) {
-                TextAreaHelper.repositionFlickable(contentMovingAnimation);
+                WATextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
 
             if (textEdit.preedit == "" && Popup.isOpened(textEdit) && !Popup.isChangingInput())
                 Popup.close(textEdit);
+            if (SelectionHandles.isOpened(textEdit) && textEdit.selectedText == "")
+                SelectionHandles.close(textEdit);
         }
 
         Connections {
-            target: TextAreaHelper.findFlickable(root.parent)
+            target: WATextAreaHelper.findFlickable(root.parent)
 
-            onContentYChanged: if (root.activeFocus) TextAreaHelper.filteredInputContextUpdate();
-            onContentXChanged: if (root.activeFocus) TextAreaHelper.filteredInputContextUpdate();
+            onContentYChanged: if (root.activeFocus) WATextAreaHelper.filteredInputContextUpdate();
+            onContentXChanged: if (root.activeFocus) WATextAreaHelper.filteredInputContextUpdate();
             onMovementEnded: inputContext.update();
-        }
-
-        Connections {
-            target: platformWindow
-
-            onAnimatingChanged: {
-                if (!platformWindow.animating && root.activeFocus)
-                    TextAreaHelper.repositionFlickable(contentMovingAnimation);
-            }
         }
 
         Connections {
@@ -304,30 +431,47 @@ FocusScope {
             onSoftwareInputPanelVisibleChanged: {
                 inputPanelChanged()
                 if (activeFocus)
-                    TextAreaHelper.repositionFlickable(contentMovingAnimation);
+                    WATextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
 
             onSoftwareInputPanelRectChanged: {
                 inputPanelChanged()
                 if (activeFocus)
-                    TextAreaHelper.repositionFlickable(contentMovingAnimation);
+                    WATextAreaHelper.repositionFlickable(contentMovingAnimation);
             }
         }
 
         onCursorPositionChanged: {
-            if(activeFocus) {
-                TextAreaHelper.repositionFlickable(contentMovingAnimation)
+            if(!MagnifierPopup.isOpened() && activeFocus) {
+                WATextAreaHelper.repositionFlickable(contentMovingAnimation)
             }
 
-            if (Popup.isOpened(textEdit)) {
-                Popup.close(textEdit);
-                Popup.open(textEdit);
+           if (MagnifierPopup.isOpened()) {
+               if (Popup.isOpened(textEdit)) {
+                   Popup.close(textEdit);
+               }
+               if (SelectionHandles.isOpened(textEdit)) {
+                   SelectionHandles.close(textEdit);
+               }
+           } else if (!mouseFilter.attemptToActivate ||
+                textEdit.cursorPosition == textEdit.text.length) {
+                if ( Popup.isOpened(textEdit) ) {
+                    Popup.close(textEdit);
+                    Popup.open(textEdit,
+                           textEdit.positionToRectangle(textEdit.cursorPosition));
+                }
             }
         }
 
         onSelectedTextChanged: {
+            if ( !platformSelectable )
+                textEdit.deselect(); // enforce deselection in all cases we didn't think of
+
             if (Popup.isOpened(textEdit) && !Popup.isChangingInput()) {
                 Popup.close(textEdit);
+            }
+            if (SelectionHandles.isOpened(textEdit)) {
+                SelectionHandles.close(textEdit);
             }
         }
 
@@ -338,6 +482,9 @@ FocusScope {
                 if (Popup.isOpened(textEdit) && !Popup.isChangingInput()) {
                     Popup.close(textEdit);
                 }
+                if (SelectionHandles.isOpened(textEdit)) {
+                    SelectionHandles.close(textEdit);
+                }
             }
 
         }
@@ -345,7 +492,7 @@ FocusScope {
         Timer {
             id: repositionTimer
             interval: 350
-            onTriggered: TextAreaHelper.repositionFlickable(contentMovingAnimation)
+            onTriggered: WATextAreaHelper.repositionFlickable(contentMovingAnimation)
         }
 
         PropertyAnimation {
@@ -356,72 +503,83 @@ FocusScope {
         }
 
         MouseFilter {
+            id: mouseFilter
             anchors.fill: parent
             anchors.leftMargin:  UI.TOUCH_EXPANSION_MARGIN - UI.PADDING_XLARGE
             anchors.rightMargin:  UI.TOUCH_EXPANSION_MARGIN - UI.PADDING_MEDIUM
             anchors.topMargin: UI.TOUCH_EXPANSION_MARGIN - (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize) / 2
             anchors.bottomMargin:  UI.TOUCH_EXPANSION_MARGIN - (UI.FIELD_DEFAULT_HEIGHT - font.pixelSize) / 2
+
             property bool attemptToActivate: false
             property bool pressOnPreedit
 
+            property variant editBubblePosition: null
+
             onPressed: {
-                /*var mousePosition = textEdit.positionAt(mouse.x,mouse.y,TextEdit.CursorOnCharacter);
+                var mousePosition = textEdit.positionAt(mouse.x,mouse.y,TextEdit.CursorOnCharacter);
                 pressOnPreedit = textEdit.cursorPosition==mousePosition
-                var preeditDisabled = (
-                        root.inputMethodHints&
-                        (
-                                Qt.ImhHiddenText|
-                                Qt.ImhNoPredictiveText|
-                                Qt.ImhDigitsOnly|
-                                Qt.ImhFormattedNumbersOnly|
-                                Qt.ImhDialableCharactersOnly|
-                                Qt.ImhEmailCharactersOnly|
-                                Qt.ImhUrlCharactersOnly
-                )
-                );
-                attemptToActivate = !pressOnPreedit && !root.readOnly && !preeditDisabled && root.activeFocus && !(mousePosition == 0 || TextAreaHelper.atSpace(mousePosition - 1));
-                mouse.filtered = true;*/
-                inputContext.reset()
-                parent.selectByMouse = true
-                attemptToActivate = false
+                var preeditDisabled = root.inputMethodHints &                  
+                                      root.__preeditDisabledMask
+
+                attemptToActivate = !pressOnPreedit && !root.readOnly && !preeditDisabled && root.activeFocus &&
+                                    !(mousePosition == 0 || WATextAreaHelper.atSpace(mousePosition - 1, root.text) || WATextAreaHelper.atSpace(mousePosition, root.text));
+                mouse.filtered = true;
             }
 
             onHorizontalDrag: {
                 // possible pre-edit word have to be committed before selection
                 if (root.activeFocus || root.readOnly) {
                     inputContext.reset()
-                    parent.selectByMouse = true
+                    if ( platformSelectable )
+                        parent.selectByMouse = true
                     attemptToActivate = false
                 }
             }
 
+            onPressAndHold:{
+                // possible pre-edit word have to be commited before showing the magnifier
+                if ((root.text != "" || inputMethodObserver.preedit != "") && root.activeFocus) {
+                    textEdit.color = "gray"
+                    inputContext.reset()
+                    attemptToActivate = false
+                    parent.selectByMouse = false
+                    MagnifierPopup.open(root);
+                    var magnifier = MagnifierPopup.popup;
+                    parent.cursorPosition = parent.positionAt(mouse.x,mouse.y)
+                    parent.updateMagnifierPosition(mouse.x,mouse.y)
+                    root.z = Number.MAX_VALUE
+                }
+            }
 
-            onReleased:{
+            onReleased:{  
+                textEdit.color = theme.inverted ? "white" : "black"
+      
+                if (MagnifierPopup.isOpened()) {
+                    MagnifierPopup.close();
+                    WATextAreaHelper.repositionFlickable(contentMovingAnimation);
+                }
+
+                if (attemptToActivate)
+                    inputContext.reset();
+
+                var newCursorPosition = textEdit.positionAt(mouse.x,mouse.y,TextEdit.CursorOnCharacter);
+                if (textEdit.preedit.length == 0)                   
+                    editBubblePosition = textEdit.positionToRectangle(newCursorPosition);
 
                 if (attemptToActivate) {
-                    inputContext.reset();
                     var beforeText = textEdit.text;
 
-                    var newCursorPosition = textEdit.positionAt(mouse.x,mouse.y,TextInput.CursorOnCharacter);
+                    textEdit.cursorPosition = newCursorPosition;
                     var injectionSucceeded = false;
 
-                    if (!TextAreaHelper.atSpace(newCursorPosition)
-                             && !(newCursorPosition == textEdit.text.length && TextAreaHelper.atSpace(newCursorPosition-1))
-                             && newCursorPosition != textEdit.text.length) {
-                        var preeditStart = TextAreaHelper.previousWordStart(newCursorPosition);
-                        var preeditEnd = TextAreaHelper.nextWordEnd(newCursorPosition);
-
-                        // copy word to preedit text
-                        var preeditText = textEdit.text.substring(preeditStart,preeditEnd);
-
-                        // inject preedit
-                        textEdit.cursorPosition = preeditStart;
-
-                        var eventCursorPosition = newCursorPosition-preeditStart;
-                        injectionSucceeded = inputContext.setPreeditText(preeditText, eventCursorPosition, 0, preeditText.length);
+                    if (!WATextAreaHelper.atSpace(newCursorPosition, beforeText)
+                             && newCursorPosition != beforeText.length) {
+                        injectionSucceeded = WATextAreaHelper.injectWordToPreedit(newCursorPosition, beforeText);
                     }
                     if (injectionSucceeded) {
                         mouse.filtered=true;
+                        if (textEdit.preedit.length >=1 && textEdit.preedit.length <= 4)
+                            editBubblePosition = textEdit.positionToRectangle(textEdit.cursorPosition);
                     } else {
                         textEdit.text=beforeText;
                         textEdit.cursorPosition=newCursorPosition;
@@ -429,19 +587,34 @@ FocusScope {
                     attemptToActivate = false;
                 } else if (!parent.selectByMouse) {
                     if (!pressOnPreedit) inputContext.reset();
-                    textEdit.cursorPosition = textEdit.positionAt(mouse.x,mouse.y,TextInput.CursorOnCharacter);
+                    textEdit.cursorPosition = textEdit.positionAt(mouse.x,mouse.y,TextEdit.CursorOnCharacter);
                 }
-                //parent.selectByMouse = false;
+                parent.selectByMouse = false;
             }
             onFinished: {
-                if (root.activeFocus && platformEnableEditBubble)
-                    Popup.open(textEdit, textEdit.cursorPosition);
+                if (root.activeFocus && platformEnableEditBubble) {
+                    if (textEdit.preedit.length == 0)
+                        editBubblePosition = textEdit.positionToRectangle(textEdit.cursorPosition);
+                    if (editBubblePosition != null) {
+                        Popup.open(textEdit,editBubblePosition);
+                        editBubblePosition = null;
+                    }
+                    if (textEdit.selectedText != "")
+                        SelectionHandles.open(textEdit);
+                }
             }
-
+            onMousePositionChanged: {
+               if (MagnifierPopup.isOpened() && !parent.selectByMouse) {
+                    var pos = textEdit.positionAt (mouse.x,mouse.y)
+                    parent.cursorPosition = pos
+                    parent.updateMagnifierPosition(mouse.x,mouse.y);
+                }
+            }
             onDoubleClicked: {
                 // possible pre-edit word have to be committed before selection
                 inputContext.reset()
-                parent.selectByMouse = true
+                if ( platformSelectable )
+                    parent.selectByMouse = true
                 attemptToActivate = false
             }
         }

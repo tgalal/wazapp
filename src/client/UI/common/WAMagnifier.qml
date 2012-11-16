@@ -50,13 +50,18 @@ Item {
     }
 
     Image {
-        id: magnifierFrameImage
-        source: "images/magnifier/magnifier-frame.png"
+        id: magnifierFrameImageDark
+        source: "images/magnifier/magnifier-frame-dark.png"
+    }
+    
+    Image {
+        id: magnifierFrameImageLight
+        source: "images/magnifier/magnifier-frame-light.png"
     }
 
     ShaderEffectSource {
         id: magnifierFrame
-        sourceItem: magnifierFrameImage
+        sourceItem: root.inverted ? magnifierFrameImageDark : magnifierFrameImageLight
         hideSource: true
         live: false
     }

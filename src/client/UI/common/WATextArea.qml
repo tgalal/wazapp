@@ -539,7 +539,6 @@ FocusScope {
             onPressAndHold:{
                 // possible pre-edit word have to be commited before showing the magnifier
                 if ((root.text != "" || inputMethodObserver.preedit != "") && root.activeFocus) {
-                    textEdit.color = "gray"
                     inputContext.reset()
                     attemptToActivate = false
                     parent.selectByMouse = false
@@ -552,8 +551,6 @@ FocusScope {
             }
 
             onReleased:{  
-                textEdit.color = theme.inverted ? "white" : "black"
-      
                 if (MagnifierPopup.isOpened()) {
                     MagnifierPopup.close();
                     WATextAreaHelper.repositionFlickable(contentMovingAnimation);

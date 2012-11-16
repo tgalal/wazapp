@@ -18,7 +18,7 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from mnotification import MNotificationManager,MNotification
 from PySide.QtGui import QSound
-from PySide.QtCore import QUrl, QCoreApplication
+from PySide.QtCore import QUrl, QCoreApplication, QObject
 from QtMobility.Feedback import QFeedbackHapticsEffect #QFeedbackEffect
 from QtMobility.SystemInfo import QSystemDeviceInfo
 from constants import WAConstants
@@ -28,8 +28,9 @@ from PySide.phonon import Phonon
 from wadebug import NotifierDebug
 import dbus
 
-class Notifier():
-	def __init__(self,audio=True,vibra=False):
+class Notifier(QObject):
+	def __init__(self,audio=True,vibra=True):
+		QObject.__init__(self)
 		_d = NotifierDebug();
 		self._d = _d.d;
 
@@ -44,8 +45,8 @@ class Notifier():
 		#QCoreApplication.setApplicationName("Wazapp");
 
 
-		self.audioOutput = Phonon.AudioOutput(Phonon.NotificationCategory, None)
-		self.mediaObject = Phonon.MediaObject(None)
+		self.audioOutput = Phonon.AudioOutput(Phonon.NotificationCategory, self)
+		self.mediaObject = Phonon.MediaObject(self)
 		Phonon.createPath(self.mediaObject, self.audioOutput)		
 
 		self.profileChanged(0, 0, self.getCurrentProfile(), 0)

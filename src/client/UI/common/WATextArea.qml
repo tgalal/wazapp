@@ -4,7 +4,7 @@ import "." 1.0
 import Qt.labs.components 1.0
 import "/usr/lib/qt4/imports/com/nokia/meego/UIConstants.js" as UI
 import "/usr/lib/qt4/imports/com/nokia/meego/EditBubble.js" as Popup
-import "/usr/lib/qt4/imports/com/nokia/meego/Magnifier.js" as MagnifierPopup
+import "js/WAMagnifier.js" as MagnifierPopup
 import "/usr/lib/qt4/imports/com/nokia/meego/SelectionHandles.js" as SelectionHandles
 import "js/WATextAreaHelper.js" as WATextAreaHelper
 import "js/Global.js" as Helpers
@@ -543,7 +543,7 @@ FocusScope {
                     inputContext.reset()
                     attemptToActivate = false
                     parent.selectByMouse = false
-                    MagnifierPopup.open(root);
+                    MagnifierPopup.open(root, theme.inverted);
                     var magnifier = MagnifierPopup.popup;
                     parent.cursorPosition = parent.positionAt(mouse.x,mouse.y)
                     parent.updateMagnifierPosition(mouse.x,mouse.y)

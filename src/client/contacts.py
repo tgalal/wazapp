@@ -111,8 +111,9 @@ class ContactsSyncer(WARequest):
 				if is_valid:
 					contact = self.store.Contact.getOrCreateContactByJid(jid)
 					contact.status = newSatus.encode("unicode_escape")
-					contact.save()
 					self.contactsRefreshSuccess.emit(self.mode, contact);
+					contact.status = newSatus
+					contact.save()
 
 		else:
 			for c in contacts:

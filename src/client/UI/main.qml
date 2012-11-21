@@ -82,8 +82,8 @@ WAStackWindow {
     property int orientation
     property string personalRingtone
     property string groupRingtone
-    property string vibraForPersonal
-    property string vibraForGroup
+    property bool vibraForPersonal
+    property bool vibraForGroup
     property bool initializationDone: false
     property string currentSelectionProfile//@@THIS IS FUCKING RETARDED!!!!!!!!
     property string currentSelectionProfileValue//@@THIS IS FUCKING RETARDED!!!!!!!!

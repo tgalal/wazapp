@@ -546,7 +546,7 @@ WAPage {
 					}
 					SwitchItem {
 						title: qsTr("Vibrate")
-						check: MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"
+						check: vibraForPersonal
 						onCheckChanged: {
 							MySettings.setSetting("PersonalVibrate", value)
 							vibraForPersonal = value=="Yes"
@@ -571,7 +571,7 @@ WAPage {
 					SwitchItem {
 						id: groupVibra
 						title: qsTr("Vibrate")
-						check: MySettings.getSetting("GroupVibrate", "Yes")=="Yes"
+						check: vibraForGroup
 						onCheckChanged: {
 							MySettings.setSetting("GroupVibrate", value)
 							vibraForGroup = value=="Yes"

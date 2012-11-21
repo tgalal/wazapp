@@ -1017,6 +1017,10 @@ class WAEventHandler(QObject):
 		self._d("Resize images: " + str(resize))
 		self.resizeImages = resize;
 
+	def setNotifierChatBehaviour(self,value):
+		self._d("Notifier Chat behaviour: " + str(value))
+		self.notifier.useChatNotifier = value;
+
 	def setPersonalRingtone(self,value):
 		self._d("Personal Ringtone: " + str(value))
 		self.notifier.personalRingtone = value;

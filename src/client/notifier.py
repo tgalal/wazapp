@@ -17,13 +17,13 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 from mnotification import MNotificationManager,MNotification
-from PySide.QtGui import QSound
+#from PySide.QtGui import QSound
 from PySide.QtCore import QUrl, QCoreApplication, QObject
 from QtMobility.Feedback import QFeedbackHapticsEffect #QFeedbackEffect
-from QtMobility.SystemInfo import QSystemDeviceInfo
+#from QtMobility.SystemInfo import QSystemDeviceInfo
 from constants import WAConstants
 from utilities import Utilities
-from QtMobility.MultimediaKit import QMediaPlayer
+#from QtMobility.MultimediaKit import QMediaPlayer
 from PySide.phonon import Phonon
 from wadebug import NotifierDebug
 import dbus
@@ -41,6 +41,7 @@ class Notifier(QObject):
 		self.personalVibrate = True;
 		self.groupRingtone = WAConstants.DEFAULT_SOUND_NOTIFICATION;
 		self.groupVibrate = True;
+		self.useChatNotifier = False;
 		
 		#QCoreApplication.setApplicationName("Wazapp"); #activating forced Phonon to use system Media volume instead of any manual volume settings
 
@@ -57,7 +58,7 @@ class Notifier(QObject):
 
 		
 		#self.newMessageSound = WAConstants.DEFAULT_SOUND_NOTIFICATION #fetch from settings
-		self.devInfo = QSystemDeviceInfo();
+		#self.devInfo = QSystemDeviceInfo();
 		
 		#self.devInfo.currentProfileChanged.connect(self.profileChanged);
 		
@@ -131,7 +132,7 @@ class Notifier(QObject):
 			del self.notifications[jid]
 			self._d("DELETING NOTIFICATION BY ID "+str(nId));
 			self.manager.removeNotification(nId);
-			self.mediaObject.clear()
+			self.mediaObject.stop()
 
 				
 	def notificationCallback(self,jid):
@@ -146,10 +147,10 @@ class Notifier(QObject):
 			#self.manager.removeNotification(nId);
 		
 	def stopSound(self):
-		self.mediaObject.clear()
+		self.mediaObject.stop()
 
 	def playSound(self,soundfile):
-		self.mediaObject.clear()
+		self.mediaObject.stop()
 		self.mediaObject.setCurrentSource(Phonon.MediaSource(soundfile))
 		self.audioOutput.setVolume(self.currentVolume)
 		self.mediaObject.play()
@@ -172,7 +173,7 @@ class Notifier(QObject):
 		max_len = min(len(message),20)
 		
 		if self.enabled:
-			
+			#we dont post Chat notification, so sound and vibra should be manually played anyway
 			if(activeConvJId == jid or activeConvJId == ""):
 				if self.audio and ringtone!= WAConstants.NO_SOUND:
 					soundPath = WAConstants.DEFAULT_BEEP_NOTIFICATION;
@@ -186,14 +187,16 @@ class Notifier(QObject):
 				return
 
 
-
-			if self.audio and ringtone!=WAConstants.NO_SOUND:
+			#play sound if only Chat notification disabled
+			if self.audio and not self.useChatNotifier and ringtone!=WAConstants.NO_SOUND:
 				soundPath = self.getCurrentSoundPath(ringtone);
 				self._d(soundPath)
 				self.playSound(soundPath)
 
-			
-			n = MNotification("wazapp.message.new",contactName, message);
+			eventtype = "wazapp.message.new"
+			if self.useChatNotifier: #Chat notification is used. Same with old, but Chat feedbackId is used
+				eventtype = "wazapp.message.chat"
+			n = MNotification(eventtype,contactName, message);
 			n.image = picture
 			n.manager = self.manager;
 			action = lambda: self.notificationCallback(jid)
@@ -218,8 +221,8 @@ class Notifier(QObject):
 				nId = n.id;
 				self.saveNotification(jid,{"id":nId,"callback":callback});
 		
-		
-			if self.vibra and vibration:
+			#play vibra if only Chat notification disabled
+			if self.vibra and not self.useChatNotifier and vibration:
 				self.vibra.start()
 			
 			

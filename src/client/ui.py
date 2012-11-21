@@ -671,6 +671,7 @@ class WAUI(QDeclarativeView):
 
 		self.rootObject().setBlockedContacts.connect(whatsapp.eventHandler.setBlockedContacts)
 		self.rootObject().setResizeImages.connect(whatsapp.eventHandler.setResizeImages)
+		self.rootObject().setNotifierChatBehaviour.connect(whatsapp.eventHandler.setNotifierChatBehaviour)
 		self.rootObject().setPersonalRingtone.connect(whatsapp.eventHandler.setPersonalRingtone)
 		self.rootObject().setPersonalVibrate.connect(whatsapp.eventHandler.setPersonalVibrate)
 		self.rootObject().setGroupRingtone.connect(whatsapp.eventHandler.setGroupRingtone)

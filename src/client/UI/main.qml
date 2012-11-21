@@ -58,8 +58,8 @@ WAStackWindow {
         sendWithEnterKey = MySettings.getSetting("SendWithEnterKey", "Yes")=="Yes"
         resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes"
         orientation = parseInt(MySettings.getSetting("Orientation", "0"))
-        vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")
-        vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")
+        vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"
+        vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")=="Yes"
         personalRingtone = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
         groupRingtone = MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
         myBackgroundImage = MySettings.getSetting("Background", "none")

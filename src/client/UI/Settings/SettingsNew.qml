@@ -549,8 +549,8 @@ WAPage {
 						check: MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"
 						onCheckChanged: {
 							MySettings.setSetting("PersonalVibrate", value)
-							vibraForPersonal = value
-							setPersonalVibrate(value)
+							vibraForPersonal = value=="Yes"
+							setPersonalVibrate(vibraForPersonal)
 						}
 					}
 
@@ -574,8 +574,8 @@ WAPage {
 						check: MySettings.getSetting("GroupVibrate", "Yes")=="Yes"
 						onCheckChanged: {
 							MySettings.setSetting("GroupVibrate", value)
-							vibraForGroup = value
-							setGroupVibrate(value)
+							vibraForGroup = value=="Yes"
+							setGroupVibrate(vibraForGroup)
 						}
 					}
 

@@ -593,6 +593,7 @@ WAPage {
         id:myDelegate
 
         BubbleDelegate{
+	    id: bubbleDelegate
 			jid: conversation_view.jid
             mediatype_id: model.mediatype_id
             message: model.type==20 || model.type==21 ? getAuthor(model.content) : model.content
@@ -611,7 +612,7 @@ WAPage {
 
 				consoleDebug("options requested ") // + ConversationHelper.getContact(model.author.jid).contactName)
                 copy_facilitator.text = model.content.replace(/<br \/>/g, "\n").replace(/&lt;/, "<").replace(/&gt;/, ">").replace(/&quot;/, "\"").replace(/&amp;/g, "&");
-                selectedMessage = model;
+                selectedMessage = bubbleDelegate;
                 selectedMessageIndex = index
 				showContactDetails = model.type==0 && name==model.author.jid.split('@')[0]
 				bubbleMenu.open();
@@ -996,7 +997,7 @@ WAPage {
                 text: qsTr("Remove message")
 				bottomItem: !profileMenuItem.visible
                 onClicked:{
-			var filePath = typeof(selectedMessage.media.local_path) != "undefined" ? selectedMessage.media.local_path : selectedMessage.media_path
+			var filePath = typeof(selectedMessage.media) != "undefined" && typeof(selectedMessage.media.local_path) != "undefined" ? selectedMessage.media.local_path : selectedMessage.media_path
 			if (selectedMessage.from_me == 0 && selectedMessage.mediatype_id > 1 && selectedMessage.mediatype_id != 5 && typeof(filePath) != "undefined" && removeReceivedMedia)
 			{
 				tryDeleteMediaFile(filePath)

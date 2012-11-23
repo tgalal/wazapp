@@ -536,7 +536,7 @@ WAPage {
 					}
 					SwitchItem {
 						title: qsTr("Use system Chat notifier")
-						check: MySettings.getSetting("NotifierChatBehaviour", "No")
+						check: notifierChatBehaviour
 						onCheckChanged: {
 							MySettings.setSetting("NotifierChatBehaviour", value)
 							notifierChatBehaviour = value=="Yes"

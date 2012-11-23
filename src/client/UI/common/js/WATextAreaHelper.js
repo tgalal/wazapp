@@ -182,7 +182,7 @@ function injectWordToPreedit(newCursorPosition, text) {
     var preeditEnd = nextWordEnd(newCursorPosition, text);
 
     // copy word to preedit text
-    var preeditText = getRichText(text).slice(preeditStart, preeditEnd+1).join("")
+    var preeditText = getRichText(text).slice(preeditStart, preeditEnd).join("")
     if (preeditText.indexOf("<img") != -1)
         return
 

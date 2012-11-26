@@ -324,7 +324,7 @@ class ContactsManager(QObject):
 		super(ContactsManager,self).__init__();
 		self.manager = QContactManager(self);
 		self.contacts = []
-		self.filter = re.compile(r'[^0-9]')
+		self.filter = re.compile(r'[^(\+)(0-9)]')
 
 	def getContacts(self):
 		'''

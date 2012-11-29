@@ -125,7 +125,7 @@ Item {
 			name: delegateContainer.name
 			state_status:delegateContainer.state_status
 			media: delegateContainer.media
-            localPath: delegateContainer.media.local_path?delegateContainer.media.local_path:elegateContainer.media_path
+            localPath: delegateContainer.media.local_path?delegateContainer.media.local_path:delegateContainer.media_path
 			message: delegateContainer.message
 			bubbleColor:delegateContainer.bubbleColor;
             mediaSize: delegateContainer.media.size?delegateContainer.media.size:0

@@ -151,7 +151,6 @@ FocusScope {
 		}
 		listText.splice(root.cursorPosition-1,1)
 		var result = listText.join("")
-		console.log("backspace result: " + result)
 		
 		root.lastPosition = root.cursorPosition
 		root.text = result

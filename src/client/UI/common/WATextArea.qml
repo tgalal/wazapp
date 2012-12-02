@@ -88,16 +88,12 @@ FocusScope {
     
     function insert(object) {
 	var text = root.text
-	consoleDebug("insert()")
-	consoleDebug(text)
 	var richText = text.split("</head>")[1].split("</body>")[0]
 	if (richText.indexOf("-qt-paragraph-type:empty;") != -1)
 	    richText = richText.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
 	richText = richText.replace(/\<p[^\>]*\>/g, "").replace(/<\/p>/g, "")
 	richText = richText.replace(/\<body[^\>]*\>\n/g, "")
 	richText = richText.replace(/\n/g, "<br />")
-	
-	consoleDebug(richText.length)
 	
 	var listText = []
 	for(var i =0; i<richText.length; i++)
@@ -123,6 +119,44 @@ FocusScope {
 	root.lastPosition = root.cursorPosition
 	root.text = result
 	root.cursorPosition = root.lastPosition + 1
+    }
+    
+    function backspace() {
+	if (root.cursorPosition > 0) {
+		var text = root.text
+		var richText = text.split("</head>")[1].split("</body>")[0]
+		if (richText.indexOf("-qt-paragraph-type:empty;") != -1)
+		    richText = richText.replace("text-indent:0px;\"><br />","text-indent:0px;\">")
+		richText = richText.replace(/\<p[^\>]*\>/g, "").replace(/<\/p>/g, "")
+		richText = richText.replace(/\<body[^\>]*\>\n/g, "")
+		richText = richText.replace(/\n/g, "<br />")
+		
+		var listText = []
+		for(var i =0; i<richText.length; i++)
+		{
+		    if (richText[i] == "<")
+		    {
+			var j =  richText.indexOf(">", i+1)
+			listText.push(richText.substring(i, j+1))
+			i = j
+		    }
+		    else if (richText[i] == "&")
+		    {
+			var j =  richText.indexOf(";", i+1)
+			listText.push(richText.substring(i, j+1))
+			i = j
+		    }
+		    else
+			listText.push(richText[i])
+		}
+		listText.splice(root.cursorPosition-1,1)
+		var result = listText.join("")
+		console.log("backspace result: " + result)
+		
+		root.lastPosition = root.cursorPosition
+		root.text = result
+		root.cursorPosition = root.lastPosition - 1
+	}
     }
 
     function copy() {

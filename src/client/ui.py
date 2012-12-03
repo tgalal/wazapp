@@ -300,8 +300,10 @@ class WAUI(QDeclarativeView):
 		#self.c.refreshing.connect(syncer.onRefreshing);
 		#syncer.done.connect(c.updateContacts);
 		if (mode == "STATUS"):
-			self._d("UPDATE CONTACT STATUS");
-			self.rootObject().updateContactStatus(contact.jid, contact.status.decode("unicode_escape"))
+			self._d("UPDATE CONTACT STATUS");			
+			contact.status = contact.status.decode("unicode_escape")
+			contact.save()
+			self.rootObject().updateContactStatus(contact.jid, contact.status)
 
 		else:
 			if not self.initializationDone:

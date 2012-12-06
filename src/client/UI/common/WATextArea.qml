@@ -15,6 +15,7 @@ FocusScope {
     signal textPasted
     signal enterKeyClicked
     signal inputPanelChanged
+    signal softwareInputPanelVisibleChanged(bool softwareInputPanelVisible)
     property int lastPosition:0
     property alias textColor: textEdit.color
 
@@ -37,6 +38,7 @@ FocusScope {
     property alias textFormat: textEdit.textFormat
     // Property enableSoftwareInputPanel is DEPRECATED
     property alias enableSoftwareInputPanel: textEdit.activeFocusOnPress
+    property bool softwareInputPanelVisible: false
 
     property alias inputMethodHints: textEdit.inputMethodHints
 
@@ -462,6 +464,8 @@ FocusScope {
             target: inputContext
 
             onSoftwareInputPanelVisibleChanged: {
+                root.softwareInputPanelVisible = inputContext.softwareInputPanelVisible
+                root.softwareInputPanelVisibleChanged(inputContext.softwareInputPanelVisible)
                 inputPanelChanged()
                 if (activeFocus)
                     WATextAreaHelper.repositionFlickable(contentMovingAnimation);

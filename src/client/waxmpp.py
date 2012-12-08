@@ -966,7 +966,7 @@ class WAEventHandler(QObject):
 		msg_text = msg_text.replace("&lt;", "<");
 		msg_text = msg_text.replace("&gt;", ">");
 		msg_text = msg_text.replace("&amp;", "&");
-		#msg_text = msg_text[:count]
+		msg_text = msg_text.strip()
 
 		fmsg.setData({"status":0,"content":msg_text.encode('utf-8'),"type":1})
 		WAXMPP.message_store.pushMessage(jid,fmsg)

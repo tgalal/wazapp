@@ -59,8 +59,8 @@ WAStackWindow {
 	removeReceivedMedia = MySettings.getSetting("RemoveReceivedMedia", "Yes")=="Yes"
         resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes"
         orientation = parseInt(MySettings.getSetting("Orientation", "0"))
-        vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")
-        vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")
+        vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"
+        vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")=="Yes"
         personalRingtone = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
         groupRingtone = MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
         myBackgroundImage = MySettings.getSetting("Background", "none")
@@ -84,8 +84,8 @@ WAStackWindow {
     property int orientation
     property string personalRingtone
     property string groupRingtone
-    property string vibraForPersonal
-    property string vibraForGroup
+    property bool vibraForPersonal
+    property bool vibraForGroup
     property bool initializationDone: false
     property string currentSelectionProfile//@@THIS IS FUCKING RETARDED!!!!!!!!
     property string currentSelectionProfileValue//@@THIS IS FUCKING RETARDED!!!!!!!!

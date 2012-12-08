@@ -26,7 +26,7 @@ from QtMobility.Contacts import *
 from QtMobility.Versit import *
 from constants import WAConstants
 from wadebug import WADebug;
-import sys
+import sys, re
 from waimageprocessor import WAImageProcessor
 
 class ContactsSyncer(WARequest):
@@ -323,6 +323,7 @@ class ContactsManager(QObject):
 		super(ContactsManager,self).__init__();
 		self.manager = QContactManager(self);
 		self.contacts = []
+		self.filter = re.compile(r'[^(\+)(0-9)]')
 
 	def getContacts(self):
 		'''
@@ -337,7 +338,8 @@ class ContactsManager(QObject):
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 
 			for number in numbers:
-				self.contacts.append({"alphabet":label[0].upper(),"name":label,"number":QContactPhoneNumber(number).number(),"picture":avatar});
+				cleannumber = self.filter.sub('', QContactPhoneNumber(number).number())
+				self.contacts.append({"alphabet":label[0].upper(),"name":label,"number":cleannumber,"picture":avatar});
 
 		return self.contacts;
 
@@ -353,7 +355,8 @@ class ContactsManager(QObject):
 			allnumbers = []
 
 			for number in numbers:
-				allnumbers.append(QContactPhoneNumber(number).number())
+				cleannumber = self.filter.sub('', QContactPhoneNumber(number).number())
+				allnumbers.append(cleannumber)
 
 			self.contacts.append({"name":label,"numbers":allnumbers,"picture":avatar});
 

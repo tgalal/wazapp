@@ -56,6 +56,7 @@ WAStackWindow {
         theme.inverted = MySettings.getSetting("ThemeColor", "White")=="Black"
         mainBubbleColor = parseInt(MySettings.getSetting("BubbleColor", "1"))
         sendWithEnterKey = MySettings.getSetting("SendWithEnterKey", "Yes")=="Yes"
+	removeReceivedMedia = MySettings.getSetting("RemoveReceivedMedia", "Yes")=="Yes"
         resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes"
         orientation = parseInt(MySettings.getSetting("Orientation", "0"))
         vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")
@@ -74,6 +75,7 @@ WAStackWindow {
     property bool dialogOpened: false
     property int mainBubbleColor
     property bool sendWithEnterKey
+    property bool removeReceivedMedia
     property bool resizeImages
     //property string selectedPicture//@@THIS IS FUCKING RETARDED!!!!!!!!
     property string selectedContactName: ""//@@THIS IS FUCKING RETARDED!!!!!!!!
@@ -109,6 +111,7 @@ WAStackWindow {
     signal quit()
     signal deleteConversation(string jid);
     signal deleteMessage(string jid, int msg_id);
+    signal tryDeleteMediaFile(string filepath);
     signal conversationActive(string jid);
     signal fetchMedia(int id);
     signal fetchGroupMedia(int id);

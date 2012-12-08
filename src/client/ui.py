@@ -157,6 +157,7 @@ class WAUI(QDeclarativeView):
 		
 		self.rootObject().deleteConversation.connect(self.messageStore.deleteConversation)
 		self.rootObject().deleteMessage.connect(self.messageStore.deleteMessage)
+		self.rootObject().tryDeleteMediaFile.connect(self.messageStore.tryDeleteMediaFile)
 		self.rootObject().conversationOpened.connect(self.messageStore.onConversationOpened)
 		self.rootObject().removeSingleContact.connect(self.messageStore.removeSingleContact)
 		self.rootObject().exportConversation.connect(self.messageStore.exportConversation)

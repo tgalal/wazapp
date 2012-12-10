@@ -431,10 +431,14 @@ class WAEventHandler(QObject):
 			conversation.incrementNew()
 
 
+			notifyJid = conversation.getJid() if conversation.isGroup() else contact.jid
+			notifyContact = contact.name or pushName or contact.number
+			if self.notifier.notifications.has_key(notifyJid):
+				notifyContact = "["+str(self.notifier.notifications[notifyJid]['count'] + 1)+"] " + notifyContact
 			if conversation.isGroup():
-				self.notifier.newGroupMessage(conversation.getJid(), "%s - %s"%(contact.name or contact.number,conversation.subject.decode("utf8") if conversation.subject else ""), message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newGroupMessage(notifyJid, "%s - %s"%(notifyContact,conversation.subject.decode("utf8") if conversation.subject else ""), message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 			else:
-				self.notifier.newSingleMessage(contact.jid, contact.name or contact.number, message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
+				self.notifier.newSingleMessage(notifyJid, notifyContact, message.content, msgPicture.encode('utf-8'),callback = self.notificationClicked);
 
 			if message.wantsReceipt:
 				self.interfaceHandler.call("message_ack", (conversation.getJid(), eval(message.key).id))
@@ -770,7 +774,10 @@ class WAEventHandler(QObject):
 
 		WAXMPP.message_store.pushMessage(gJid,msg)
 
-		self.notifier.newGroupMessage(gJid, "%s - %s"%(contact.name or contact.number, msg.Conversation.subject.decode("utf8")), notifyContent, self.getDisplayPicture(gJid).encode('utf-8'),callback = self.notificationClicked);
+		contactName = "%s - %s"%(contact.name or contact.number, msg.Conversation.subject.decode("utf8"))
+		if self.notifier.notifications.has_key(gJid):
+		    contactName = "[%s] - %s"%(str(self.notifier.notifications[gJid]['count'] + 1), msg.Conversation.subject.decode("utf8"))
+		self.notifier.newGroupMessage(gJid, contactName, notifyContent, self.getDisplayPicture(gJid).encode('utf-8'),callback = self.notificationClicked);
 		
 
 	def onGroupParticipantRemovedNotification(self, gJid, jid, author, timestamp, messageId, wantsReceipt = True):
@@ -808,7 +815,10 @@ class WAEventHandler(QObject):
 
 		WAXMPP.message_store.pushMessage(gJid,msg)
 
-		self.notifier.newGroupMessage(gJid, "%s - %s"%(contact.name or contact.number, msg.Conversation.subject.decode("utf8")), notifyContent, self.getDisplayPicture(gJid).encode('utf-8'),callback = self.notificationClicked);
+		contactName = "%s - %s"%(contact.name or contact.number, msg.Conversation.subject.decode("utf8"))
+		if self.notifier.notifications.has_key(gJid):
+		    contactName = "[%s] - %s"%(str(self.notifier.notifications[gJid]['count'] + 1), msg.Conversation.subject.decode("utf8"))
+		self.notifier.newGroupMessage(gJid, contactName, notifyContent, self.getDisplayPicture(gJid).encode('utf-8'),callback = self.notificationClicked);
 		
 	##ENDSECTION NOTIFICATIONS##
 	

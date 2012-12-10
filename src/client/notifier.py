@@ -196,30 +196,21 @@ class Notifier(QObject):
 			eventtype = "wazapp.message.new"
 			if self.useChatNotifier: #Chat notification is used. Same with old, but Chat feedbackId is used
 				eventtype = "wazapp.message.chat"
+			count = 1
+			if self.notifications.has_key(jid):
+			    count = self.notifications[jid]['count'] + 1
 			n = MNotification(eventtype,contactName, message);
 			n.image = picture
 			n.manager = self.manager;
 			action = lambda: self.notificationCallback(jid)
 			
 			n.setAction(action);
-		
-			notifications = n.notifications();
 			
-			if self.notifications.has_key(jid):
-				nId = self.notifications[jid]['id'];
-				
-				for notify in notifications:
-					if int(notify[0]) == nId:
-						n.id = nId
-						break
-				
-				if n.id != nId:
-					del self.notifications[jid]
+			self.hideNotification(jid)
 			
-				
 			if(n.publish()):
 				nId = n.id;
-				self.saveNotification(jid,{"id":nId,"callback":callback});
+				self.saveNotification(jid,{"id":nId,"callback":callback,"count":count});
 		
 			#play vibra if only Chat notification disabled
 			if self.vibra and not self.useChatNotifier and vibration:

@@ -61,7 +61,8 @@ WAStackWindow {
         orientation = parseInt(MySettings.getSetting("Orientation", "0"))
         vibraForPersonal = MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"
         vibraForGroup = MySettings.getSetting("GroupVibrate", "Yes")=="Yes"
-        personalRingtone = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
+		notifierChatBehaviour = MySettings.getSetting("NotifierChatBehaviour", "No")=="Yes"        
+		personalRingtone = MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
         groupRingtone = MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3")
         myBackgroundImage = MySettings.getSetting("Background", "none")
         myBackgroundOpacity = MySettings.getSetting("BackgroundOpacity", "5")
@@ -82,6 +83,7 @@ WAStackWindow {
     //property string selectedGroupPicture//@@THIS IS FUCKING RETARDED!!!!!!!!
     //property string bigProfileImage //@@THIS IS FUCKING RETARDED!!!!!!!!
     property int orientation
+    property bool notifierChatBehaviour
     property string personalRingtone
     property string groupRingtone
     property bool vibraForPersonal
@@ -166,6 +168,7 @@ WAStackWindow {
     signal setBlockedContacts(string contacts);
     signal setResizeImages(bool resize);
     signal openCamera(string jid, string mode);
+    signal setNotifierChatBehaviour(bool value);
     signal setPersonalRingtone(string value);
     signal setPersonalVibrate(bool value);
     signal setGroupRingtone(string value);
@@ -595,6 +598,7 @@ WAStackWindow {
         resizeImages = MySettings.getSetting("ResizeImages", "Yes")=="Yes" ? true : false
         setResizeImages(resizeImages)
 
+        setNotifierChatBehaviour(MySettings.getSetting("NotifierChatBehaviour", "No")=="Yes")
         setPersonalRingtone(MySettings.getSetting("PersonalRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));
         setPersonalVibrate(MySettings.getSetting("PersonalVibrate", "Yes")=="Yes"); //changed to be passed as boolean
         setGroupRingtone(MySettings.getSetting("GroupRingtone", "/usr/share/sounds/ring-tones/Message 1.mp3"));

@@ -249,7 +249,7 @@ WAPage {
 							setResizeImages(resizeImages)
 						}
 					}
-					
+
 					GroupSeparator {
 						title: qsTr("Message removing")
 					}
@@ -542,12 +542,27 @@ WAPage {
 					id: column3
 					anchors { top: parent.top; left: parent.left; right: parent.right;}
 					spacing: 10
+					
+					GroupSeparator {
+						title: qsTr("Behaviour")
+					}
+					SwitchItem {
+						title: qsTr("Use system Chat notifier")
+						check: notifierChatBehaviour
+						onCheckChanged: {
+							MySettings.setSetting("NotifierChatBehaviour", value)
+							notifierChatBehaviour = value=="Yes"
+							setNotifierChatBehaviour(notifierChatBehaviour)
+						}
+					}
 
 					GroupSeparator {
 						title: qsTr("Personal messages")
+						visible: !notifierChatBehaviour
 					}
 					SelectionItem {
 						id: personalTone
+						visible: !notifierChatBehaviour
 					    title: qsTr("Notification tone")
 					    subtitle: getRingtoneSubtitle(personalRingtone)
 						onClicked: {
@@ -558,6 +573,7 @@ WAPage {
 					}
 					SwitchItem {
 						title: qsTr("Vibrate")
+						visible: !notifierChatBehaviour
 						check: vibraForPersonal
 						onCheckChanged: {
 							MySettings.setSetting("PersonalVibrate", value)
@@ -568,10 +584,12 @@ WAPage {
 
 					GroupSeparator {
 						title: qsTr("Group messages")
+						visible: !notifierChatBehaviour
 					}
 
 					SelectionItem {
 						id: groupTone
+						visible: !notifierChatBehaviour
 					    title: qsTr("Notification tone")
 					    subtitle: getRingtoneSubtitle(groupRingtone)
 						onClicked: {
@@ -582,6 +600,7 @@ WAPage {
 					}
 					SwitchItem {
 						id: groupVibra
+						visible: !notifierChatBehaviour
 						title: qsTr("Vibrate")
 						check: vibraForGroup
 						onCheckChanged: {
@@ -698,7 +717,7 @@ WAPage {
                                 push_text.text = push_text.pushNameCached
                                 return
                             }
-
+					
                             setMyPushName(push_text.text);
                             showNotification(qsTr("Push name updated"));
                         }
@@ -787,9 +806,9 @@ WAPage {
             pageStack.pop()
 
             runIfOnline(function(){
-                picture.state = "loading"
-                breathe()
-                setMyProfilePicture(path)
+            picture.state = "loading"
+            breathe()
+            setMyProfilePicture(path)
 
             }, true)
 

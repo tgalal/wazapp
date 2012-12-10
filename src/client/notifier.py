@@ -29,7 +29,7 @@ from wadebug import NotifierDebug
 import dbus
 
 class Notifier(QObject):
-	def __init__(self,audio=True,vibra=True):
+	def __init__(self,audio=True,vibra=False):
 		QObject.__init__(self)
 		_d = NotifierDebug();
 		self._d = _d.d;
@@ -98,7 +98,14 @@ class Notifier(QObject):
 		nface = dbus.Interface(mynbus, 'com.nokia.profiled')
 		reply = nface.get_value(profile,"ringing.alert.volume");
 		self.currentProfile = profile
-		self.currentVolume = int(reply) / 100.0
+		replyf = int(reply) / 100.0
+		
+		newMax = 0.5
+		newMin = 0.1
+		oldMax = 1.0
+		oldMin = 0.4
+		
+		self.currentVolume = (((replyf - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
 		self._d("Checking current profile: " + profile + " - Volume: " + str(self.currentVolume))
 		self.audioOutput.setVolume(self.currentVolume)
 
@@ -206,7 +213,20 @@ class Notifier(QObject):
 			
 			n.setAction(action);
 			
-			self.hideNotification(jid)
+			
+			notifications = n.notifications();
+
+			if self.notifications.has_key(jid):
+			
+				nId = self.notifications[jid]['id'];
+				for notify in notifications:
+					if int(notify[0]) == nId:
+						n.id = nId
+						break
+			
+				if n.id != nId:	
+					del self.notifications[jid]
+			#self.hideNotification(jid)
 			
 			if(n.publish()):
 				nId = n.id;

@@ -67,17 +67,16 @@ WAPage {
                twitter: "http://twitter.com/knobtviker"
            }
 
-           GroupSeparator{
-                color:"#27a01b"
-                title:qsTr("Thanks to")
-           }
-
-
            CreditItem{
                image: "images/contribs/andrey.png"
                label: "Andrey Kozhevnikov (Coderus)"
                role: qsTr("Developer")
                twitter: "http://twitter.com/iCODeRUS"
+           }
+
+           GroupSeparator{
+                color:"#27a01b"
+                title:qsTr("Thanks to")
            }
 
            CreditItem{

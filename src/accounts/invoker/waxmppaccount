@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /usr/bin/invoker -w --type=e --single-instance /usr/lib/AccountSetup/bin/waxmppplugin "$@"
+exec /usr/bin/invoker -w --type=e --splash=/opt/waxmppplugin/bin/wazapp/UI/common/images/splash/waaccountsplash.png --single-instance /usr/lib/AccountSetup/bin/waxmppplugin "$@"

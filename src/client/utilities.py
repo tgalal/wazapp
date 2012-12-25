@@ -24,7 +24,7 @@ class Utilities():
 
 	debug_mode = 1;
 	
-	waversion = "0.9.14"
+	waversion = "0.9.14.1"
 	
 
 	

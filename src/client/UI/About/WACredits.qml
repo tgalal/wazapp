@@ -67,12 +67,6 @@ WAPage {
                twitter: "http://twitter.com/knobtviker"
            }
 
-           GroupSeparator{
-                color:"#27a01b"
-                title:qsTr("Thanks to")
-           }
-
-
            CreditItem{
                image: "images/contribs/andrey.png"
                label: "Andrey Kozhevnikov (Coderus)"
@@ -80,11 +74,17 @@ WAPage {
                twitter: "http://twitter.com/iCODeRUS"
            }
 
+           GroupSeparator{
+                color:"#27a01b"
+                title:qsTr("Thanks to")
+           }
+
            CreditItem{
                image: "images/contribs/fabian.png"
                label: "Fabian Sauter (brkn)"
                role: qsTr("Developer, Wiki Creator")
                url: "http://wiki.maemo.org/Wazapp"
+               twitter: "http://twitter.com/binbrkn"
            }
 
            CreditItem{

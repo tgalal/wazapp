@@ -25,6 +25,8 @@ from contacts import WAContacts
 from waxmpp import WAXMPP
 from utilities import Utilities
 from accountsmanager import AccountsManager
+from PySide.QtGui import QApplication
+
 #from registration import Registration
 
 from messagestore import MessageStore
@@ -40,7 +42,6 @@ from constants import WAConstants
 import subprocess
 
 class WAUI(QDeclarativeView):
-	quit = QtCore.Signal()
 	splashOperationUpdated = QtCore.Signal(str)
 	initialized = QtCore.Signal()
 	phoneContactsReady = QtCore.Signal(list)
@@ -93,11 +94,6 @@ class WAUI(QDeclarativeView):
 		self.accountPushName = pushName;
 		self.rootContext().setContextProperty("myPushName", pushName);
 		
-	
-	def preQuit(self):
-		self._d("pre quit")
-		self.quit.emit()
-		
 	def onProcessEventsRequested(self):
 		#self._d("Processing events")
 		QtCore.QCoreApplication.processEvents()
@@ -144,10 +140,6 @@ class WAUI(QDeclarativeView):
 		self.phoneContactsReady.connect(self.rootObject().pushPhoneContacts)
 		self.splashOperationUpdated.connect(self.rootObject().setSplashOperation)
 		self.initialized.connect(self.rootObject().onInitDone)
-
-
-		
-		#self.rootObject().quit.connect(self.quit)
 		
 		self.messageStore = MessageStore(self.store);
 		self.messageStore.messagesReady.connect(self.rootObject().messagesReady)
@@ -163,9 +155,15 @@ class WAUI(QDeclarativeView):
 		self.rootObject().getConversationGroupsByJid.connect(self.messageStore.getConversationGroups)
 		self.messageStore.conversationGroups.connect(self.rootObject().onConversationGroups)
 		self.rootObject().getConversationMediaByJid.connect(self.messageStore.getConversationMedia)  
+		
+		self.rootObject().openAccount.connect(self.openAccount)
+		
 		self.messageStore.conversationMedia.connect(self.rootObject().onConversationMedia)
 		self.dbusService = WAService(self);
 		
+	def openAccount(self):
+		os.system("exec /usr/bin/invoker -w --type=e --single-instance /usr/lib/AccountSetup/bin/waxmppplugin &")
+		#self.engine().quit.emit()
 	
 	def focusChanged(self,old,new):
 		if new is None:
@@ -644,7 +642,6 @@ class WAUI(QDeclarativeView):
 		whatsapp.eventHandler.mediaTransferError.connect(self.rootObject().mediaTransferError);
 		whatsapp.eventHandler.mediaTransferProgressUpdated.connect(self.rootObject().mediaTransferProgressUpdated)
 		
-		whatsapp.eventHandler.doQuit.connect(self.preQuit);
 		
 		whatsapp.eventHandler.notifier.ui = self
 		
@@ -655,7 +652,6 @@ class WAUI(QDeclarativeView):
 		self.rootObject().sendPaused.connect(whatsapp.eventHandler.sendPaused);
 		self.rootObject().conversationActive.connect(whatsapp.eventHandler.getLastOnline);
 		self.rootObject().conversationActive.connect(whatsapp.eventHandler.conversationOpened);
-		self.rootObject().quit.connect(whatsapp.eventHandler.quit)
 		self.rootObject().fetchMedia.connect(whatsapp.eventHandler.fetchMedia)
 		self.rootObject().fetchGroupMedia.connect(whatsapp.eventHandler.fetchGroupMedia)
 		self.rootObject().uploadMedia.connect(whatsapp.eventHandler.uploadMedia)
@@ -702,6 +698,7 @@ class WAUI(QDeclarativeView):
 		#self.reg = Registration();
 		self.whatsapp = whatsapp;
 		
+		QApplication.instance().aboutToQuit.connect(self.whatsapp.eventHandler.quit)
 		
 		#print "el acks:"
 		#print whatsapp.supports_receipt_acks

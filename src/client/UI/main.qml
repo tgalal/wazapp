@@ -106,7 +106,6 @@ WAStackWindow {
     signal refreshContacts(string mode, string jid);
     signal sendTyping(string jid);
     signal sendPaused(string jid);
-    signal quit()
     signal deleteConversation(string jid);
     signal deleteMessage(string jid, int msg_id);
     signal conversationActive(string jid);
@@ -157,6 +156,8 @@ WAStackWindow {
     signal playSoundFile(string soundfile);
     signal stopSoundFile();
     signal setMyPushName(string pushname);
+
+    signal openAccount();
 
 
     signal openContactPicker(string multi, string title); //TESTING...
@@ -1167,7 +1168,7 @@ WAStackWindow {
         message: qsTr("Are you sure you want to quit Wazapp?")
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
-        onAccepted: quit();
+        onAccepted: Qt.quit()
     }
 
     QueryDialog {

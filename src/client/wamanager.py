@@ -21,6 +21,8 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 from PySide.QtDeclarative import QDeclarativeView
 
+from PySide.QtGui import QApplication
+
 from ui import WAUI;
 from litestore import LiteStore as DataStore
 from accountsmanager import AccountsManager;
@@ -51,13 +53,7 @@ class WAManager():
 		
 		
 	def regFallback(self):		
-		os.system("exec /usr/bin/invoker -w --type=d --single-instance /usr/lib/AccountSetup/bin/waxmppplugin &")
-		sys.exit()
-		
-	def quit(self):
-		self._d("Quitting")
-		self.app.exit();
-		
+		os.system("exec /usr/bin/invoker -w --type=e --single-instance /usr/lib/AccountSetup/bin/waxmppplugin &")
 		
 	def processVersionTriggers(self):
 		'''
@@ -136,7 +132,9 @@ class WAManager():
 	
 		if(account is None):
 			#self.d("Forced reg");
-			return self.regFallback()
+			self.regFallback()
+			sys.exit()
+			return
 			#gui.forceRegistration();
 			#self.app.exit();
 			
@@ -160,7 +158,7 @@ class WAManager():
 		gui.initConnections(store);
 	
 		self.app.focusChanged.connect(gui.focusChanged)
-		gui.quit.connect(self.quit);
+		gui.engine().quit.connect(QApplication.instance().quit);
 
 		#gui.populatePhoneContacts();
 		

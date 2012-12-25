@@ -23,55 +23,69 @@ from utilities import Utilities
 
 
 from wadebug import AccountsDebug;
+import base64
 
 class AccountsManager():
-	def __init__():
-		_d = AccountsDebug()
-		self._d = _d.d;
+
+	manager = Manager()
 		
 	@staticmethod
 	def getCurrentAccount():
 		account = AccountsManager.findAccount()
 		
 		return account
-		
-	
+
 	@staticmethod
-	#copy-pasted function because account instance dying by some reason at the end of executing findAccount
 	def setPushName(pushname):
-		m = Manager()
-		accountIds = m.accountList()
-		imsi = Utilities.getImsi()
-		for aId in accountIds:
-			a = m.account(aId)
-			services = a.services()
-			for s in services:
-				if s.name() == "waxmpp":
-					if a.valueAsString("imsi") == imsi:
-						account = a
-						account.setValue("pushName",pushname)
-						account.sync()
+		d = AccountsDebug()
+		_d = d.d;
+		_d("Finding account for push name update")
+		account = AccountsManager.findAccount()
+		if account:
+			account.accountInstance.setValue("pushName",pushname)
+			account.accountInstance.sync()
 
+	@staticmethod
+	def getAccountById(accountId):
+		account = AccountsManager.manager.account(accountId)
+		waaccount = WAAccount(account.valueAsString("cc"),account.valueAsString("phoneNumber"),account.valueAsString("username"),account.valueAsString("status"),account.valueAsString("pushName"),account.valueAsString("imsi"),account.valueAsString("password"));
+		waaccount.setAccountInstance(account)
+		return waaccount
 
-	
 	@staticmethod	
 	def findAccount():
 		d = AccountsDebug()
 		_d = d.d;
 		imsi = Utilities.getImsi()
 		_d("Looking for %s "%(imsi))
-		m = Manager()
-		accountIds = m.accountList()
-		
+		accountIds = AccountsManager.manager.accountList()
+
 		for aId in accountIds:
-			a = m.account(aId)
+			a = AccountsManager.manager.account(aId)
 			services = a.services()
 			for s in services:
-				if s.name() == "waxmpp":
+				if s.name() in ("waxmpp"):
 					_d("found waxmpp account with imsi: %s"%(a.valueAsString("imsi")))
 					if a.valueAsString("imsi") == imsi:
 						account = a
-						waaccount = WAAccount(account.valueAsString("cc"),account.valueAsString("phoneNumber"),account.valueAsString("username"),account.valueAsString("status"),account.valueAsString("pushName"),account.valueAsString("imsi"),account.valueAsString("password"));
+						waaccount = WAAccount(account.valueAsString("cc"),
+											account.valueAsString("phoneNumber"),
+											account.valueAsString("username"),
+											account.valueAsString("status"),
+											account.valueAsString("pushName"),
+											account.valueAsString("imsi"),
+											base64.b64decode(account.valueAsString("password")) 
+												if account.valueAsString("penc") == "b64" 
+												else account.valueAsString("password")); #to ensure backwards compatibility for non-blocked accounts
+
+						if account.valueAsString("wazapp_version"): #rest of data exist
+							waaccount.setExtraData(account.valueAsString("kind"), 
+													account.valueAsString("expiration"),
+													account.valueAsString("cost"), 
+													account.valueAsString("currency"),
+													account.valueAsString("price"), 
+													account.valueAsString("price_expiration"))
+						
 						waaccount.setAccountInstance(a)
 						
 						return waaccount

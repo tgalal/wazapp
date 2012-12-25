@@ -30,23 +30,33 @@ Rectangle{
     color:"transparent"
 	clip: true
 
+    Component.onCompleted: {
+
+        var d = new Date()
+
+        if(d.getMonth() == 11 && d.getDate() > 17) {
+            wazapp_icon.source = 'images/icons/wazanta80.png'
+        }
+    }
+
     Image{
 	    id:wazapp_icon
 	    anchors.left: parent.left
 		anchors.leftMargin: 16
 	    anchors.top: parent.top
 		anchors.topMargin: 18
-	    height:36
+        height:50//parent.height
 	    width:height
 		smooth: true
         source:'images/icons/wazapp80.png'
+        fillMode: Image.PreserveAspectFit
 	}
 
 	Label{
 	    id: pageTitle
 	    color:"#27a01b"
 	    font.pixelSize: 34
-	    anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenter: wazapp_icon.verticalCenter
 	    anchors.left: wazapp_icon.right
 	    anchors.leftMargin: 14
 	}

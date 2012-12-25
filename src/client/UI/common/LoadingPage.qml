@@ -24,9 +24,11 @@ import com.nokia.meego 1.0
 
 WAPage{
 
+    id:container
     property string operation: qsTr("Loading")
     property alias buttonOneText: buttonOne.text
     property alias buttonTwoText: buttonTwo.text
+    property string title:qsTr("Sync contacts")
 
     property int timeout:0;
 
@@ -61,7 +63,7 @@ WAPage{
 
 
     WAHeader{
-        title: qsTr("Sync contacts")
+        title: container.title
         anchors.top:parent.top
         width:parent.width
 		height: 73

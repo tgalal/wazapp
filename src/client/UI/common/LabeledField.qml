@@ -19,32 +19,35 @@
 ** along with Wazapp. If not, see http://www.gnu.org/licenses/.
 **
 ****************************************************************************/
-#include <QSystemDeviceInfo>
-#include <QSystemNetworkInfo>
-#include <QCryptographicHash>
-#include <stdio.h>
+import QtQuick 1.1
+import com.nokia.meego 1.0
+
+Item {
+    id:container
+    property alias label:lf_label.text
+    property alias value:lf_value.text
+    property string input_size:"wide" //wide, medium, small
+    property alias inputMethodHints:lf_value.inputMethodHints
+    property alias enabled:lf_value.enabled
+
+    height:lf_label.height + lf_value.height
+
+    Column{
+        id:lf_holder
+        spacing:2
+        width:parent.width
+
+        Label{
+            id:lf_label
+            width:parent.width
+        }
+
+        TextField{
+            id:lf_value
+            width:input_size =="wide"?parent.width:input_size=="medium"?parent.width/2:parent.width/4;
 
 
-QTM_USE_NAMESPACE
-
-
-#ifndef WA_UTILITIES
-#define WA_UTILITIES
-using namespace std;
-
-namespace Utilities{
-    extern QSystemNetworkInfo ninfo;
-    extern QSystemDeviceInfo dinfo;
-
-    extern QString getImsi();
-    extern QString getImei();
-    extern QString getCountryCode();
-    extern QString getMcc();
-    extern QString getMnc();
-    extern QString reverseString(QString str);
-
-    extern QString getChatPassword();
+        }
+    }
 
 }
-#endif
-

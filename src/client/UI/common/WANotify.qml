@@ -32,12 +32,36 @@ Rectangle{
     state:"offline"
 	clip: true
 
-    Label{
-        id:current_state
-        horizontalAlignment: Text.AlignHCenter
-		anchors.bottom: parent.bottom
-		anchors.bottomMargin: 8
-        width:parent.width
+    Row {
+        spacing: 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        Label{
+            id:current_state
+            horizontalAlignment: Text.AlignHCenter
+            anchors.verticalCenter: parent.verticalCenter
+            //width:accmgrbtn.visible?current_state.paintedWidth:status_indicator.width
+        }
+
+        Button{
+            id:accmgrbtn
+            anchors.verticalCenter: parent.verticalCenter
+            visible: false
+            text: qsTr("Edit account")
+            onClicked:{
+                showNotification(qsTr("Launching Account Editor"))
+                appWindow.openAccount();
+                accmgrbtn.enabled = false
+                accmgrbtntimer.start()
+            }
+        }
+    }
+
+    Timer{
+        id:accmgrbtntimer
+        repeat: false
+        interval: 6000
+        onTriggered: {accmgrbtn.enabled = true}
     }
 
 	Rectangle {
@@ -85,7 +109,13 @@ Rectangle{
             name: "reregister"
             PropertyChanges {
                 target: current_state
-                text:"Login failed. Either account expired or you need to remove your account from accounts manager and re-register"
+                text:"Login failed!"
+
+            }
+
+            PropertyChanges {
+                target: accmgrbtn
+                visible: true
 
             }
 

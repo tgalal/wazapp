@@ -25,8 +25,6 @@ symbian:TARGET.CAPABILITY += NetworkServices
 
 # If your application uses the Qt Mobility libraries, uncomment the following
 # lines and add the respective components to the MOBILITY variable.
- CONFIG += mobility console location
- MOBILITY += systeminfo messaging
 
 # Speed up launching on MeeGo/Harmattan when using applauncherd daemon
 # CONFIG += qdeclarative-boostable
@@ -34,31 +32,15 @@ symbian:TARGET.CAPABILITY += NetworkServices
 # Add dependency to Symbian components
 # CONFIG += qt-components
 
-QT += declarative dbus core network
-CONFIG += meegotouch link_pkgconfig
-
-PKGCONFIG += qdeclarative-boostable \
-             accounts-qt \
-             AccountSetup
 
 # The .cpp file which was generated for your project. Feel free to hack it.
-SOURCES += main.cpp \
-    waaccount.cpp \
-    warequest.cpp \
-    wacoderequest.cpp \
-    waexistsrequest.cpp \
-    utilities.cpp \
-    smshandler.cpp \
-    waregrequest.cpp
+SOURCES += main.cpp
 
 # Please do not modify the following two lines. Required for deployment.
-include(qmlapplicationviewer/qmlapplicationviewer.pri)
-qtcAddDeployment()
+
 
 target.path = /opt/waxmppplugin/bin
 INSTALLS += target
-
-CONFIG += qdeclarative-boostable
 
 invoker.files = invoker/*
 invoker.path = /opt/waxmppplugin/bin
@@ -151,15 +133,6 @@ contextprovider.path = /usr/share/contextkit/providers
 INSTALLS += contextprovider
 
 
-HEADERS += \
-    waaccount.h \
-    warequest.h \
-    wacoderequest.h \
-    waexistsrequest.h \
-    utilities.h \
-    smshandler.h \
-    waregrequest.h
-
 OTHER_FILES += \
     qtc_packaging/debian_harmattan/rules \
     qtc_packaging/debian_harmattan/README \
@@ -187,8 +160,9 @@ OTHER_FILES += \
 contains(MEEGO_EDITION,harmattan) {
     desktopfile.files = waxmppplugin.desktop
     desktopfile.path = /usr/share/applications
-    INSTALLS += desktopfile
+
+    icon.files = $${TARGET}80.png
+    icon.path = /usr/share/icons/hicolor/80x80/apps
+
+    INSTALLS += desktopfile icon
 }
-
-
-

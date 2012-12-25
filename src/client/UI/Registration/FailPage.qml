@@ -19,30 +19,40 @@
 ** along with Wazapp. If not, see http://www.gnu.org/licenses/.
 **
 ****************************************************************************/
-#ifndef WACODEREQUEST_H
-#define WACODEREQUEST_H
+import QtQuick 1.1
+import com.nokia.meego 1.0
 
-#include "warequest.h"
-#include <QDomDocument>
+Page{
+    property alias reason:fail_reason.text
 
-class WACodeRequest : public WARequest
-{
-   Q_OBJECT
-public:
-    WACodeRequest(QString cc, QString in, QString method = "sms");
 
-    void run();
-    void runTests();
+        Item
+        {
+            anchors.verticalCenter: parent.verticalCenter
+            width:parent.width
 
-signals:
-    void success(QString);
-    void success();
-    void fail(QString);
+            Label{
+                id:title
+                text:qsTr("Failed:")
 
-public slots:
-    void launched();
-    void onDone(QString);
+                platformStyle: LabelStyle {
+                        textColor: "red"
+                        fontPixelSize: 30
 
-};
+                    }
+                }
 
-#endif // WACODEREQUEST_H
+            Text{
+                id:fail_reason
+                anchors.top:title.bottom
+                anchors.topMargin: 10
+                width:parent.width
+                font.pointSize: 20
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+
+
+                }
+        }
+
+}

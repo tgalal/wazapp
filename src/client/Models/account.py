@@ -21,7 +21,7 @@ class Account():
 		
 		self.pushName = pushName.encode('utf-8')
 		self.cc = cc;
-		self.phoneNumber = cc+phoneNumber;
+		self.phoneNumber = phoneNumber;
 		self.jid = username+"@s.whatsapp.net";
 		self.username = username;
 		self.password = password
@@ -29,6 +29,12 @@ class Account():
 		self.status = status
 		
 		
+		self.kind = None
+		self.expiration = None
+		self.cost = None
+		self.currency = None
+		self.price = None
+		self.price_expiration = None
 		
 		print "ACCOUNT INFO"
 		print pushName
@@ -39,7 +45,15 @@ class Account():
 		print imsi
 		print status
 		print "END ACCNT INFO"
-		
+
+	def setExtraData(self, kind, expiration, cost, currency, price, price_expiration):
+		self.kind = kind
+		self.expiration = int(expiration)
+		self.cost = cost
+		self.currency = currency
+		self.price = price
+		self.price_expiration = price_expiration
+
 	def setAccountInstance(self,instance):
 		self.accountInstance = instance
 	

@@ -2,6 +2,7 @@
 #killall wazapp 2> /dev/null
 chmod +x /opt/waxmppplugin/bin/wazapp/wazapp
 chmod +x /opt/waxmppplugin/bin/wazapp/wazapp_init
+chmod +x /opt/waxmppplugin/bin/wazapp/wareg
 
 if [ -f /usr/lib/AccountSetup/waxmppplugin ]
 then
@@ -14,4 +15,4 @@ then
 fi
 
 ln -s /opt/waxmppplugin/bin/waxmppaccount /usr/lib/AccountSetup/waxmppplugin
-ln -s /opt/waxmppplugin/bin/waxmppplugin /usr/lib/AccountSetup/bin/waxmppplugin
+ln -s /opt/waxmppplugin/bin/wazapp/wareg /usr/lib/AccountSetup/bin/waxmppplugin

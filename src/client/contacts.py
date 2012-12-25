@@ -75,7 +75,7 @@ class ContactsSyncer(WARequest):
 					#self._d("ADDING CONTACT FOR SYNC " + part)
 					self.addParam("u[]",part)
 
-		self.addParam("me",self.store.account.phoneNumber);
+		self.addParam("me",self.store.account.cc + self.store.account.phoneNumber);
 		self.addParam("cc",self.store.account.cc)
 
 		self.contactsSyncStatus.emit("SENDING");

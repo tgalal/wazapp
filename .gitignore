@@ -1,4 +1,5 @@
 build_armel.sh
 target
 src/accounts/waxmppplugin.pro.user
+src/client/Yowsup
 src/waxmppplugin-build-harmattan-Harmattan_Target_-_QEmu_PR1_2__Qt_SDK__Release/

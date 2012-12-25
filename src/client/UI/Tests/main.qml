@@ -7,6 +7,7 @@ import "../common"
 import "../EmojiDialog"
 import "../About"
 import "../Misc"
+import "../Registration"
 
 
 WAStackWindow{
@@ -28,6 +29,11 @@ WAStackWindow{
 
     WAPage{
         id:mainPage
+
+        WANotify{
+            id:wa_notifier
+            state:"connecting"
+        }
 
         Column{
             anchors.centerIn: parent
@@ -74,12 +80,55 @@ WAStackWindow{
                    appWindow.pageStack.push(splashPage)
                 }
             }
+
+            Button{
+                text: "Edit account"
+                onClicked: {
+                   appWindow.pageStack.push(editPage)
+                }
+            }
         }
     }
 
-    WATextAreaTest{
-        id:watextareatest
+    EditPage{
+        id: editPage
+        expiration: "123456"
+        kind: "free"
+        phoneNumber: "1234567890"
+        pushName: "tgalal"
+
+        ToolBarLayout {
+            id: editTools
+            visible: false
+
+            ToolButtonRow {
+                //spacing: 5
+                //anchors.verticalCenter: parent.verticalCenter
+                ToolButton {
+                    platformStyle: ToolButtonStyle{inverted: theme.inverted}
+
+                    text: qsTrId("Save")
+                    //enabled: mainPage.checkFilled()
+                    onClicked: editPage.saveAccount()
+                }
+                ToolButton {
+                    platformStyle: ToolButtonStyle{inverted: theme.inverted}
+                    text: qsTrId("Cancel")
+                    onClicked: Qt.quit()
+                }
+            }
+
+            ToolIcon {
+                platformIconId: "toolbar-view-menu"
+               // anchors.right: (parent === undefined) ? undefined : parent.right
+                onClicked: (myMenu.status == DialogStatus.Closed) ? myMenu.open() : myMenu.close()
+            }
+        }
     }
+
+   // WATextAreaTest{
+    //    id:watextareatest
+    //}
 
     WAListViewTest{
         id:walistviewtest

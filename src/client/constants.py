@@ -58,6 +58,10 @@ class WAConstants():
 	MEDIA_TYPE_LOCATION	= 5
 	MEDIA_TYPE_VCARD	= 6
 
+	INITIAL_USER_STATUS = "Hi there I'm using Wazapp"
+	
+	DATE_FORMAT = "%d-%m-%Y %H:%M"
+
 
 	@staticmethod
 	def getAllProperties():

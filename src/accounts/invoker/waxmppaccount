@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /usr/bin/invoker -w --type=d --single-instance /usr/lib/AccountSetup/bin/waxmppplugin "$@"
+exec /usr/bin/invoker -w --type=e --single-instance /usr/lib/AccountSetup/bin/waxmppplugin "$@"

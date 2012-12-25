@@ -84,6 +84,7 @@ WAPage {
                label: "Fabian Sauter (brkn)"
                role: qsTr("Developer, Wiki Creator")
                url: "http://wiki.maemo.org/Wazapp"
+               twitter: "http://twitter.com/binbrkn"
            }
 
            CreditItem{

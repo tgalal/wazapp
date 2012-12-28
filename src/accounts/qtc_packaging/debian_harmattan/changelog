@@ -1,3 +1,8 @@
+wazapp (0.9.15) testing; urgency=high
+  * Updated user agent
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Tue, 25 Dec 2012 14:52:56 +0200
+
 wazapp (0.9.14) testing; urgency=high
   * Upgraded to registration v2
   * Goodbye (mostly) to  C++ in accountsplugin

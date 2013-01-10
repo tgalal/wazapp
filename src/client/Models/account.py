@@ -48,7 +48,10 @@ class Account():
 
 	def setExtraData(self, kind, expiration, cost, currency, price, price_expiration):
 		self.kind = kind
-		self.expiration = int(expiration)
+		try:
+			self.expiration = int(expiration)
+		except:
+			pass
 		self.cost = cost
 		self.currency = currency
 		self.price = price

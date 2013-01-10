@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 import os
-from warequest import WARequest
+from Yowsup.Contacts.contacts import WAContactsSyncRequest
+from Registration.registrationhandler import async
 from xml.dom import minidom
 from PySide import QtCore
 from PySide.QtCore import QObject, QUrl, QFile, QIODevice
@@ -28,8 +29,9 @@ from constants import WAConstants
 from wadebug import WADebug;
 import sys
 from waimageprocessor import WAImageProcessor
+from accountsmanager import AccountsManager
 
-class ContactsSyncer(WARequest):
+class ContactsSyncer(QObject):
 	'''
 	Interfaces with whatsapp contacts server to get contact list
 	'''
@@ -44,6 +46,18 @@ class ContactsSyncer(WARequest):
 		self.uid = userid;
 		self.parts = []
 		self.cn = ""
+		
+		super(ContactsSyncer,self).__init__();
+		
+		acc = AccountsManager.getCurrentAccount();
+		
+		if not acc:
+			self.contactsRefreshFail.emit()
+			
+		
+		username = str(acc.username)
+		password = acc.password
+		
 		if mode == "SYNC":
 			c = WAContacts(self.store);
 			phoneContacts = c.getPhoneContacts();
@@ -54,85 +68,76 @@ class ContactsSyncer(WARequest):
 					except UnicodeEncodeError:
 						continue
 			self.parts = self.cn.split(',')
-		self.base_url = "sro.whatsapp.net";
-		self.req_file = "/client/iphone/bbq.php";
-		super(ContactsSyncer,self).__init__();
+			
+		self.syncer = WAContactsSyncRequest(username, password, self.parts)	
+		
+		#self.base_url = "sro.whatsapp.net";
+		#self.req_file = "/client/iphone/bbq.php";
+		#super(ContactsSyncer,self).__init__();
 
 	def sync(self):
 		self._d("INITiATING SYNC")
 		self.contactsSyncStatus.emit("GETTING");
-		self.clearParams();
 
 		if self.mode == "STATUS":
-			#if self.uid[:2] == self.store.account.cc:
 			self.uid = "+" + self.uid
 			self._d("Sync contact for status: " + self.uid)
-			self.addParam("u[]", self.uid)
+			self.syncer.setContacts([self.uid])
 
 		elif self.mode == "SYNC":
-			for part in self.parts:
-				if part != "undefined":
-					#self._d("ADDING CONTACT FOR SYNC " + part)
-					self.addParam("u[]",part)
+			self.syncer.setContacts(self.parts)
 
-		self.addParam("me",self.store.account.cc + self.store.account.phoneNumber);
-		self.addParam("cc",self.store.account.cc)
+		#self.addParam("me",self.store.account.cc + self.store.account.phoneNumber);
+		#self.addParam("cc",self.store.account.cc)
 
 		self.contactsSyncStatus.emit("SENDING");
-		data = self.sendRequest();
+		data = self.syncer.send()
 		
 		if data:
-			self.updateContacts(data);
+			print("DONE!!")
+			self.updateContacts(data["c"]);
 		else:
 			self.contactsRefreshFail.emit();
 		
-		self.exit();
 		
 		
-	def updateContacts(self,data):
+	def updateContacts(self, contacts):
 		#data = str(data);
-		data = minidom.parseString(data);
-		contacts = data.getElementsByTagName("s");
 	
 
 		if self.mode == "STATUS":
-			newStatus = ""
 			for c in contacts:
-				is_valid = False;
-				newSatus = c.firstChild.data if c.firstChild is not None else ""
-				for (name, value) in c.attributes.items():
-					if name == "p":
-						number = value
-					elif name == "jid":
-						jid = value
-					elif name == "t":
-						is_valid = True
+				
+				
+				if not c['w'] == 1:
+					continue
 
-				if is_valid:
-					contact = self.store.Contact.getOrCreateContactByJid(jid)
-					contact.status = newSatus.encode("unicode_escape")
-					contact.save()
-					self.contactsRefreshSuccess.emit(self.mode, contact);
+				status = c["s"];
+				
+				jid = "%s@s.whatsapp.net" % c['n']
+				status = c["s"]#.encode('utf-8')
+
+				contact = self.store.Contact.getOrCreateContactByJid(jid)
+				contact.status = status.encode("unicode_escape")
+				contact.save()
+
+				self.contactsRefreshSuccess.emit(self.mode, contact);
 
 		else:
 			for c in contacts:
 				self.contactsSyncStatus.emit("LOADING");
-				is_valid = False;
-				jid = ""
-				newSatus = c.firstChild.data.encode('utf-8') if c.firstChild is not None else ""
-				for (name, value) in c.attributes.items():
-					if name == "p":
-						number = value
-					elif name == "jid":
-						jid = value
-					elif name == "t":
-						is_valid = True
-
-				if is_valid: # and number[-8:] in self.cn:
-					contact = self.store.Contact.getOrCreateContactByJid(jid)
-					contact.status = newSatus
-					contact.iscontact = "yes"
-					contact.save()
+				
+				if not c['w'] == 1:
+					continue
+				
+				jid = "%s@s.whatsapp.net" % c['n']
+				status = c["s"].encode('utf-8')
+				#number = str(c["p"])
+				
+				contact = self.store.Contact.getOrCreateContactByJid(jid)
+				contact.status = status
+				contact.iscontact = "yes"
+				contact.save()
 
 			self.contactsRefreshSuccess.emit(self.mode, {});	
 
@@ -140,7 +145,8 @@ class ContactsSyncer(WARequest):
 	def onRefreshing(self):
 		self.start();
 
-	def run(self):
+	@async
+	def start(self):
 		try:
 			self.sync();
 		except:
@@ -170,7 +176,9 @@ class WAContacts(QObject):
 		
 	
 	def initiateSyncer(self, mode, userid):
-		self.syncer = ContactsSyncer(self.store, mode, userid);
+		#self.syncer = ContactsSyncer(self.store, mode, userid);
+		self.syncer.mode = mode
+		self.syncer.uid = userid
 		#self.syncer.done.connect(self.syncer.updateContacts);
 		self.syncer.contactsRefreshSuccess.connect(self.contactsRefreshed);
 		self.syncer.contactsRefreshFail.connect(self.contactsRefreshFailed);
@@ -338,7 +346,8 @@ class ContactsManager(QObject):
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 
 			for number in numbers:
-				self.contacts.append({"alphabet":label[0].upper(),"name":label,"number":QContactPhoneNumber(number).number(),"picture":avatar});
+				n = QContactPhoneNumber(number).number().replace("(", "").replace(")", "").replace(" ", "").replace("-", "")
+				self.contacts.append({"alphabet":label[0].upper(),"name":label,"number":n,"picture":avatar});
 
 		return self.contacts;
 
@@ -352,9 +361,11 @@ class ContactsManager(QObject):
 			label =  contact.displayLabel();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 			allnumbers = []
-
-			for number in numbers:
-				allnumbers.append(QContactPhoneNumber(number).number())
+			
+			allnumbers = map(lambda n: QContactPhoneNumber(n).number().replace("(", "").replace(")", "").replace(" ", "").replace("-", ""), numbers   )
+			
+			#for number in numbers:
+			#	allnumbers.append(QContactPhoneNumber(number).number())
 
 			self.contacts.append({"name":label,"numbers":allnumbers,"picture":avatar});
 
@@ -363,8 +374,3 @@ class ContactsManager(QObject):
 
 	def getQtContacts(self):
 		return self.manager.contacts();
-
-
-if __name__ == "__main__":
-	cs = ContactsSyncer();
-	cs.start();

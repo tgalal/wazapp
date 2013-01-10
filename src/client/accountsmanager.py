@@ -76,7 +76,7 @@ class AccountsManager():
 											account.valueAsString("imsi"),
 											base64.b64decode(account.valueAsString("password")) 
 												if account.valueAsString("penc") == "b64" 
-												else account.valueAsString("password")); #to ensure backwards compatibility for non-blocked accounts
+												else str(account.valueAsString("password"))); #to ensure backwards compatibility for non-blocked accounts
 
 						if account.valueAsString("wazapp_version"): #rest of data exist
 							waaccount.setExtraData(account.valueAsString("kind"), 

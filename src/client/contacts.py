@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License along with
 Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 import os
-from warequest import WARequest
-from xml.dom import minidom
+from Yowsup.Contacts.contacts import WAContactsSyncRequest
+from Registration.registrationhandler import async
 from PySide import QtCore
 from PySide.QtCore import QObject, QUrl, QFile, QIODevice
 from PySide.QtGui import QImage
@@ -28,8 +28,9 @@ from constants import WAConstants
 from wadebug import WADebug;
 import sys, re
 from waimageprocessor import WAImageProcessor
+from accountsmanager import AccountsManager
 
-class ContactsSyncer(WARequest):
+class ContactsSyncer(QObject):
 	'''
 	Interfaces with whatsapp contacts server to get contact list
 	'''
@@ -37,101 +38,97 @@ class ContactsSyncer(WARequest):
 	contactsRefreshFail = QtCore.Signal();
 	contactsSyncStatus = QtCore.Signal(str);
 
-	def __init__(self,store,mode,userid):
+	def __init__(self,store, contactsManager, mode,userid = None):
 		WADebug.attach(self);
 		self.store = store;
 		self.mode = mode
 		self.uid = userid;
-		self.parts = []
-		self.cn = ""
-		if mode == "SYNC":
-			c = WAContacts(self.store);
-			phoneContacts = c.getPhoneContacts();
-			for c in phoneContacts:
-				for number in c[2]:
-					try:
-						self.cn = self.cn + str(number) + ","
-					except UnicodeEncodeError:
-						continue
-			self.parts = self.cn.split(',')
-		self.base_url = "sro.whatsapp.net";
-		self.req_file = "/client/iphone/bbq.php";
+		
 		super(ContactsSyncer,self).__init__();
-
+		
+		acc = AccountsManager.getCurrentAccount();
+		
+		if not acc:
+			self.contactsRefreshFail.emit()
+			
+		
+		username = str(acc.username)
+		password = acc.password
+		
+		self.contactsManager = contactsManager
+			
+		self.syncer = WAContactsSyncRequest(username, password, [])	
+		
 	def sync(self):
 		self._d("INITiATING SYNC")
 		self.contactsSyncStatus.emit("GETTING");
-		self.clearParams();
 
 		if self.mode == "STATUS":
-			#if self.uid[:2] == self.store.account.cc:
 			self.uid = "+" + self.uid
 			self._d("Sync contact for status: " + self.uid)
-			self.addParam("u[]", self.uid)
+			self.syncer.setContacts([self.uid])
 
 		elif self.mode == "SYNC":
-			for part in self.parts:
-				if part != "undefined":
-					#self._d("ADDING CONTACT FOR SYNC " + part)
-					self.addParam("u[]",part)
+			
+			phoneContacts = self.contactsManager.getPhoneContacts();
+			contacts = []
+			for c in phoneContacts:
+				for number in c[2]:
+					try:
+						contacts.append(str(number))
+					except UnicodeEncodeError:
+						continue
+			
+			self.syncer.setContacts(contacts)
 
-		self.addParam("me",self.store.account.cc + self.store.account.phoneNumber);
-		self.addParam("cc",self.store.account.cc)
 
 		self.contactsSyncStatus.emit("SENDING");
-		data = self.sendRequest();
+		result = self.syncer.send()
 		
-		if data:
-			self.updateContacts(data);
+		if result:
+			print("DONE!!")
+			self.updateContacts(result["c"]);
 		else:
 			self.contactsRefreshFail.emit();
 		
-		self.exit();
 		
 		
-	def updateContacts(self,data):
+	def updateContacts(self, contacts):
 		#data = str(data);
-		data = minidom.parseString(data);
-		contacts = data.getElementsByTagName("s");
 	
-
 		if self.mode == "STATUS":
-			newStatus = ""
 			for c in contacts:
-				is_valid = False;
-				newSatus = c.firstChild.data if c.firstChild is not None else ""
-				for (name, value) in c.attributes.items():
-					if name == "p":
-						number = value
-					elif name == "jid":
-						jid = value
-					elif name == "t":
-						is_valid = True
+				
+				
+				if not c['w'] == 1:
+					continue
 
-				if is_valid:
-					contact = self.store.Contact.getOrCreateContactByJid(jid)
-					contact.status = newSatus.encode("unicode_escape")
-					self.contactsRefreshSuccess.emit(self.mode, contact);
+				status = c["s"];
+				
+				jid = "%s@s.whatsapp.net" % c['n']
+				status = c["s"]#.encode('utf-8')
+
+				contact = self.store.Contact.getOrCreateContactByJid(jid)
+				contact.status = status.encode("unicode_escape")
+				contact.save()
+
+				self.contactsRefreshSuccess.emit(self.mode, contact);
 
 		else:
 			for c in contacts:
 				self.contactsSyncStatus.emit("LOADING");
-				is_valid = False;
-				jid = ""
-				newSatus = c.firstChild.data.encode('utf-8') if c.firstChild is not None else ""
-				for (name, value) in c.attributes.items():
-					if name == "p":
-						number = value
-					elif name == "jid":
-						jid = value
-					elif name == "t":
-						is_valid = True
-
-				if is_valid: # and number[-8:] in self.cn:
-					contact = self.store.Contact.getOrCreateContactByJid(jid)
-					contact.status = newSatus
-					contact.iscontact = "yes"
-					contact.save()
+				
+				if not c['w'] == 1:
+					continue
+				
+				jid = "%s@s.whatsapp.net" % c['n']
+				status = c["s"].encode("unicode_escape")
+				#number = str(c["p"])
+				
+				contact = self.store.Contact.getOrCreateContactByJid(jid)
+				contact.status = status
+				contact.iscontact = "yes"
+				contact.save()
 
 			self.contactsRefreshSuccess.emit(self.mode, {});	
 
@@ -139,7 +136,8 @@ class ContactsSyncer(WARequest):
 	def onRefreshing(self):
 		self.start();
 
-	def run(self):
+	@async
+	def start(self):
 		try:
 			self.sync();
 		except:
@@ -166,14 +164,17 @@ class WAContacts(QObject):
 		self.manager = ContactsManager();
 		self.imageProcessor = WAImageProcessor();
 		
+		self.syncer = ContactsSyncer(self.store, self, "SYNC");
 		
-	
-	def initiateSyncer(self, mode, userid):
-		self.syncer = ContactsSyncer(self.store, mode, userid);
-		#self.syncer.done.connect(self.syncer.updateContacts);
 		self.syncer.contactsRefreshSuccess.connect(self.contactsRefreshed);
 		self.syncer.contactsRefreshFail.connect(self.contactsRefreshFailed);
 		self.syncer.contactsSyncStatus.connect(self.contactsSyncStatusChanged);
+		
+		
+	
+	def initiateSyncer(self, mode, userid):
+		self.syncer.mode = mode
+		self.syncer.uid = userid
 
 	def resync(self, mode, userid=None):
 		self.initiateSyncer(mode, userid);
@@ -250,7 +251,7 @@ class WAContacts(QObject):
 				wc.setRealTimeData(myname,mypicture,"no");
 
 			if wc.status is not None:
-				wc.status = wc.status.decode('utf-8');
+				wc.status = wc.status.decode("unicode_escape")
 			if wc.pushname is not None:
 				wc.pushname = wc.pushname.decode('utf-8');
 
@@ -353,7 +354,7 @@ class ContactsManager(QObject):
 			label =  contact.displayLabel();
 			numbers = contact.details(QContactPhoneNumber.DefinitionName);
 			allnumbers = []
-
+			
 			for number in numbers:
 				cleannumber = self.filter.sub('', QContactPhoneNumber(number).number())
 				allnumbers.append(cleannumber)
@@ -365,8 +366,3 @@ class ContactsManager(QObject):
 
 	def getQtContacts(self):
 		return self.manager.contacts();
-
-
-if __name__ == "__main__":
-	cs = ContactsSyncer();
-	cs.start();

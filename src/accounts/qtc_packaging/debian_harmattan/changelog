@@ -1,3 +1,12 @@
+wazapp (0.9.17) testing; urgency=high
+  * Updated to Yowsup 0.2.7
+  * Fixed contacts sync
+  * Quick fix for formatted numbers sync until real fix is merged from dev
+  * Fixed crash when account expiration is empty
+  * Fixed error on saving push name for a just recovered account
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Thu, 10 Jan 2013 17:17:28 +0200
+
 wazapp (0.9.16) testing; urgency=high
   * Updated to yowsup 0.2.5, fixes login
 

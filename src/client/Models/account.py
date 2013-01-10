@@ -37,18 +37,21 @@ class Account():
 		self.price_expiration = None
 		
 		print "ACCOUNT INFO"
-		print pushName
+		#print pushName
 		print cc
 		print phoneNumber
 		print self.jid
 		#print password
 		print imsi
-		print status
+		#print status
 		print "END ACCNT INFO"
 
 	def setExtraData(self, kind, expiration, cost, currency, price, price_expiration):
 		self.kind = kind
-		self.expiration = int(expiration)
+		try:
+			self.expiration = int(expiration)
+		except:
+			pass
 		self.cost = cost
 		self.currency = currency
 		self.price = price

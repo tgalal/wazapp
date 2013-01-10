@@ -33,6 +33,13 @@ from constants import WAConstants
 import datetime
 #from smshandler import SMSHandler
 
+
+def async(fn):
+    def wrapped(self, *args):
+        threading.Thread(target = fn, args = (self,) + args).start()
+    
+    return wrapped
+
 class RegistrationUI(QDeclarativeView):
 
     statusUpdated = QtCore.Signal(str); #status 
@@ -137,12 +144,6 @@ class RegistrationUI(QDeclarativeView):
     def abraKadabra(self):
         self._d("ABRA KADABRA!")
         self.registerRequest("919177")
-    
-    def async(fn):
-        def wrapped(self, *args):
-            threading.Thread(target = fn, args = (self,) + args).start()
-
-        return wrapped
 
     @async
     def codeRequest(self, cc, number, reqType):
@@ -225,6 +226,9 @@ class RegistrationUI(QDeclarativeView):
             self.setAccountData(self.accountInstance.id(), data,  True)
         else:
             self.setAccountData(self.accountInstance.id(), data,  False)
+            
+        if not self.account:
+            self.account = AccountsManager.getCurrentAccount();
 
     def setAccountData(self, accountId, data, isNew):
             result = data

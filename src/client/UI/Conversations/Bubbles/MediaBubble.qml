@@ -224,13 +224,26 @@ SpeechBubble {
                 text: qsTr("Download")
 
                 onClicked: {
-                    operationButton.enabled=false
-                    operationButton.text= qsTr("Initializing")
+                    if(delegateContainer.from_me==1) {
 
-                    if(delegateContainer.from_me==1)
-                        uploadClicked()
-                    else
+                        runIfOnline(function() {
+
+                            operationButton.enabled=false
+                            operationButton.text= qsTr("Initializing")
+
+                            uploadClicked()
+
+                        }, true, qsTr("You must be online to send"))
+
+                    } else {
+
+                        operationButton.enabled=false
+                        operationButton.text= qsTr("Initializing")
+
+
                         downloadClicked()
+
+                    }
                 }
             }
 

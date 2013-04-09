@@ -21,25 +21,20 @@ from PySide import QtCore
 from PySide.QtCore import QObject, QThread, Qt
 from PySide.QtGui import QImage
 from constants import WAConstants
-from time import sleep
 from wadebug import WADebug
 import os
 import mimetypes
-import socket
-import hashlib
-import ssl
-import urllib2
+import shutil, sys
 
-
-
-
-
+from Yowsup.Media.downloader import MediaDownloader
+from Yowsup.Media.uploader import MediaUploader
+from utilities import async, Utilities
 
 
 class WAMediaHandler(QObject):
-	progressUpdated = QtCore.Signal(int,int) #%,jid,message.id
-	error = QtCore.Signal(str,int,int)
-	success = QtCore.Signal(str,int,str,str,int)
+	progressUpdated = QtCore.Signal(int,int) #%,progress,mediaid
+	error = QtCore.Signal(str,int)
+	success = QtCore.Signal(str,int,str,str, str)
 	
 	def __init__(self,jid,message_id,url,mediaType_id,mediaId,account,resize=False):
 		
@@ -54,35 +49,79 @@ class WAMediaHandler(QObject):
 		if not os.path.exists(path):
 			os.makedirs(path)
 		
-		self.httpHandler = WAHTTPHandler(jid,account,mediaId,resize,url,path+"/"+filename)
-		self.httpHandler.progressUpdated.connect(self.onProgressUpdated)
-		self.httpHandler.success.connect(self.onSuccess)
-		self.httpHandler.error.connect(self.onError)
 		
+		self.uploadHandler = MediaUploader(jid, account, self.onUploadSuccess, self.onError, self.onProgressUpdated)
+		self.downloadHandler = MediaDownloader(self.onDownloadSuccess, self.onError, self.onProgressUpdated)
+
+		self.url = url
+		self._path = path+"/"+filename
+
+		ext = os.path.splitext(filename)[1]
+
+		self.downloadPath = Utilities.getUniqueFilename(path + "/" + self.getFilenamePrefix(mediaType_id) + ext)
+
+		self.resize = resize
 		self.mediaId = mediaId
 		self.message_id = message_id
 		self.jid = jid
 
 		super(WAMediaHandler,self).__init__();
 	
-	
+
 	def onError(self):
-		self.error.emit(self.jid,self.message_id,self.mediaId)
+		self.error.emit(self.jid,self.message_id)
 	
-	def onSuccess(self, data, action):
-		self.success.emit(self.jid,self.message_id,data,action,self.mediaId)	
-	
+	def onUploadSuccess(self, url):
+
+		#filename = os.path.basename(self._path)
+		#filesize = os.path.getsize(self._path)
+		#data = url + "," + filename + "," + str(filesize);
+		self.success.emit(self.jid,self.message_id, self._path, "upload", url)
+
+	def onDownloadSuccess(self, path):
+		try:
+			shutil.copyfile(path, self.downloadPath)
+			os.remove(path)
+			self.success.emit(self.jid, self.message_id, self.downloadPath, "download", "")
+		except:
+			print("Error occured at transfer %s"%sys.exc_info()[1])
+			self.error.emit(self.jid, self.message_id)
+
 	def onProgressUpdated(self,progress):
-		self.progressUpdated.emit(progress,self.mediaId);
-	
+		self.progressUpdated.emit(progress, self.mediaId);
+
+	@async
 	def pull(self):
-		self.httpHandler.action = "pull"
-		self.httpHandler.start()
+		self.action = "download"
+		self.downloadHandler.download(self.url)
+
+	@async
+	def push(self, uploadUrl):
+		self.action = "upload"
+
+		path = self.url.replace("file://","")
+
+		filename = os.path.basename(path)
+		filetype = mimetypes.guess_type(filename)[0]
 		
-	def push(self):
-		self.httpHandler.action = "push"
-		self.httpHandler.start()
+		self._path = path
+		self.uploadHandler.upload(path, uploadUrl)
+	
+	def getFilenamePrefix(self, mediatype_id):
+		if mediatype_id == WAConstants.MEDIA_TYPE_IMAGE:
+			return "owhatsapp_image"
 		
+		if mediatype_id == WAConstants.MEDIA_TYPE_AUDIO:
+			return "owhatsapp_audio"
+		
+		if mediatype_id == WAConstants.MEDIA_TYPE_VIDEO:
+			return "owhatsapp_video"
+
+		if mediatype_id == WAConstants.MEDIA_TYPE_VCARD:
+			return "owhatsapp_vcard"
+			
+		return ""
+	
 	def getSavePath(self,mediatype_id):
 		
 		if mediatype_id == WAConstants.MEDIA_TYPE_IMAGE:
@@ -98,180 +137,3 @@ class WAMediaHandler(QObject):
 			return WAConstants.VCARD_PATH
 			
 		return None
-
-
-class WAHTTPHandler(QThread):
-	
-	error = QtCore.Signal();
-	success = QtCore.Signal(str,str);
-	progressUpdated = QtCore.Signal(int)
-	
-	def __init__(self,jid,account,mediaId,resize,url,savePath,action="pull"):
-		self.url = url
-		self.savePath = savePath
-		self.jid = jid
-		self.account = account
-		self.action = "push" if action =="push" else "pull"
-		self.resizeImages = resize
-		self.mediaId = mediaId
-		super(WAHTTPHandler,self).__init__();
-		
-		
-		
-	def run(self):
-		if self.action == "pull":
-			self.pull(self.url,self.savePath);
-		if self.action == "push":
-			self.push(self.url);
-			
-	
-	def push(self,image):
-		#image = urllib.quote(image)
-		image = image.replace("file://","")
-
-		self.sock = socket.socket();
-		HOST, PORT = 'mms.whatsapp.net', 443
-		self.sock.connect((HOST, PORT));
-		ssl_sock = ssl.wrap_socket(self.sock)
-
-		filename = os.path.basename(image)
-		filetype = mimetypes.guess_type(filename)[0]
-		filesize = os.path.getsize(image)
-
-		if self.resizeImages is True and "image" in filetype and not "image/gif" in filetype:
-			user_img = QImage(image)
-			preimg = user_img
-			if user_img.height() > user_img.width() and user_img.width() > 600:
-				preimg = user_img.scaledToWidth(600, Qt.SmoothTransformation)
-			elif user_img.height() < user_img.width() and user_img.height() > 800:
-				preimg = user_img.scaledToHeight(800, Qt.SmoothTransformation)
-			elif user_img.height() == user_img.width() and user_img.height() > 600:
-				preimg = user_img.scaled(600, 600, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-			preimg.save(WAConstants.CACHE_PATH+"/" + os.path.basename(image))
-			image = WAConstants.CACHE_PATH+"/" + os.path.basename(image)
-
-			filename = os.path.basename(image)
-			filetype = mimetypes.guess_type(filename)[0]
-			filesize = os.path.getsize(image)
-
-		print "Uploading " + image + " - type: " + filetype + " - resize:" + str(self.resizeImages);
-
-
-		m = hashlib.md5()
-		m.update(filename)
-		crypto = m.hexdigest() + os.path.splitext(filename)[1]
-
-		boundary = "-------" + m.hexdigest() #"zzXXzzYYzzXXzzQQ"
-		contentLength = 0
-		
-		hBAOS = bytearray()
-		hBAOS += "--" + boundary + "\r\n"
-		hBAOS += "Content-Disposition: form-data; name=\"to\"\r\n\r\n"
-		hBAOS += self.jid + "\r\n"
-		hBAOS += "--" + boundary + "\r\n"
-		hBAOS += "Content-Disposition: form-data; name=\"from\"\r\n\r\n"
-		hBAOS += self.account.replace("@whatsapp.net","").encode() + "\r\n"
-
-		hBAOS += "--" + boundary + "\r\n"
-		hBAOS += "Content-Disposition: form-data; name=\"file\"; filename=\"" + crypto.encode() + "\"\r\n"
-		hBAOS += "Content-Type: " + filetype + "\r\n\r\n"
-
-		fBAOS = bytearray()
-		fBAOS += "\r\n--" + boundary + "--\r\n"
-		
-		contentLength += len(hBAOS)
-		contentLength += len(fBAOS)
-		contentLength += filesize
-
-		userAgent = "WhatsApp/2.8.4 S60Version/5.2 Device/C7-00"
-
-		POST = bytearray()
-		POST += "POST https://mms.whatsapp.net/client/iphone/upload.php HTTP/1.1\r\n"
-		POST += "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n"
-		POST += "Host: mms.whatsapp.net\r\n"
-		POST += "User-Agent: WhatsApp/2.8.14 S60Version/5.3 Device/C7-00\r\n"
-		POST += "Content-Length: " + str(contentLength) + "\r\n\r\n"
-
-		print "sending REQUEST "
-		print hBAOS
-		ssl_sock.write(str(POST))
-		ssl_sock.write(str(hBAOS))
-
-		totalsent = 0
-		buf = 1024
-		f = open(image, 'r')
-		stream = f.read()
-		f.close()
-		status = 0
-		lastEmit = 0
-
-		while totalsent < int(filesize):
-			#print "sending " + str(totalsent) + " to " + str(totalsent+buf) + " - real: " + str(len(stream[:buf]))
-			ssl_sock.write(str(stream[:buf]))
-			status = totalsent * 100 / filesize
-			if lastEmit!=status and status!=100 and filesize>12288:
-				self.progressUpdated.emit(status)
-			lastEmit = status
-			stream = stream[buf:]
-			totalsent = totalsent + buf
-
-		ssl_sock.write(str(fBAOS))
-
-		if self.resizeImages is True and "image" in filetype:
-			os.remove(WAConstants.CACHE_PATH+"/" + os.path.basename(image))
-
-		sleep(1)
-		print "Done!"
-		print "Reading response..."
-		data = ssl_sock.recv(8192)
-		data += ssl_sock.recv(8192)
-		data += ssl_sock.recv(8192)
-		data += ssl_sock.recv(8192)
-		data += ssl_sock.recv(8192)
-		data += ssl_sock.recv(8192)
-		data += ssl_sock.recv(8192)
-		print data;
-		self.progressUpdated.emit(100)
-
-		if "<string>https://mms" in data:
-			n = data.find("<string>https://mms") +8
-			url = data[n:]
-			n = url.find("</string>")
-			url = url[:n]
-			#print "MMS ADDRESS: "+url
-			self.success.emit(url + "," + filename + "," + str(filesize), "upload")
-
-		else:
-			self.error.emit()
-
-
-
-	def pull(self,url,savePath):
-		try:
-			u = urllib2.urlopen(url)
-			f = open(savePath, 'wb')
-			meta = u.info()
-			fileSize = int(meta.getheaders("Content-Length")[0])
-		
-			fileSizeDl = 0
-			blockSz = 8192
-			lastEmit = 0
-			while True:
-			
-			
-				buffer = u.read(blockSz)
-				if not buffer:
-					break
-
-				fileSizeDl += len(buffer)
-				f.write(buffer)
-				status = (fileSizeDl * 100 / fileSize)
-			
-				if lastEmit != status:
-					self.progressUpdated.emit(status)
-					lastEmit = status;
-			
-			self.success.emit(self.savePath, "download")
-			
-		except:
-			self.error.emit()

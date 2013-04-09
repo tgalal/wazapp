@@ -18,6 +18,7 @@ Wazapp. If not, see http://www.gnu.org/licenses/.
 '''
 import md5
 import string
+import threading, sys, os
 
 from QtMobility.SystemInfo import QSystemDeviceInfo,QSystemNetworkInfo
 class Utilities():
@@ -95,6 +96,26 @@ class Utilities():
 		
 		return res;
 
+
+	@staticmethod
+	def getUniqueFilename(fn):
+		if not os.path.exists(fn):
+			return fn
+	
+		path, name = os.path.split(fn)
+		name, ext = os.path.splitext(name)
+	
+		make_fn = lambda i: os.path.join(path, '%s_%d%s' % (name, i, ext))
+		
+		
+		_xrange = range if sys.version_info >= (3, 0) else xrange
+	
+		for i in _xrange(2, sys.maxsize):
+			uni_fn = make_fn(i)
+			if not os.path.exists(uni_fn):
+				return uni_fn
+	
+		return None
 			
 
 	@staticmethod
@@ -233,3 +254,9 @@ class S40MD5Digest():
 		resArr = bytearray(res);
 		
 		return resArr;
+	
+def async(fn):
+	def wrapped(self, *args):
+		threading.Thread(target = fn, args = (self,) + args).start()
+	
+	return wrapped

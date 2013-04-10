@@ -201,7 +201,7 @@ Page {
     QueryDialog {
         id: sendConfirm
         titleText: qsTr("Confirm number")
-        message: qsTr("Whatsapp will send an SMS with your 3 digit activation code to %1. Is this phone number correct?").arg(cc_field.value+number_field.value)
+        message: qsTr("Whatsapp will send an SMS with your activation code to %1. Is this phone number correct?").arg(cc_field.value+number_field.value)
         acceptButtonText: qsTr("Yes")
         rejectButtonText: qsTr("No")
         onAccepted: saveAccount(countriesModel.get(cc_selector.selectedIndex).cc,number_field.value)

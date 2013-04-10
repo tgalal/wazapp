@@ -1,3 +1,10 @@
+wazapp (0.9.19) testing; urgency=high
+  * Fixed activation code description text
+  * Fixed #255 Remove "+" from Israel's CC
+  * Upgraded Yowsup, fixed sending media
+
+ -- tgalal <tarek[at]wazapp[dot]im>  Wed, 10 Apr 2013 01:33:16 +0200
+
 wazapp (0.9.17) testing; urgency=high
   * Updated to Yowsup 0.2.7
   * Fixed contacts sync

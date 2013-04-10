@@ -38,9 +38,10 @@ import shutil, datetime
 import thread
 import Image
 from PIL.ExifTags import TAGS
-import subprocess
 from Context.Provider import *
 from HTMLParser import HTMLParser
+from utilities import Utilities, async
+import time
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -159,6 +160,8 @@ class WAEventHandler(QObject):
 		
 		self.updater = None
 		
+		self.mediaRef = {}
+		
 		
 	############### NEW BACKEND STUFF
 	def strip(self, text):
@@ -267,6 +270,11 @@ class WAEventHandler(QObject):
 		
 		self.interfaceHandler.connectToSignal("auth_success", self.authSuccess)
 		self.interfaceHandler.connectToSignal("auth_fail", self.authFail)
+		
+		
+		self.interfaceHandler.connectToSignal("media_uploadRequestSuccess", self.onMediaUploadRequested)
+		self.interfaceHandler.connectToSignal("media_uploadRequestFailed", self.onMediaUploadRequestFailed)
+		self.interfaceHandler.connectToSignal("media_uploadRequestDuplicate", self.onMediaUploadRequestDuplicate)
 
 
 	################################################################
@@ -636,7 +644,7 @@ class WAEventHandler(QObject):
 		self.mediaHandlers.append(mediaHandler);
 	
 
-	def uploadMedia(self,mediaId):
+	def uploadMediaX(self,mediaId):
 		mediaMessage = WAXMPP.message_store.store.Message.create()
 		message = mediaMessage.findFirst({"media_id":mediaId})
 		jid = message.getConversation().getJid()
@@ -652,7 +660,7 @@ class WAEventHandler(QObject):
 		
 		self.mediaHandlers.append(mediaHandler);
 		
-	def uploadGroupMedia(self,mediaId):
+	def uploadGroupMediaX(self,mediaId):
 		mediaMessage = WAXMPP.message_store.store.Groupmessage.create()
 		message = mediaMessage.findFirst({"media_id":mediaId})
 		jid = message.getConversation().getJid()
@@ -667,9 +675,122 @@ class WAEventHandler(QObject):
 		mediaHandler.push();
 		
 		self.mediaHandlers.append(mediaHandler);
+
+	def uploadMedia(self,mediaId):
+		message = WAXMPP.message_store.store.Message.findFirst({"media_id":mediaId}) or WAXMPP.message_store.store.Groupmessage.findFirst({"media_id":mediaId})
+
+		jid = message.getConversation().getJid()
+		media = message.getMedia()
+
+		sha1 = hashlib.sha256()
+		f = open(media.local_path, 'rb')
+		try:
+			sha1.update(f.read())
+		finally:
+			f.close()
+		hsh = base64.b64encode(sha1.digest())
+		
+		if not hsh in self.mediaRef:
+			self.mediaRef[hsh] = media.id
+
+		mtype = "image"
+		
+		if media.mediatype_id == WAConstants.MEDIA_TYPE_VIDEO:
+			mtype="video"
+		elif media.mediatype_id == WAConstants.MEDIA_TYPE_AUDIO:
+			mtype="audio"
+		
+		self.startMediaUploadRequestTimeoutMonitor(hsh)
+			
+		self.interfaceHandler.call("media_requestUpload", (hsh,mtype, os.path.getsize(media.local_path)))
+
+
+	@async
+	def startMediaUploadRequestTimeoutMonitor(self, _hash):
+		time.sleep(10)
+		
+		if _hash in self.mediaRef:
+			self.onMediaUploadRequestFailed(_hash)
 	
+	def onMediaUploadRequestDuplicate(self, _hash, url):
+		self._d("Duplicate upload request")
+		
+		if not _hash in self.mediaRef:
+			return
+
+		mediaId = self.mediaRef[_hash]
+
+
+		message = WAXMPP.message_store.store.Message.findFirst({"media_id":mediaId}) or WAXMPP.message_store.store.Groupmessage.findFirst({"media_id":mediaId})
+		
+		
+		if message:
+		
+			jid = message.getConversation().getJid()
+			media = message.getMedia()
+			
+			if media:
+				self._mediaTransferSuccess(jid, message.id, media.local_path, "upload", url)
+
+		del self.mediaRef[_hash]
+
+	def onMediaUploadRequestFailed(self, _hash):
+		self._d("REQUEST FAILED")
+		
+		if not _hash in self.mediaRef:
+			return
+		
+		mediaId = self.mediaRef[_hash]
+		
+		message = WAXMPP.message_store.store.Message.findFirst({"media_id":mediaId}) or WAXMPP.message_store.store.Groupmessage.findFirst({"media_id":mediaId})
+		
+		jid = message.getConversation().getJid()
+		
+		if message:
+			self._mediaTransferError(jid, message.id)
+			
+		del self.mediaRef[_hash]
+		
+
+	def onMediaUploadRequested(self, _hash, uploadUrl, resumeFrom):
+		print("REQUESTED SUCCESSFULY")
+		
+		
+		if not _hash in self.mediaRef:
+			return
+		
+		
+		mediaId = self.mediaRef[_hash]
+		
+		message = WAXMPP.message_store.store.Message.findFirst({"media_id":mediaId}) or WAXMPP.message_store.store.Groupmessage.findFirst({"media_id":mediaId})
+			
+		if message:
+				
+		
+			jid = message.getConversation().getJid()
+			media = message.getMedia()
+			
+			if media and message:
+				
+				media.remote_url = uploadUrl
+				media.save()
+				
+				mediaHandler = WAMediaHandler(jid,message.id,media.local_path,media.mediatype_id,media.id,self.jid,self.resizeImages)
+				
+				mediaHandler.success.connect(self._mediaTransferSuccess)
+				mediaHandler.error.connect(self._mediaTransferError)
+				mediaHandler.progressUpdated.connect(self.mediaTransferProgressUpdated)
+				
+				mediaHandler.push(uploadUrl);
+				
+				self.mediaHandlers.append(mediaHandler);
+		else:
+			self._d("upload requested but message not found")
+			
+		del self.mediaRef[_hash]
+		
 	
-	def _mediaTransferSuccess(self, jid, messageId, data, action, mediaId):
+	def _mediaTransferSuccess(self, jid, messageId, path, action, url):
 		try:
 			jid.index('-')
 			message = WAXMPP.message_store.store.Groupmessage.create()
@@ -680,23 +801,22 @@ class WAEventHandler(QObject):
 		message = message.findFirst({'id':messageId});
 		
 		if(message.id):
-			print "MULTIMEDIA HANDLING DONE! ACTION: " + action
 			media = message.getMedia()
 			if (action=="download"):
 				#media.preview = data if media.mediatype_id == WAConstants.MEDIA_TYPE_IMAGE else None
-				media.local_path = data
+				media.local_path = path
 			else:
-				media.remote_url = data
+				media.remote_url = path
+
 			media.transfer_status = 2
 			media.save()
 			self._d(media.getModelData())
-			self.mediaTransferSuccess.emit(mediaId,media.local_path)
+			self.mediaTransferSuccess.emit(media.id, media.local_path)
 			if (action=="upload"):
-				self.sendMediaMessage(jid,messageId,data)
+				self.sendMediaMessage(jid,messageId, path, url)
 
 		
-	def _mediaTransferError(self, jid, messageId, mediaId):
-		print "MULTIMEDIA HANDLING ERROR!!!"
+	def _mediaTransferError(self, jid, messageId):
 		try:
 			jid.index('-')
 			message = WAXMPP.message_store.store.Groupmessage.create()
@@ -710,7 +830,7 @@ class WAEventHandler(QObject):
 			media = message.getMedia()
 			media.transfer_status = 1
 			media.save()
-			self.mediaTransferError.emit(mediaId)
+			self.mediaTransferError.emit(media.id)
 
 	## END MEDIA SEND/ RECEIVE ##
 
@@ -1354,7 +1474,7 @@ class WAEventHandler(QObject):
 
 
 
-	def sendMediaMessage(self,jid,messageId,data):
+	def sendMediaMessage(self,jid,messageId, path, url):
 		try:
 			jid.index('-')
 			message = WAXMPP.message_store.store.Groupmessage.create()
@@ -1363,9 +1483,9 @@ class WAEventHandler(QObject):
 		
 		message = message.findFirst({'id':messageId});
 		media = message.getMedia()
-		url = data.split(',')[0]
-		name = url.split('/')[-1]
-		size = data.split(',')[2]
+		
+		name = os.path.basename(path)
+		size = str(os.path.getsize(path))
 		self._d("sending media message to " + jid + " - file: " + url)
 		
 		

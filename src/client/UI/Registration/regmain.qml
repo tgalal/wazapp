@@ -227,7 +227,7 @@ PageStackWindow {
         ListElement{name: "Iraq"; cc:"964"; mcc:"418"}
         ListElement{name: "Iran"; cc:"98"; mcc:"432"}
         ListElement{name: "Ireland (Eire)"; cc:"353"; mcc:"272"}
-        ListElement{name: "Israel"; cc: "+972"; mcc:"425"}
+        ListElement{name: "Israel"; cc: "972"; mcc:"425"}
         ListElement{name: "Italy"; cc:"39"; mcc:"222"}
         ListElement{name: "Jamaica"; cc:"1"; mcc:"338"}
         ListElement{name: "Japan"; cc:"81"; mcc:"440,441"}

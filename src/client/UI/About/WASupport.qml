@@ -75,7 +75,7 @@ WAPage {
                id:bugReportText
                width:parent.width
                horizontalAlignment: Text.AlignHCenter
-               text:qsTr("Please Report any bugs to") + " <a href='http://bugs.wazapp.im'>http://bugs.wazapp.im</a>"
+               text:qsTr("Please Report any bugs to") + " <a href='https://github.com/tgalal/wazapp/issues'>https://github.com/tgalal/wazapp/issues</a>"
                onLinkActivated: Qt.openUrlExternally(link)
            }
        }

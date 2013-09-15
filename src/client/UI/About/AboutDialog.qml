@@ -78,7 +78,7 @@ Dialog {
                 Label{
                     id:descText
                     color:"white"
-                    text:qsTr("The Whatsapp client for Harmattan")
+                    text:qsTr("Part of OpenWhatsapp Project")
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
@@ -148,8 +148,8 @@ Dialog {
                 ImageTextLink{
                     id:browserButton
                     source: "images/icons/browser.png"
-                    text:"www.wazapp.im"
-                    url:"http://www.wazapp.im"
+                    text:"openwhatsapp.org"
+                    url:"http://www.openwhatsapp.org"
                     inverted: true
 
                 }
@@ -162,8 +162,8 @@ Dialog {
 
                 ImageTextLink{
                     source: "images/icons/facebook.png"
-                    text:"www.fb.me/WazappIM"
-                    url: "http://www.fb.me/WazappIM"
+                    text:"fb.me/OpenWhatsapp"
+                    url: "http://www.fb.me/OpenWhatsapp"
                     inverted: true
                 }
 

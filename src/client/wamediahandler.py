@@ -25,6 +25,7 @@ from wadebug import WADebug
 import os
 import mimetypes
 import shutil, sys
+from time import gmtime, strftime
 
 from Yowsup.Media.downloader import MediaDownloader
 from Yowsup.Media.uploader import MediaUploader
@@ -109,16 +110,16 @@ class WAMediaHandler(QObject):
 	
 	def getFilenamePrefix(self, mediatype_id):
 		if mediatype_id == WAConstants.MEDIA_TYPE_IMAGE:
-			return "owhatsapp_image"
+			return strftime("owhatsapp_image_%Y%m%d_%H%M%S", gmtime())
 		
 		if mediatype_id == WAConstants.MEDIA_TYPE_AUDIO:
-			return "owhatsapp_audio"
+			return strftime("owhatsapp_audio_%Y%m%d_%H%M%S", gmtime())
 		
 		if mediatype_id == WAConstants.MEDIA_TYPE_VIDEO:
-			return "owhatsapp_video"
+			return strftime("owhatsapp_video_%Y%m%d_%H%M%S", gmtime())
 
 		if mediatype_id == WAConstants.MEDIA_TYPE_VCARD:
-			return "owhatsapp_vcard"
+			return strftime("owhatsapp_vcard_%Y%m%d_%H%M%S", gmtime())
 			
 		return ""
 	
